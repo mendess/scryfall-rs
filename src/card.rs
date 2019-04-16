@@ -101,7 +101,7 @@ pub struct Cards {
 
 #[derive(Deserialize)]
 struct CardsJson {
-    next: Option<URI>,
+    next_page: Option<URI>,
     data: Vec<Card>,
 }
 
@@ -109,10 +109,11 @@ impl Iterator for Cards {
     type Item = CardResult<Vec<Card>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(next) = &self.next {
-            match url_fetch::<CardsJson>(&next) {
+        eprintln!("next: {:?}", self.next);
+        if self.next.is_some() {
+            match url_fetch::<CardsJson>(&self.next.take().unwrap()) {
                 Ok(cards) => {
-                    *self = Cards { next: cards.next };
+                    *self = Cards { next: cards.next_page };
                     Some(Ok(cards.data))
                 },
                 Err(error) => return Some(Err(error)),
@@ -140,7 +141,6 @@ impl Card {
     pub fn search(query: &str) -> Cards {
         let query = query.replace(" ", "+");
         let search = format!("{}/{}/search?q={}", API, API_CARDS, query);
-        eprintln!("{:?}", search);
         Cards {
             next: Some(String::from(search)),
         }

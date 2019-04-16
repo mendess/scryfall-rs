@@ -6,36 +6,35 @@ mod tests {
 
     #[test]
     fn random() {
-        let card = card::Card::random();
-        println!("{:?}", card);
-        assert!(card.is_ok())
+        assert!(card::Card::random().is_ok())
     }
 
     #[test]
     fn all_cards() {
         let card = card::Card::all()
             .take(10)
-            .map(|x| { println!("{:?}", x); x })
-            .all(|x| x.is_ok());
-        assert!(card)
+            .collect::<Vec<_>>();
+        assert!(card.iter().all(|x| x.is_ok()));
+        assert_eq!(card.len(), 10)
     }
 
     #[test]
     fn search() {
         let cards = card::Card::search("Jace")
-            .map(|x| { println!("{:?}", x); x })
             .all(|x| x.is_ok());
         assert!(cards)
     }
 
     #[test]
     fn named() {
-        assert!(card::Card::named("Lightning Bolt").is_ok())
+        let card = card::Card::named("Lightning Bolt").unwrap();
+        assert_eq!(card.name, "Lightning Bolt")
     }
 
     #[test]
     fn named_fuzzy() {
-        assert!(card::Card::named_fuzzy("Light Bol").is_ok())
+        let card = card::Card::named_fuzzy("Light Bol").unwrap();
+        assert_eq!(card.name, "Lightning Bolt")
     }
 
     #[test]
@@ -60,8 +59,7 @@ mod tests {
 
     #[test]
     fn id() {
-        assert_eq!(
-            card::Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b").unwrap().id,
-            "0b81b329-4ef5-4b55-9fe7-9ed69477e96b")
+        let card = card::Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b").unwrap();
+        assert_eq!(card.id, "0b81b329-4ef5-4b55-9fe7-9ed69477e96b")
     }
 }

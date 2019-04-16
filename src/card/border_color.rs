@@ -7,4 +7,5 @@ pub enum BorderColor {
     Borderless,
     Gold,
     White,
+    Silver,
 }
