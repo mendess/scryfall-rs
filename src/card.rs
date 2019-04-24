@@ -1,21 +1,21 @@
-mod color;
-mod layout;
-mod legality;
 mod border_color;
+mod color;
 mod frame;
 mod game;
+mod layout;
+mod legality;
 mod price;
 mod rarity;
 
-const API : &'static str = "https://api.scryfall.com";
-const API_CARDS : &'static str = "/cards";
+const API: &'static str = "https://api.scryfall.com";
+const API_CARDS: &'static str = "/cards";
 
-use color::Color;
-use layout::Layout;
-use legality::Legality;
 use border_color::BorderColor;
+use color::Color;
 use frame::Frame;
 use game::Game;
+use layout::Layout;
+use legality::Legality;
 use price::Price;
 use rarity::Rarity;
 
@@ -48,7 +48,7 @@ impl From<reqwest::Error> for CardError {
 }
 
 #[allow(dead_code)] // TODO: Remove this
-#[derive(Deserialize,Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Card {
     // Core card fields
     pub id: UUID,
@@ -113,16 +113,17 @@ impl Iterator for Cards {
         if self.next.is_some() {
             match url_fetch::<CardsJson>(&self.next.take().unwrap()) {
                 Ok(cards) => {
-                    *self = Cards { next: cards.next_page };
+                    *self = Cards {
+                        next: cards.next_page,
+                    };
                     Some(Ok(cards.data))
-                },
+                }
                 Err(error) => return Some(Err(error)),
             }
         } else {
             None
         }
     }
-
 }
 
 #[allow(dead_code)]
@@ -180,7 +181,9 @@ impl Card {
 }
 
 fn url_fetch<T>(url: &str) -> CardResult<T>
-where for<'de> T: Deserialize<'de>,{
+where
+    for<'de> T: Deserialize<'de>,
+{
     let resp = reqwest::get(url)?;
     if resp.status().is_success() {
         Ok(from_reader(resp)?)
@@ -188,4 +191,3 @@ where for<'de> T: Deserialize<'de>,{
         Err(CardError::Other(format!("{:?}", resp.status())))
     }
 }
-

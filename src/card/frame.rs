@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Deserialize,Debug)]
+#[derive(Deserialize, Debug)]
 pub enum Frame {
     #[serde(rename = "1993")]
     Y1993,

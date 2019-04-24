@@ -11,17 +11,14 @@ mod tests {
 
     #[test]
     fn all_cards() {
-        let card = card::Card::all()
-            .take(10)
-            .collect::<Vec<_>>();
+        let card = card::Card::all().take(10).collect::<Vec<_>>();
         assert!(card.iter().all(|x| x.is_ok()));
         assert_eq!(card.len(), 10)
     }
 
     #[test]
     fn search() {
-        let cards = card::Card::search("Jace")
-            .all(|x| x.is_ok());
+        let cards = card::Card::search("Jace").all(|x| x.is_ok());
         assert!(cards)
     }
 

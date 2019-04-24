@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Deserialize,Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Price {
     usd: Option<String>,
     usd_foil: Option<String>,

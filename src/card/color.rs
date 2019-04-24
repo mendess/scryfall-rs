@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-#[derive(Deserialize,Debug)]
+#[derive(Deserialize, Debug)]
 pub enum Color {
     #[serde(rename = "W")]
     White,
