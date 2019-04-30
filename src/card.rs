@@ -6,10 +6,14 @@ mod layout;
 mod legality;
 mod price;
 mod rarity;
+mod ruling;
 
-const API: &'static str = "https://api.scryfall.com";
-const API_CARDS: &'static str = "/cards";
+const API: &str = "https://api.scryfall.com";
+const API_CARDS: &str = "/cards";
 
+use super::card_set::CardSet;
+use super::util::uri::{url_fetch, URI};
+use super::util::UUID;
 use border_color::BorderColor;
 use color::Color;
 use frame::Frame;
@@ -18,15 +22,13 @@ use layout::Layout;
 use legality::Legality;
 use price::Price;
 use rarity::Rarity;
+use ruling::Ruling;
 
 use serde::Deserialize;
-use serde_json::from_reader;
 
 use std::collections::hash_map::HashMap;
 
-type UUID = String;
-type URI = String;
-type CardResult<T> = Result<T, CardError>;
+pub type CardResult<T> = Result<T, CardError>;
 
 #[derive(Debug)]
 pub enum CardError {
@@ -47,17 +49,16 @@ impl From<reqwest::Error> for CardError {
     }
 }
 
-#[allow(dead_code)] // TODO: Remove this
 #[derive(Deserialize, Debug)]
 pub struct Card {
     // Core card fields
     pub id: UUID,
     pub lang: String,
     pub oracle_id: UUID,
-    pub prints_search_uri: URI,
-    pub rulings_uri: URI,
-    pub scryfall_uri: URI,
-    pub uri: URI,
+    pub prints_search_uri: URI<Vec<Card>>,
+    pub rulings_uri: URI<Vec<Ruling>>,
+    pub scryfall_uri: String,
+    pub uri: URI<Card>,
     // Gameplay Fields
     pub cmc: f32,
     pub colors: Option<Vec<Color>>,
@@ -82,26 +83,27 @@ pub struct Card {
     pub highres_image: bool,
     pub prices: Price,
     pub promo: bool,
-    pub purchase_uris: HashMap<String, URI>,
+    pub purchase_uris: HashMap<String, String>,
     pub rarity: Rarity,
-    pub related_uris: HashMap<String, URI>,
+    pub related_uris: HashMap<String, String>,
     pub released_at: String, // TODO: Change to date
     pub reprint: bool,
-    pub scryfall_set_uri: URI,
+    pub scryfall_set_uri: String,
     pub set_name: String,
-    pub set_search_uri: URI,
-    pub set_uri: URI,
+    pub set_search_uri: Cards,
+    pub set_uri: URI<CardSet>,
     pub set: String,
     pub story_spotlight: bool,
 }
 
+#[derive(Debug, Deserialize)]
 pub struct Cards {
-    next: Option<URI>,
+    next: Option<URI<CardsJson>>,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 struct CardsJson {
-    next_page: Option<URI>,
+    next_page: Option<URI<CardsJson>>,
     data: Vec<Card>,
 }
 
@@ -109,16 +111,15 @@ impl Iterator for Cards {
     type Item = CardResult<Vec<Card>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        eprintln!("next: {:?}", self.next);
-        if self.next.is_some() {
-            match url_fetch::<CardsJson>(&self.next.take().unwrap()) {
+        if let Some(url) = self.next.take() {
+            match url_fetch::<CardsJson>(&String::from(url)) {
                 Ok(cards) => {
                     *self = Cards {
                         next: cards.next_page,
                     };
                     Some(Ok(cards.data))
                 }
-                Err(error) => return Some(Err(error)),
+                Err(error) => Some(Err(error)),
             }
         } else {
             None
@@ -131,7 +132,7 @@ impl Card {
     pub fn all() -> Cards {
         let cards = format!("{}/{}?page=1", API, API_CARDS);
         Cards {
-            next: Some(String::from(cards)),
+            next: Some(URI::from(cards)),
         }
     }
 
@@ -143,7 +144,7 @@ impl Card {
         let query = query.replace(" ", "+");
         let search = format!("{}/{}/search?q={}", API, API_CARDS, query);
         Cards {
-            next: Some(String::from(search)),
+            next: Some(URI::from(search)),
         }
     }
 
@@ -177,17 +178,5 @@ impl Card {
 
     pub fn card(query: &str) -> CardResult<Card> {
         url_fetch(&format!("{}/{}/{}", API, API_CARDS, query))
-    }
-}
-
-fn url_fetch<T>(url: &str) -> CardResult<T>
-where
-    for<'de> T: Deserialize<'de>,
-{
-    let resp = reqwest::get(url)?;
-    if resp.status().is_success() {
-        Ok(from_reader(resp)?)
-    } else {
-        Err(CardError::Other(format!("{:?}", resp.status())))
     }
 }

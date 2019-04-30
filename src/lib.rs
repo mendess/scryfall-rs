@@ -1,4 +1,6 @@
 mod card;
+mod card_set;
+mod util;
 
 #[cfg(test)]
 mod tests {
