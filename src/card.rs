@@ -26,6 +26,8 @@ use ruling::Ruling;
 
 use serde::Deserialize;
 
+use chrono::NaiveDate;
+
 use std::collections::hash_map::HashMap;
 
 pub type CardResult<T> = Result<T, CardError>;
@@ -86,7 +88,7 @@ pub struct Card {
     pub purchase_uris: HashMap<String, String>,
     pub rarity: Rarity,
     pub related_uris: HashMap<String, String>,
-    pub released_at: String, // TODO: Change to date
+    pub released_at: NaiveDate,
     pub reprint: bool,
     pub scryfall_set_uri: String,
     pub set_name: String,
