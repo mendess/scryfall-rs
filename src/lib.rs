@@ -1,10 +1,14 @@
 mod card;
 mod card_set;
+mod error;
 mod util;
+
+pub use error::Result;
 
 #[cfg(test)]
 mod tests {
     use crate::card;
+    use crate::card_set;
 
     #[test]
     fn random() {
@@ -13,15 +17,15 @@ mod tests {
 
     #[test]
     fn all_cards() {
-        let card = card::Card::all().take(10).collect::<Vec<_>>();
-        assert!(card.iter().all(|x| x.is_ok()));
-        assert_eq!(card.len(), 10)
+        let cards = card::Card::all().map(|x| x.unwrap()).collect::<Vec<_>>();
+        assert_eq!(cards.len(), 239_992)
     }
 
     #[test]
     fn search() {
-        let cards = card::Card::search("Jace").all(|x| x.is_ok());
-        assert!(cards)
+        card::Card::search("Jace")
+            .map(|x| x.unwrap())
+            .for_each(drop);
     }
 
     #[test]
@@ -65,5 +69,10 @@ mod tests {
     #[test]
     fn set() {
         assert!(card::Card::mtgo("54957").unwrap().set_uri.fetch().is_ok())
+    }
+
+    #[test]
+    fn all_sets() {
+        card_set::CardSet::all().map(|x| x.unwrap()).for_each(drop);
     }
 }
