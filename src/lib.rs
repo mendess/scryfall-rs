@@ -61,4 +61,9 @@ mod tests {
         let card = card::Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b").unwrap();
         assert_eq!(card.id, "0b81b329-4ef5-4b55-9fe7-9ed69477e96b")
     }
+
+    #[test]
+    fn set() {
+        assert!(card::Card::mtgo("54957").unwrap().set_uri.fetch().is_ok())
+    }
 }

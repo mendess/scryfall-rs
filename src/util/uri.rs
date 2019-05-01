@@ -5,6 +5,7 @@ use serde::Deserialize;
 use serde_json::from_reader;
 
 #[derive(Debug, Deserialize)]
+#[serde(transparent)]
 pub struct URI<T>(String, PhantomData<T>);
 
 impl<T> From<String> for URI<T> {
@@ -20,7 +21,7 @@ impl<T> From<URI<T>> for String {
 }
 
 impl<T> URI<T> {
-    fn fetch(&self) -> CardResult<T>
+    pub fn fetch(&self) -> CardResult<T>
     where
         for<'de> T: Deserialize<'de>,
     {

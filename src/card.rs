@@ -97,6 +97,7 @@ pub struct Card {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(transparent)]
 pub struct Cards {
     next: Option<URI<CardsJson>>,
 }
