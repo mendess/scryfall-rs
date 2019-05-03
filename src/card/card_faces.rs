@@ -5,7 +5,7 @@ use crate::util::UUID;
 
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct CardFace {
     pub artist: Option<String>,
     pub color_indicator: Option<Vec<Color>>,

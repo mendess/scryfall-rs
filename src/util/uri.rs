@@ -4,7 +4,7 @@ use std::marker::PhantomData;
 use serde::Deserialize;
 use serde_json::from_reader;
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct URI<T>(String, PhantomData<T>);
 
@@ -29,7 +29,7 @@ impl<T> URI<T> {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct PaginatedURI<T> {
     next: Option<URI<JsonParser<T>>>,
@@ -46,7 +46,7 @@ where
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 struct JsonParser<T> {
     next_page: Option<URI<JsonParser<T>>>,
     data: Vec<T>,

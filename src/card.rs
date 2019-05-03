@@ -1,17 +1,23 @@
-mod border_color;
-mod card_faces;
-mod color;
-mod frame;
-mod frame_effect;
-mod game;
-mod layout;
-mod legality;
-mod price;
-mod rarity;
-mod related_card;
-mod ruling;
+//! This module provides a defenition of a Magic: The Gathering card, as well as, ways to fetch
+//! them from scryfall.
+//!
+//! All the card's fields are public and identic in name to the ones documented in the oficial
+//! [scryfall page](https://scryfall.com/docs/api/cards).
 
-use super::card_set::CardSet;
+pub mod border_color;
+pub mod card_faces;
+pub mod color;
+pub mod frame;
+pub mod frame_effect;
+pub mod game;
+pub mod layout;
+pub mod legality;
+pub mod price;
+pub mod rarity;
+pub mod related_card;
+pub mod ruling;
+
+use super::set::Set;
 use super::util::uri::{url_fetch, PaginatedURI, URI};
 use super::util::UUID;
 use super::util::{API, API_CARDS};
@@ -33,7 +39,9 @@ use serde::Deserialize;
 
 use std::collections::hash_map::HashMap;
 
-#[derive(Deserialize, Debug)]
+/// A Card object containing all fields that `scryfall` provides, for documentation on each field
+/// please refer to their [documentation](https://scryfall.com/docs/api/cards)
+#[derive(Deserialize, Debug, Clone)]
 pub struct Card {
     // Core card fields
     pub arena_id: Option<usize>,
@@ -97,7 +105,7 @@ pub struct Card {
     pub scryfall_set_uri: String,
     pub set_name: String,
     pub set_search_uri: PaginatedURI<Card>,
-    pub set_uri: URI<CardSet>,
+    pub set_uri: URI<Set>,
     pub set: String,
     pub story_spotlight: bool,
     pub watermark: Option<String>,
@@ -105,21 +113,64 @@ pub struct Card {
 
 #[allow(dead_code)]
 impl Card {
+    /// Returns a `PaginatedURI` of all the cards in the `scryfall` database.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// match Card::all().next().unwrap() {
+    ///     Ok(cards) => assert_ne!(cards.len(), 0),
+    ///     Err(e) => eprintln!("{:?}", e)
+    /// }
+    /// ```
     pub fn all() -> PaginatedURI<Card> {
         let cards = format!("{}/{}?page=1", API, API_CARDS);
         PaginatedURI::new(URI::from(cards))
     }
 
-    pub fn random() -> crate::Result<Self> {
+    /// Fetches a random card
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// match Card::random() {
+    ///     Ok(card) => println!("{}", card.name),
+    ///     Err(e) => eprintln!("{:?}", e)
+    /// }
+    /// ```
+    pub fn random() -> crate::Result<Card> {
         url_fetch("https://api.scryfall.com/cards/random")
     }
 
+    /// Returns a `PaginatedURI` of the cards that match the search terms.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// match Card::search("Jace").next().unwrap() {
+    ///     Ok(cards) => assert_ne!(cards.len(), 0),
+    ///     Err(e) => eprintln!("{:?}", e)
+    /// }
+    /// ```
     pub fn search(query: &str) -> PaginatedURI<Card> {
         let query = query.replace(" ", "+");
         let search = format!("{}/{}/search?q={}", API, API_CARDS, query);
         PaginatedURI::new(URI::from(search))
     }
 
+    /// Return a card with the exact name
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// assert_eq!(Card::named("Lightning Bolt").unwrap().name, "Lightning Bolt")
+    /// ```
+    ///
+    /// ```rust
+    /// # use scryfall::card::Card;
+    /// use scryfall::error::Error;
+    /// assert!(Card::named("Name that doesn't exist").is_err())
+    /// ```
     pub fn named(query: &str) -> crate::Result<Card> {
         let query = query.replace(" ", "+");
         let named = format!("{}/{}/named?exact={}", API, API_CARDS, query);
@@ -148,7 +199,7 @@ impl Card {
         url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
     }
 
-    pub fn card(query: &str) -> crate::Result<Card> {
+    pub fn card(query: UUID) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/{}", API, API_CARDS, query))
     }
 }
