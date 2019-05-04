@@ -40,7 +40,6 @@ pub struct Set {
     pub search_uri: PaginatedURI<Card>,
 }
 
-#[allow(dead_code)]
 impl Set {
     /// Returns a `PaginatedURI` of all the sets in the `scryfall` database.
     ///

@@ -15,12 +15,12 @@ pub mod legality;
 pub mod price;
 pub mod rarity;
 pub mod related_card;
-pub mod ruling;
 
-use super::set::Set;
-use super::util::uri::{url_fetch, PaginatedURI, URI};
-use super::util::UUID;
-use super::util::{API, API_CARDS};
+use crate::ruling::Ruling;
+use crate::set::Set;
+use crate::util::uri::{url_fetch, PaginatedURI, URI};
+use crate::util::UUID;
+use crate::util::{API, API_CARDS};
 pub use border_color::BorderColor;
 pub use card_faces::CardFace;
 pub use color::Color;
@@ -32,7 +32,6 @@ pub use legality::Legality;
 pub use price::Price;
 pub use rarity::Rarity;
 pub use related_card::RelatedCard;
-pub use ruling::Ruling;
 
 use chrono::NaiveDate;
 use serde::Deserialize;
@@ -113,7 +112,6 @@ pub struct Card {
     pub watermark: Option<String>,
 }
 
-#[allow(dead_code)]
 impl Card {
     /// Returns a `PaginatedURI` of all the cards in the `scryfall` database.
     ///
@@ -199,7 +197,7 @@ impl Card {
     /// use scryfall::card::Card;
     /// assert_eq!(Card::multiverse(409574).unwrap().name, "Strip Mine")
     /// ```
-    pub fn multiverse<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
+    pub fn multiverse(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/multiverse/{}", API, API_CARDS, query))
     }
 
@@ -210,7 +208,7 @@ impl Card {
     /// use scryfall::card::Card;
     /// assert_eq!(Card::mtgo(54957).unwrap().name, "Ghost Quarter")
     /// ```
-    pub fn mtgo<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
+    pub fn mtgo(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/mtgo/{}", API, API_CARDS, query))
     }
 
@@ -221,7 +219,7 @@ impl Card {
     /// use scryfall::card::Card;
     /// assert_eq!(Card::arena(67330).unwrap().name, "Yargle, Glutton of Urborg")
     /// ```
-    pub fn arena<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
+    pub fn arena(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/arena/{}", API, API_CARDS, query))
     }
 
@@ -232,7 +230,7 @@ impl Card {
     /// use scryfall::card::Card;
     /// assert_eq!(Card::tcgplayer(67330).unwrap().name, "Fathom Mage")
     /// ```
-    pub fn tcgplayer<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
+    pub fn tcgplayer(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
     }
 
