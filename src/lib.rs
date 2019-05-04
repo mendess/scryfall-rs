@@ -1,3 +1,6 @@
+//! [Scryfall](https://scryfall.com) provides a REST-like API for ingesting our card data
+//! programatically. The API exposes information available on the regular site in easy-to-consume
+//! formats.
 pub mod card;
 pub mod error;
 pub mod set;
@@ -9,6 +12,7 @@ pub use error::Result;
 mod tests {
     use crate::card;
     use crate::set;
+    use crate::util;
 
     #[test]
     fn random() {
@@ -65,7 +69,7 @@ mod tests {
 
     #[test]
     fn id() {
-        let card = card::Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b").unwrap();
+        let card = card::Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".to_string()).unwrap();
         assert_eq!(card.id, "0b81b329-4ef5-4b55-9fe7-9ed69477e96b")
     }
 
@@ -77,5 +81,18 @@ mod tests {
     #[test]
     fn all_sets() {
         set::Set::all().map(|x| x.unwrap()).for_each(drop);
+    }
+
+    #[test]
+    fn foo() {
+        use card::Card;
+        use util::uri::URI;
+        assert_eq!(
+            URI::<Card>::from("https://api.scryfall.com/cards/arena/67330".to_string())
+                .fetch()
+                .unwrap()
+                .name,
+            Card::arena(67330).unwrap().name
+        )
     }
 }

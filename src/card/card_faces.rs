@@ -1,3 +1,7 @@
+//! Sub card object used when a magic card has more then one card face.
+//!
+//! For documentation about the fields, please refer to the official scryfall
+//! [documentation](https://scryfall.com/docs/api/cards)
 use serde::Deserialize;
 
 use super::color::Color;
@@ -5,6 +9,10 @@ use crate::util::UUID;
 
 use std::collections::HashMap;
 
+/// Sub card object used when a magic card has more then one card face.
+///
+/// For documentation about the fields, please refer to the official scryfall
+/// [documentation](https://scryfall.com/docs/api/cards)
 #[derive(Debug, Deserialize, Clone)]
 pub struct CardFace {
     pub artist: Option<String>,

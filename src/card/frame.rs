@@ -1,5 +1,7 @@
+//! Enum describing the various magic card frames
 use serde::Deserialize;
 
+/// Enum describing the various magic card frames
 #[derive(Deserialize, Debug, Clone, Copy)]
 pub enum Frame {
     #[serde(rename = "1993")]

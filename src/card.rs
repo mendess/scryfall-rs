@@ -21,26 +21,28 @@ use super::set::Set;
 use super::util::uri::{url_fetch, PaginatedURI, URI};
 use super::util::UUID;
 use super::util::{API, API_CARDS};
-use border_color::BorderColor;
-use card_faces::CardFace;
-use color::Color;
-use frame::Frame;
-use frame_effect::FrameEffect;
-use game::Game;
-use layout::Layout;
-use legality::Legality;
-use price::Price;
-use rarity::Rarity;
-use related_card::RelatedCard;
-use ruling::Ruling;
+pub use border_color::BorderColor;
+pub use card_faces::CardFace;
+pub use color::Color;
+pub use frame::Frame;
+pub use frame_effect::FrameEffect;
+pub use game::Game;
+pub use layout::Layout;
+pub use legality::Legality;
+pub use price::Price;
+pub use rarity::Rarity;
+pub use related_card::RelatedCard;
+pub use ruling::Ruling;
 
 use chrono::NaiveDate;
 use serde::Deserialize;
 
 use std::collections::hash_map::HashMap;
 
-/// A Card object containing all fields that `scryfall` provides, for documentation on each field
-/// please refer to their [documentation](https://scryfall.com/docs/api/cards)
+/// A Card object containing all fields that `scryfall` provides,
+///
+/// For documentation on each field please refer to their
+/// [documentation](https://scryfall.com/docs/api/cards)
 #[derive(Deserialize, Debug, Clone)]
 pub struct Card {
     // Core card fields
@@ -177,28 +179,72 @@ impl Card {
         url_fetch(&named)
     }
 
+    /// Return a card using the scryfall fuzzy finder
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// assert_eq!(Card::named_fuzzy("Light Bolt").unwrap().name, "Lightning Bolt")
+    /// ```
     pub fn named_fuzzy(query: &str) -> crate::Result<Card> {
         let query = query.replace(" ", "+");
         let named = format!("{}/{}/named?fuzzy={}", API, API_CARDS, query);
         url_fetch(&named)
     }
 
-    pub fn multiverse(query: &str) -> crate::Result<Card> {
+    /// Fetch a card by it's multiverse id
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// assert_eq!(Card::multiverse(409574).unwrap().name, "Strip Mine")
+    /// ```
+    pub fn multiverse<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/multiverse/{}", API, API_CARDS, query))
     }
 
-    pub fn mtgo(query: &str) -> crate::Result<Card> {
+    /// Fetch a card by it's mtgo id
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// assert_eq!(Card::mtgo(54957).unwrap().name, "Ghost Quarter")
+    /// ```
+    pub fn mtgo<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/mtgo/{}", API, API_CARDS, query))
     }
 
-    pub fn arena(query: &str) -> crate::Result<Card> {
+    /// Fetch a card by it's arena id
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// assert_eq!(Card::arena(67330).unwrap().name, "Yargle, Glutton of Urborg")
+    /// ```
+    pub fn arena<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/arena/{}", API, API_CARDS, query))
     }
 
-    pub fn tcgplayer(query: &str) -> crate::Result<Card> {
+    /// Fetch a card by it's tcgplayer id
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// assert_eq!(Card::tcgplayer(67330).unwrap().name, "Fathom Mage")
+    /// ```
+    pub fn tcgplayer<T: std::fmt::Display>(query: T) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
     }
 
+    /// Fetch a card by it's UUID
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// assert_eq!(
+    ///     Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".to_string()).unwrap().name,
+    ///     "Cowed by Wisdom")
+    /// ```
     pub fn card(query: UUID) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/{}", API, API_CARDS, query))
     }

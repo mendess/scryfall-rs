@@ -1,5 +1,7 @@
+//! Enum describing the various layouts a magic card can have.
 use serde::Deserialize;
 
+/// Enum describing the various layouts a magic card can have.
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
 pub enum Layout {

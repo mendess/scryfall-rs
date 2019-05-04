@@ -1,9 +1,11 @@
+//! Module defining a price object containing data in various currencies.
 use serde::Deserialize;
 
+/// Struct defining a price object containing data in various currencies.
 #[derive(Deserialize, Debug, Clone)]
 pub struct Price {
-    usd: Option<String>,
-    usd_foil: Option<String>,
-    eur: Option<String>,
-    tix: Option<String>,
+    pub usd: Option<String>,
+    pub usd_foil: Option<String>,
+    pub eur: Option<String>,
+    pub tix: Option<String>,
 }
