@@ -2,13 +2,15 @@
 
 Link to the [docs](https://docs.rs/scryfall/0.1.1/scryfall/)
 
-A wrapper around the scryfall magic the gathering api
+A wrapper around the scryfall magic the gathering API
 
 This is a work in progress, but the basic api is wrapped and can be used,
-but until v1.0 breaking changes should be expected.
+however until v1.0 releases breaking changes should be expected.
 
 ## TODO
 
-[ ] Search Wrapper
-[ ] Use `reqwest::Client` for faster requests
-[ ] Cache results as requested by the `scryfall` API
+- [ ] Search Wrapper
+
+- [ ] Use `reqwest::Client` for faster requests
+
+- [ ] Cache results as requested by the `scryfall` API
