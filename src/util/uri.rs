@@ -6,7 +6,6 @@ use crate::error::Error;
 use std::marker::PhantomData;
 
 use serde::Deserialize;
-use serde_json::from_reader;
 
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Debug, Deserialize, Clone)]
@@ -19,13 +18,22 @@ impl<T> From<String> for URI<T> {
     }
 }
 
-impl<T> From<URI<T>> for String {
-    fn from(s: URI<T>) -> Self {
-        s.0
+impl<T> URI<T> {
+    fn as_str(&self) -> &str {
+        &self.0
     }
 }
 
-impl<T> URI<T> {
+impl<T> AsRef<str> for URI<T> {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
+impl<T> URI<T>
+where
+    for<'de> T: Deserialize<'de>,
+{
     /// Fetch the object of type `T` that this `URL` is pointing to.
     ///
     /// # Examples
@@ -38,17 +46,15 @@ impl<T> URI<T> {
     ///         .name,
     ///     Card::arena(67330).unwrap().name)
     /// ```
-    pub fn fetch(&self) -> crate::Result<T>
-    where
-        for<'de> T: Deserialize<'de>,
-    {
+    pub fn fetch(&self) -> crate::Result<T> {
         url_fetch(&self.0)
     }
 }
 
 /// A paginating URL fetcher.
 ///
-/// Sometimes the data pointed to by a URL is paginated. In that case a `PaginatedURI` is needed to
+/// Sometimes the data pointed to by a URL is paginated. In that case a
+/// `PaginatedURI` is needed to
 /// iterate over the pages of data.
 #[derive(Debug, Deserialize, Clone)]
 #[serde(transparent)]
@@ -81,19 +87,12 @@ where
     type Item = crate::Result<Vec<T>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(url) = self.next.take() {
-            match url_fetch::<JsonParser<T>>(&String::from(url)) {
-                Ok(cards) => {
-                    *self = PaginatedURI {
-                        next: cards.next_page,
-                    };
-                    Some(Ok(cards.data))
-                }
-                Err(error) => Some(Err(error)),
-            }
-        } else {
-            None
-        }
+        self.next.take().map(|url| {
+            url_fetch(url).map(|cards: JsonParser<T>| {
+                self.next = cards.next_page;
+                cards.data
+            })
+        })
     }
 }
 
@@ -103,18 +102,18 @@ where
 /// ```rust
 /// use scryfall::{util::uri::url_fetch, card::Card};
 /// assert_eq!(
-///     url_fetch::<Card>("https://api.scryfall.com/cards/arena/67330")
+///     url_fetch::<Card,_>("https://api.scryfall.com/cards/arena/67330")
 ///         .unwrap()
 ///         .name,
 ///     Card::arena(67330).unwrap().name)
 /// ```
-pub fn url_fetch<T>(url: &str) -> crate::Result<T>
+pub fn url_fetch<T, I: AsRef<str>>(url: I) -> crate::Result<T>
 where
     for<'de> T: Deserialize<'de>,
 {
-    let resp = reqwest::get(url)?;
+    let resp = reqwest::get(url.as_ref())?;
     if resp.status().is_success() {
-        Ok(from_reader(resp)?)
+        Ok(serde_json::from_reader(resp)?)
     } else {
         Err(Error::Other(format!("{:?}", resp.status())))
     }

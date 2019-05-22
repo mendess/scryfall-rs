@@ -1,9 +1,7 @@
 //! This module provides a defenition of a Magic: The Gathering card, as well as, ways to fetch
 //! them from scryfall.
 //!
-//! All the card's fields are public and identic in name to the ones documented in the oficial
-//! [scryfall page](https://scryfall.com/docs/api/cards).
-
+//! All the card's fields are public and identic in name to the ones documented in the oficial [scryfall page](https://scryfall.com/docs/api/cards).
 pub mod border_color;
 pub mod card_faces;
 pub mod color;
@@ -16,6 +14,7 @@ pub mod price;
 pub mod rarity;
 pub mod related_card;
 
+use crate::card_searcher::Search;
 use crate::ruling::Ruling;
 use crate::set::Set;
 use crate::util::uri::{url_fetch, PaginatedURI, URI};
@@ -151,10 +150,14 @@ impl Card {
     ///     Ok(cards) => assert_ne!(cards.len(), 0),
     ///     Err(e) => eprintln!("{:?}", e)
     /// }
+    /// assert!(Card::search("lightning")
+    ///     .filter_map(|x| x.ok())
+    ///     .flatten()
+    ///     .all(|x| x.name.to_lowercase().contains("lightning")))
     /// ```
-    pub fn search(query: &str) -> PaginatedURI<Card> {
-        let query = query.replace(" ", "+");
-        let search = format!("{}/{}/search?q={}", API, API_CARDS, query);
+    pub fn search<S: Search>(query: S) -> PaginatedURI<Card> {
+        let query = query.to_query().replace(" ", "+");
+        let search = format!("{}/{}/search?{}", API, API_CARDS, query);
         PaginatedURI::new(URI::from(search))
     }
 
