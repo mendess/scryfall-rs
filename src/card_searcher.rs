@@ -1,4 +1,4 @@
-use crate::card::color::Colors;
+use crate::card::{color::Colors, rarity::Rarity};
 
 use std::collections::HashMap;
 
@@ -146,6 +146,22 @@ pub struct SearchBuilder {
     is_hybrid: bool,
     mana_cost: Option<String>,
     cmc: Option<u8>,
+    power: Option<(String, ComparisonExpr)>,
+    toughness: Option<(String, ComparisonExpr)>,
+    loyalty: Option<(String, ComparisonExpr)>,
+    split: bool,
+    flip: bool,
+    transform: bool,
+    meld: bool,
+    leveler: bool,
+    spell: bool,
+    permanent: bool,
+    historic: bool,
+    modal: bool,
+    vanilla: bool,
+    funny: bool,
+    rarity: Option<(Rarity, ComparisonExpr)>,
+    new_rarity: Option<(Rarity, ComparisonExpr)>,
 }
 
 #[allow(dead_code)]
@@ -222,6 +238,61 @@ impl SearchBuilder {
 
     pub fn with_cmc(&mut self, cmc: u8) -> &mut Self {
         self.cmc = Some(cmc);
+        self
+    }
+
+    pub fn with_power(&mut self, power: String, comp_expr: ComparisonExpr) -> &mut Self {
+        self.power = Some((power, comp_expr));
+        self
+    }
+
+    pub fn with_toughness(&mut self, toughness: String, comp_expr: ComparisonExpr) -> &mut Self {
+        self.toughness = Some((toughness, comp_expr));
+        self
+    }
+
+    pub fn with_loyalty(&mut self, loyalty: String, comp_expr: ComparisonExpr) -> &mut Self {
+        self.loyalty = Some((loyalty, comp_expr));
+        self
+    }
+
+    pub fn and_is_split(&mut self) -> &mut Self {
+        self.split = true;
+        self
+    }
+
+    pub fn and_is_flip(&mut self) -> &mut Self {
+        self.flip = true;
+        self
+    }
+
+    pub fn and_is_transform(&mut self) -> &mut Self {
+        self.transform = true;
+        self
+    }
+
+    pub fn and_is_meld(&mut self) -> &mut Self {
+        self.meld = true;
+        self
+    }
+
+    pub fn and_is_leveler(&mut self) -> &mut Self {
+        self.leveler = true;
+        self
+    }
+
+    pub fn and_is_funny(&mut self) -> &mut Self {
+        self.funny = true;
+        self
+    }
+
+    pub fn with_rarity(&mut self, rarity: Rarity, comp_expr: ComparisonExpr) -> &mut Self {
+        self.rarity = Some((rarity, comp_expr));
+        self
+    }
+
+    pub fn with_new_rarity(&mut self, rarity: Rarity, comp_expr: ComparisonExpr) -> &mut Self {
+        self.new_rarity = Some((rarity, comp_expr));
         self
     }
 }
