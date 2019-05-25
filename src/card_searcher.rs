@@ -1,6 +1,9 @@
+#![allow(dead_code)]
 use crate::card::{color::Colors, rarity::Rarity};
 
-use std::collections::HashMap;
+use std::fmt::Write;
+
+use percent_encoding::{percent_encode, DEFAULT_ENCODE_SET};
 
 pub trait Search {
     fn to_query(&self) -> String;
@@ -8,9 +11,12 @@ pub trait Search {
 
 impl Search for &str {
     fn to_query(&self) -> String {
-        use percent_encoding::{percent_encode, DEFAULT_ENCODE_SET};
         format!("q={}", percent_encode(self.as_bytes(), DEFAULT_ENCODE_SET))
     }
+}
+
+pub trait Param {
+    fn to_param(&self) -> String;
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -26,18 +32,15 @@ impl Default for UniqueStrategy {
     }
 }
 
-impl std::fmt::Display for UniqueStrategy {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Param for UniqueStrategy {
+    fn to_param(&self) -> String {
         use UniqueStrategy::*;
-        write!(
-            f,
-            "unique={}",
-            match self {
+        String::from("unique=")
+            + match self {
                 Cards => "cards",
                 Arts => "art",
                 Prints => "prints",
             }
-        )
     }
 }
 
@@ -64,13 +67,11 @@ impl Default for SortMethod {
     }
 }
 
-impl std::fmt::Display for SortMethod {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Param for SortMethod {
+    fn to_param(&self) -> String {
         use SortMethod::*;
-        write!(
-            f,
-            "order={}",
-            match self {
+        String::from("order=")
+            + match self {
                 Name => "name",
                 Set => "set",
                 Released => "released",
@@ -85,7 +86,6 @@ impl std::fmt::Display for SortMethod {
                 Edhrec => "edhrec",
                 Artist => "artist",
             }
-        )
     }
 }
 
@@ -102,16 +102,72 @@ impl Default for SortDirection {
     }
 }
 
-impl std::fmt::Display for SortDirection {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Param for SortDirection {
+    fn to_param(&self) -> String {
         use SortDirection::*;
-        write!(
-            f,
+        format!(
             "dir={}",
             match self {
                 Auto => "auto",
                 Ascending => "asc",
                 Descending => "desc",
+            }
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum BooleanParam {
+    IncludeExtras,
+    IncludeMultilingual,
+    IncludeVaraitions,
+    ColorIndicator,
+    NewRarity,
+    IsPhyrexian,
+    IsHybrid,
+    IsSplit,
+    IsFlip,
+    IsTransform,
+    IsMeld,
+    IsLeveler,
+    IsSpell,
+    IsPermanent,
+    IsHistoric,
+    IsModal,
+    IsVanilla,
+    IsFunny,
+}
+
+impl Param for BooleanParam {
+    fn to_param(&self) -> String {
+        use BooleanParam::*;
+        format!(
+            "{}:{}=true",
+            match self {
+                IncludeExtras | IncludeMultilingual | IncludeVaraitions => "include",
+                ColorIndicator => "has",
+                NewRarity => "new",
+                _ => "is",
+            },
+            match self {
+                IncludeExtras => "extras",
+                IncludeMultilingual => "multilingual",
+                IncludeVaraitions => "variations",
+                ColorIndicator => "indicator",
+                NewRarity => "rarity",
+                IsPhyrexian => "phyrexian",
+                IsHybrid => "hybrid",
+                IsSplit => "split",
+                IsFlip => "flip",
+                IsTransform => "transform",
+                IsMeld => "meld",
+                IsLeveler => "leveler",
+                IsSpell => "spell",
+                IsPermanent => "permanent",
+                IsHistoric => "historic",
+                IsModal => "modal",
+                IsVanilla => "vanilla",
+                IsFunny => "funny",
             }
         )
     }
@@ -127,181 +183,194 @@ pub enum ComparisonExpr {
     IsNot,
 }
 
-#[derive(Debug, Default, Clone)]
+impl std::fmt::Display for ComparisonExpr {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        use ComparisonExpr::*;
+        write!(
+            f,
+            "{}",
+            match self {
+                AtLeast => ">",
+                AtLeastInclusive => ">=",
+                AtMost => "<",
+                AtMostInclusive => "<=",
+                Is => "=",
+                IsNot => "!=",
+            }
+        )
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum StringParam {
+    ManaCost(String),
+    Type(String),
+    NotType(String),
+    Oracle(String),
+    OracleFull(String),
+    Power(String, ComparisonExpr),
+    Toughness(String, ComparisonExpr),
+    Loyalty(String, ComparisonExpr),
+}
+
+impl Param for StringParam {
+    fn to_param(&self) -> String {
+        use StringParam::*;
+        match self {
+            ManaCost(s) => format!("s:{}", s),
+            Type(s) => format!("t:{}", s),
+            NotType(s) => format!("-t:{}", s),
+            Oracle(s) => format!("o:{}", s),
+            OracleFull(s) => format!("fo:{}", s),
+            Power(s, c) => format!("pow{}{}", c, s),
+            Toughness(s, c) => format!("tou{}{}", c, s),
+            Loyalty(s, c) => format!("loy{}{}", c, s),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum NumericParam {
+    Page(usize),
+    CMC(usize),
+}
+
+impl Param for NumericParam {
+    fn to_param(&self) -> String {
+        use NumericParam::*;
+        match self {
+            Page(p) => format!("page={}", p),
+            CMC(p) => format!("cmc={}", p),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct RarityParam {
+    rarity: Rarity,
+    comp_expr: ComparisonExpr,
+}
+
+impl RarityParam {
+    pub fn rarity(rarity: Rarity, comp_expr: ComparisonExpr) -> Self {
+        RarityParam { rarity, comp_expr }
+    }
+}
+
+impl Param for RarityParam {
+    fn to_param(&self) -> String {
+        format!(
+            "r{}{}",
+            self.comp_expr,
+            match self.rarity {
+                Rarity::Common => "c",
+                Rarity::Uncommon => "u",
+                Rarity::Rare => "r",
+                Rarity::Mythic => "m",
+            }
+        )
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ColorParam {
+    Color(Colors, ComparisonExpr),
+    ColorIdentity(Colors, ComparisonExpr),
+}
+
+impl ColorParam {
+    fn new_colors(colors: Colors, comp_expr: ComparisonExpr) -> Self {
+        ColorParam::Color(colors, comp_expr)
+    }
+
+    fn new_color_identity(colors: Colors, comp_expr: ComparisonExpr) -> Self {
+        ColorParam::ColorIdentity(colors, comp_expr)
+    }
+}
+
+impl Param for ColorParam {
+    fn to_param(&self) -> String {
+        use ColorParam::*;
+        match self {
+            Color(cl, ce) => format!("c{}{}", cl, ce),
+            ColorIdentity(cl, ce) => format!("id{}{}", cl, ce),
+        }
+    }
+}
+
 pub struct SearchBuilder {
-    unique_strategy: UniqueStrategy,
-    sort_by: SortMethod,
-    sort_direction: SortDirection,
+    unique: UniqueStrategy,
+    order: SortMethod,
+    dir: SortDirection,
+    page: usize,
     include_extras: bool,
     include_multilingual: bool,
     include_variations: bool,
-    page: usize,
-    colors: HashMap<ComparisonExpr, Colors>,
-    color_identity: HashMap<ComparisonExpr, Colors>,
-    indicator: bool,
-    with_types: Vec<String>,
-    without_types: Vec<String>,
-    oracle_texts: Vec<(String, bool)>,
-    is_pyrexian: bool,
-    is_hybrid: bool,
-    mana_cost: Option<String>,
-    cmc: Option<u8>,
-    power: Option<(String, ComparisonExpr)>,
-    toughness: Option<(String, ComparisonExpr)>,
-    loyalty: Option<(String, ComparisonExpr)>,
-    split: bool,
-    flip: bool,
-    transform: bool,
-    meld: bool,
-    leveler: bool,
-    spell: bool,
-    permanent: bool,
-    historic: bool,
-    modal: bool,
-    vanilla: bool,
-    funny: bool,
-    rarity: Option<(Rarity, ComparisonExpr)>,
-    new_rarity: Option<(Rarity, ComparisonExpr)>,
+    params: Vec<Box<dyn Param>>,
 }
 
-#[allow(dead_code)]
 impl SearchBuilder {
-    pub fn unique_strategy(&mut self, strat: UniqueStrategy) -> &mut Self {
-        self.unique_strategy = strat;
+    fn new() -> Self {
+        SearchBuilder {
+            page: 1,
+            unique: Default::default(),
+            order: Default::default(),
+            dir: Default::default(),
+            include_extras: false,
+            include_multilingual: false,
+            include_variations: false,
+            params: vec![],
+        }
+    }
+    pub fn with_unique_strategy(&mut self, strat: UniqueStrategy) -> &mut Self {
+        self.unique = strat;
         self
     }
 
-    pub fn sort_by(&mut self, sort_method: SortMethod) -> &mut Self {
-        self.sort_by = sort_method;
+    pub fn with_sort_order(&mut self, strat: SortMethod) -> &mut Self {
+        self.order = strat;
         self
     }
 
-    pub fn sort_direction(&mut self, sort_direction: SortDirection) -> &mut Self {
-        self.sort_direction = sort_direction;
+    pub fn with_sort_direction(&mut self, dir: SortDirection) -> &mut Self {
+        self.dir = dir;
         self
     }
 
-    pub fn with_extras(&mut self) -> &mut Self {
+    pub fn include_extras(&mut self) -> &mut Self {
         self.include_extras = true;
         self
     }
 
-    pub fn with_multilingual(&mut self) -> &mut Self {
+    pub fn include_multilingual(&mut self) -> &mut Self {
+        self.include_multilingual = true;
+        self
+    }
+
+    pub fn include_variations(&mut self) -> &mut Self {
         self.include_variations = true;
         self
     }
 
-    pub fn with_colors(&mut self, colors: Colors, comp_expr: ComparisonExpr) -> &mut Self {
-        self.colors.insert(comp_expr, colors);
+    pub fn on_page(&mut self, page: usize) -> &mut Self {
+        self.page = page;
         self
     }
 
-    pub fn with_color_identity(&mut self, colors: Colors, comp_expr: ComparisonExpr) -> &mut Self {
-        self.color_identity.insert(comp_expr, colors);
-        self
-    }
-
-    pub fn with_indicator(&mut self) -> &mut Self {
-        self.indicator = true;
-        self
-    }
-
-    pub fn with_type(&mut self, type_name: String) -> &mut Self {
-        self.with_types.push(type_name);
-        self
-    }
-
-    pub fn with_types(&mut self, type_names: &mut Vec<String>) -> &mut Self {
-        self.with_types.append(type_names);
-        self
-    }
-
-    pub fn without_types(&mut self, type_names: &mut Vec<String>) -> &mut Self {
-        self.without_types.append(type_names);
-        self
-    }
-
-    pub fn with_oracle(&mut self, oracle_text: String) -> &mut Self {
-        self.oracle_texts.push((oracle_text, false));
-        self
-    }
-
-    pub fn with_oracle_full(&mut self, oracle_text: String) -> &mut Self {
-        self.oracle_texts.push((oracle_text, true));
-        self
-    }
-
-    pub fn with_mana_cost(&mut self, cost: String) -> &mut Self {
-        self.mana_cost = Some(cost);
-        self
-    }
-
-    pub fn with_cmc(&mut self, cmc: u8) -> &mut Self {
-        self.cmc = Some(cmc);
-        self
-    }
-
-    pub fn with_power(&mut self, power: String, comp_expr: ComparisonExpr) -> &mut Self {
-        self.power = Some((power, comp_expr));
-        self
-    }
-
-    pub fn with_toughness(&mut self, toughness: String, comp_expr: ComparisonExpr) -> &mut Self {
-        self.toughness = Some((toughness, comp_expr));
-        self
-    }
-
-    pub fn with_loyalty(&mut self, loyalty: String, comp_expr: ComparisonExpr) -> &mut Self {
-        self.loyalty = Some((loyalty, comp_expr));
-        self
-    }
-
-    pub fn and_is_split(&mut self) -> &mut Self {
-        self.split = true;
-        self
-    }
-
-    pub fn and_is_flip(&mut self) -> &mut Self {
-        self.flip = true;
-        self
-    }
-
-    pub fn and_is_transform(&mut self) -> &mut Self {
-        self.transform = true;
-        self
-    }
-
-    pub fn and_is_meld(&mut self) -> &mut Self {
-        self.meld = true;
-        self
-    }
-
-    pub fn and_is_leveler(&mut self) -> &mut Self {
-        self.leveler = true;
-        self
-    }
-
-    pub fn and_is_funny(&mut self) -> &mut Self {
-        self.funny = true;
-        self
-    }
-
-    pub fn with_rarity(&mut self, rarity: Rarity, comp_expr: ComparisonExpr) -> &mut Self {
-        self.rarity = Some((rarity, comp_expr));
-        self
-    }
-
-    pub fn with_new_rarity(&mut self, rarity: Rarity, comp_expr: ComparisonExpr) -> &mut Self {
-        self.new_rarity = Some((rarity, comp_expr));
+    pub fn add_param(&mut self, param: Box<dyn Param>) -> &mut Self {
+        self.params.push(param);
         self
     }
 }
 
 impl Search for SearchBuilder {
     fn to_query(&self) -> String {
+        use itertools::Itertools;
         let mut query = format!(
             "{}&{}&{}",
-            self.unique_strategy, self.sort_by, self.sort_direction
+            self.unique.to_param(),
+            self.order.to_param(),
+            self.dir.to_param()
         );
         if self.include_extras {
             query += "include_extras=true";
@@ -312,9 +381,25 @@ impl Search for SearchBuilder {
         if self.include_variations {
             query += "include_multilingual=true";
         }
-        if self.page > 0 {
+        if self.page > 1 {
             query += &format!("page={}", self.page + 1);
         }
+        query += "q=";
+        let _ = write!(
+            query,
+            "{}",
+            percent_encode(
+                self.params
+                    .iter()
+                    .map(|x| {
+                        #[allow(clippy::redundant_closure)]
+                        x.to_param()
+                    })
+                    .join("+")
+                    .as_bytes(),
+                DEFAULT_ENCODE_SET,
+            )
+        );
         query
     }
 }

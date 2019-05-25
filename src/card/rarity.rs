@@ -2,7 +2,7 @@
 use serde::Deserialize;
 
 /// Enum defining the 4 different rarities a card can come in.
-#[derive(Deserialize, Debug, Clone, Copy)]
+#[derive(Deserialize, Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 pub enum Rarity {
     Common,

@@ -32,8 +32,16 @@ impl Colors {
         Colors(1 << 7)
     }
 
+    pub fn colorless() -> Self {
+        Colors(0)
+    }
+
     pub fn is(self, color: Color) -> bool {
         self.0 & (1 << (color as u8)) != 0
+    }
+
+    pub fn is_multicolored(self) -> bool {
+        self.0 & (1 << 7) != 0
     }
 
     pub fn is_colorless(self) -> bool {
@@ -44,22 +52,28 @@ impl Colors {
 impl std::fmt::Display for Colors {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         use self::Color::*;
-        let mut s = String::new();
-        if self.is(White) {
-            s += "w";
+        if self.is_multicolored() {
+            write!(f, "m")
+        } else if self.is_colorless() {
+            write!(f, "c")
+        } else {
+            let mut s = String::new();
+            if self.is(White) {
+                s += "w";
+            }
+            if self.is(Blue) {
+                s += "u";
+            }
+            if self.is(Black) {
+                s += "b";
+            }
+            if self.is(Red) {
+                s += "r";
+            }
+            if self.is(Green) {
+                s += "g";
+            }
+            write!(f, "{}", s)
         }
-        if self.is(Blue) {
-            s += "u";
-        }
-        if self.is(Black) {
-            s += "b";
-        }
-        if self.is(Red) {
-            s += "r";
-        }
-        if self.is(Green) {
-            s += "g";
-        }
-        write!(f, "{}", s)
     }
 }
