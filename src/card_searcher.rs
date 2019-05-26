@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 use crate::card::{color::Colors, rarity::Rarity};
+use crate::format::Format;
 
 use std::fmt::Write;
 
@@ -17,6 +18,12 @@ impl Search for &str {
 
 pub trait Param {
     fn to_param(&self) -> String;
+}
+
+impl Param for String {
+    fn to_param(&self) -> String {
+        self.clone() // TODO: ewww
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -136,6 +143,17 @@ pub enum BooleanParam {
     IsModal,
     IsVanilla,
     IsFunny,
+    SoldInBoosters,
+    SoldInPWDecks,
+    SoldInLeague,
+    SoldInBuyABox,
+    SoldInGiftBox,
+    SoldInIntroPack,
+    SoldInGameDay,
+    SoldInPreRelease,
+    SoldInRelease,
+    IsCommander,
+    IsReserved,
 }
 
 impl Param for BooleanParam {
@@ -168,6 +186,17 @@ impl Param for BooleanParam {
                 IsModal => "modal",
                 IsVanilla => "vanilla",
                 IsFunny => "funny",
+                SoldInBoosters => "boosters",
+                SoldInPWDecks => "planeswalker_deck",
+                SoldInLeague => "league",
+                SoldInBuyABox => "buyabox",
+                SoldInGiftBox => "giftbox",
+                SoldInIntroPack => "intro_pack",
+                SoldInGameDay => "gameday",
+                SoldInPreRelease => "prerelease",
+                SoldInRelease => "release",
+                IsCommander => "commander",
+                IsReserved => "reserved",
             }
         )
     }
@@ -211,10 +240,16 @@ pub enum StringParam {
     Power(String, ComparisonExpr),
     Toughness(String, ComparisonExpr),
     Loyalty(String, ComparisonExpr),
+    Set([u8; 4]),
+    Block([u8; 4]),
+    WasInSet([u8; 4]),
+    WasntInSet([u8; 4]),
+    InCube(String),
 }
 
 impl Param for StringParam {
     fn to_param(&self) -> String {
+        use std::str;
         use StringParam::*;
         match self {
             ManaCost(s) => format!("s:{}", s),
@@ -225,22 +260,33 @@ impl Param for StringParam {
             Power(s, c) => format!("pow{}{}", c, s),
             Toughness(s, c) => format!("tou{}{}", c, s),
             Loyalty(s, c) => format!("loy{}{}", c, s),
+            Set(s) => format!("s:{}", str::from_utf8(s).unwrap()), //TODO: Remove this unwrap
+            Block(s) => format!("b:{}", str::from_utf8(s).unwrap()),
+            WasInSet(s) => format!("in:{}", str::from_utf8(s).unwrap()),
+            WasntInSet(s) => format!("-in:{}", str::from_utf8(s).unwrap()),
+            InCube(s) => format!("cube:{}", s),
         }
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum NumericParam {
-    Page(usize),
-    CMC(usize),
+    CMC(usize, ComparisonExpr),
+    CollectorNumber(usize),
+    TixPrice(usize, ComparisonExpr),
+    EurPrice(usize, ComparisonExpr),
+    UsdPrice(usize, ComparisonExpr),
 }
 
 impl Param for NumericParam {
     fn to_param(&self) -> String {
         use NumericParam::*;
         match self {
-            Page(p) => format!("page={}", p),
-            CMC(p) => format!("cmc={}", p),
+            CMC(p, c) => format!("cmc{}{}", c, p),
+            CollectorNumber(n) => format!("cn:{}", n),
+            TixPrice(n, c) => format!("tix{}{}", c, n),
+            EurPrice(n, c) => format!("eur{}{}", c, n),
+            UsdPrice(n, c) => format!("usd{}{}", c, n),
         }
     }
 }
@@ -294,6 +340,23 @@ impl Param for ColorParam {
         match self {
             Color(cl, ce) => format!("c{}{}", cl, ce),
             ColorIdentity(cl, ce) => format!("id{}{}", cl, ce),
+        }
+    }
+}
+
+pub enum FormatParam {
+    Legal(Format),
+    Banned(Format),
+    Restricted(Format),
+}
+
+impl Param for FormatParam {
+    fn to_param(&self) -> String {
+        use FormatParam::*;
+        match self {
+            Legal(f) => format!("legal:{}", f),
+            Banned(f) => format!("banned:{}", f),
+            Restricted(f) => format!("restricted:{}", f),
         }
     }
 }

@@ -5,6 +5,7 @@ pub mod card;
 pub mod card_searcher;
 pub mod catalog;
 pub mod error;
+pub mod format;
 pub mod ruling;
 pub mod set;
 pub mod util;
