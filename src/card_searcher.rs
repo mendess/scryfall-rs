@@ -1,5 +1,8 @@
 #![allow(dead_code)]
-use crate::card::{color::Colors, rarity::Rarity};
+use crate::card::{
+    border_color::BorderColor, color::Colors, frame::Frame, frame_effect::FrameEffect, game::Game,
+    rarity::Rarity,
+};
 use crate::format::Format;
 
 use std::fmt::Write;
@@ -129,7 +132,12 @@ pub enum BooleanParam {
     IncludeMultilingual,
     IncludeVaraitions,
     ColorIndicator,
+    WaterMark,
     NewRarity,
+    NewArt,
+    NewFlavor,
+    NewArtist,
+    NewFrame,
     IsPhyrexian,
     IsHybrid,
     IsSplit,
@@ -143,6 +151,16 @@ pub enum BooleanParam {
     IsModal,
     IsVanilla,
     IsFunny,
+    IsCommander,
+    IsReserved,
+    IsFull,
+    IsNonFoil,
+    IsFoil,
+    IsHires,
+    IsDigital,
+    IsPromo,
+    IsSpotlight,
+    IsReprint,
     SoldInBoosters,
     SoldInPWDecks,
     SoldInLeague,
@@ -152,8 +170,6 @@ pub enum BooleanParam {
     SoldInGameDay,
     SoldInPreRelease,
     SoldInRelease,
-    IsCommander,
-    IsReserved,
 }
 
 impl Param for BooleanParam {
@@ -163,8 +179,8 @@ impl Param for BooleanParam {
             "{}:{}=true",
             match self {
                 IncludeExtras | IncludeMultilingual | IncludeVaraitions => "include",
-                ColorIndicator => "has",
-                NewRarity => "new",
+                ColorIndicator | WaterMark => "has",
+                NewRarity | NewArt | NewFlavor | NewArtist | NewFrame => "new",
                 _ => "is",
             },
             match self {
@@ -172,7 +188,12 @@ impl Param for BooleanParam {
                 IncludeMultilingual => "multilingual",
                 IncludeVaraitions => "variations",
                 ColorIndicator => "indicator",
+                WaterMark => "watermark",
                 NewRarity => "rarity",
+                NewArt => "art",
+                NewFlavor => "flavor",
+                NewArtist => "artist",
+                NewFrame => "frame",
                 IsPhyrexian => "phyrexian",
                 IsHybrid => "hybrid",
                 IsSplit => "split",
@@ -186,6 +207,16 @@ impl Param for BooleanParam {
                 IsModal => "modal",
                 IsVanilla => "vanilla",
                 IsFunny => "funny",
+                IsFull => "full",
+                IsFoil => "foil",
+                IsNonFoil => "nonfoil",
+                IsCommander => "commander",
+                IsReserved => "reserved",
+                IsHires => "hires",
+                IsDigital => "digital",
+                IsPromo => "promo",
+                IsSpotlight => "spotlight",
+                IsReprint => "reprint",
                 SoldInBoosters => "boosters",
                 SoldInPWDecks => "planeswalker_deck",
                 SoldInLeague => "league",
@@ -195,8 +226,6 @@ impl Param for BooleanParam {
                 SoldInGameDay => "gameday",
                 SoldInPreRelease => "prerelease",
                 SoldInRelease => "release",
-                IsCommander => "commander",
-                IsReserved => "reserved",
             }
         )
     }
@@ -245,6 +274,9 @@ pub enum StringParam {
     WasInSet([u8; 4]),
     WasntInSet([u8; 4]),
     InCube(String),
+    Artist(String),
+    Flavor(String),
+    WaterMark(String),
 }
 
 impl Param for StringParam {
@@ -265,6 +297,9 @@ impl Param for StringParam {
             WasInSet(s) => format!("in:{}", str::from_utf8(s).unwrap()),
             WasntInSet(s) => format!("-in:{}", str::from_utf8(s).unwrap()),
             InCube(s) => format!("cube:{}", s),
+            Artist(s) => format!("artist:{}", s),
+            Flavor(s) => format!("ft:{}", s),
+            WaterMark(s) => format!("wt:{}", s),
         }
     }
 }
@@ -358,6 +393,47 @@ impl Param for FormatParam {
             Banned(f) => format!("banned:{}", f),
             Restricted(f) => format!("restricted:{}", f),
         }
+    }
+}
+
+impl Param for BorderColor {
+    fn to_param(&self) -> String {
+        format!("border:{}", self)
+    }
+}
+
+impl Param for Frame {
+    fn to_param(&self) -> String {
+        format!("frame:{}", self)
+    }
+}
+
+impl Param for FrameEffect {
+    fn to_param(&self) -> String {
+        format!("frame:{}", self)
+    }
+}
+
+pub enum GameParam {
+    Game(Game),
+    InGame(Game),
+}
+
+impl Param for GameParam {
+    fn to_param(&self) -> String {
+        use GameParam::*;
+        match self {
+            Game(s) => format!("game:{}", s),
+            InGame(s) => format!("in:{}", s),
+        }
+    }
+}
+
+pub struct TimeParam(pub String, pub ComparisonExpr);
+
+impl Param for TimeParam {
+    fn to_param(&self) -> String {
+        format!("year{}{}", self.1, self.0)
     }
 }
 

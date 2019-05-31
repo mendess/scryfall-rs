@@ -9,3 +9,18 @@ pub enum Game {
     Arena,
     Mtgo,
 }
+
+impl std::fmt::Display for Game {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        use Game::*;
+        write!(
+            f,
+            "{}",
+            match self {
+                Paper => "paper",
+                Arena => "arena",
+                Mtgo => "mtgo",
+            }
+        )
+    }
+}
