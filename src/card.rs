@@ -155,6 +155,9 @@ impl Card {
     ///     .flatten()
     ///     .all(|x| x.name.to_lowercase().contains("lightning")))
     /// ```
+    /// ```rust
+    /// use scryfall::card_searcher::{SearchBuilder, NumericParam::CollectorNumber};
+    /// ```
     pub fn search<S: Search>(query: S) -> PaginatedURI<Card> {
         let query = query.to_query().replace(" ", "+");
         let search = format!("{}/{}/search?{}", API, API_CARDS, query);

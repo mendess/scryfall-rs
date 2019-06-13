@@ -1,3 +1,6 @@
+//! This module provides an abstraction over the search params provided by
+//! scryfall. For a complete documentation, refer to the
+//! [official site](https://scryfall.com/docs/syntax).
 #![allow(dead_code)]
 use crate::card::{
     border_color::BorderColor, color::Colors, frame::Frame, frame_effect::FrameEffect, game::Game,
@@ -25,10 +28,129 @@ pub trait Param {
 
 impl Param for String {
     fn to_param(&self) -> String {
-        self.clone() // TODO: ewww
+        self.clone()
     }
 }
 
+/// A builder struct for constructing a Search in `scryfall`. The various
+/// parameters that can be passed to this struct are defined in this module.
+///
+/// A search is composed of settings and params.
+/// ## Settings
+/// - `unique`: The strategy used to reduce duplicates.
+/// - `order`: The order in which results appear.
+/// - `dir`: The sorting direction.
+/// - `page`: The page to start at.
+/// - `include extras`: Whether to include extras.
+/// - `include multilingual`: Whether to include multilingual cards.
+/// - `include variations`: Whether to include variations.
+pub struct SearchBuilder {
+    unique: UniqueStrategy,
+    order: SortMethod,
+    dir: SortDirection,
+    page: usize,
+    include_extras: bool,
+    include_multilingual: bool,
+    include_variations: bool,
+    params: Vec<Box<dyn Param>>,
+}
+
+impl SearchBuilder {
+    /// Create a new search builder with the default
+    fn new() -> Self {
+        SearchBuilder {
+            page: 1,
+            unique: Default::default(),
+            order: Default::default(),
+            dir: Default::default(),
+            include_extras: false,
+            include_multilingual: false,
+            include_variations: false,
+            params: vec![],
+        }
+    }
+
+    pub fn with_unique_strategy(&mut self, strat: UniqueStrategy) -> &mut Self {
+        self.unique = strat;
+        self
+    }
+
+    pub fn with_sort_order(&mut self, strat: SortMethod) -> &mut Self {
+        self.order = strat;
+        self
+    }
+
+    pub fn with_sort_direction(&mut self, dir: SortDirection) -> &mut Self {
+        self.dir = dir;
+        self
+    }
+
+    pub fn including_extras(&mut self) -> &mut Self {
+        self.include_extras = true;
+        self
+    }
+
+    pub fn including_multilingual(&mut self) -> &mut Self {
+        self.include_multilingual = true;
+        self
+    }
+
+    pub fn including_variations(&mut self) -> &mut Self {
+        self.include_variations = true;
+        self
+    }
+
+    pub fn on_page(&mut self, page: usize) -> &mut Self {
+        self.page = page;
+        self
+    }
+
+    pub fn with_param(&mut self, param: Box<dyn Param>) -> &mut Self {
+        self.params.push(param);
+        self
+    }
+}
+
+impl Search for SearchBuilder {
+    fn to_query(&self) -> String {
+        use itertools::Itertools;
+        let mut query = format!(
+            "{}&{}&{}",
+            self.unique.to_param(),
+            self.order.to_param(),
+            self.dir.to_param()
+        );
+        if self.include_extras {
+            query += "include_extras=true";
+        }
+        if self.include_multilingual {
+            query += "include_variations=true";
+        }
+        if self.include_variations {
+            query += "include_multilingual=true";
+        }
+        if self.page > 1 {
+            query += &format!("page={}", self.page + 1);
+        }
+        query += "q=";
+        let _ = write!(
+            query,
+            "{}",
+            percent_encode(
+                self.params
+                    .iter()
+                    .map(|x| {
+                        #[allow(clippy::redundant_closure)]
+                        x.to_param()
+                    })
+                    .join("+")
+                    .as_bytes(),
+                DEFAULT_ENCODE_SET,
+            )
+        );
+        query
+    }
+}
 #[derive(Debug, Clone, Copy)]
 pub enum UniqueStrategy {
     Cards,
@@ -138,6 +260,7 @@ pub enum BooleanParam {
     NewFlavor,
     NewArtist,
     NewFrame,
+    NewLanguage,
     IsPhyrexian,
     IsHybrid,
     IsSplit,
@@ -160,6 +283,7 @@ pub enum BooleanParam {
     IsDigital,
     IsPromo,
     IsSpotlight,
+    IsUnique,
     IsReprint,
     SoldInBoosters,
     SoldInPWDecks,
@@ -176,11 +300,11 @@ impl Param for BooleanParam {
     fn to_param(&self) -> String {
         use BooleanParam::*;
         format!(
-            "{}:{}=true",
+            "{}:{}",
             match self {
                 IncludeExtras | IncludeMultilingual | IncludeVaraitions => "include",
                 ColorIndicator | WaterMark => "has",
-                NewRarity | NewArt | NewFlavor | NewArtist | NewFrame => "new",
+                NewRarity | NewArt | NewFlavor | NewArtist | NewFrame | NewLanguage => "new",
                 _ => "is",
             },
             match self {
@@ -194,6 +318,7 @@ impl Param for BooleanParam {
                 NewFlavor => "flavor",
                 NewArtist => "artist",
                 NewFrame => "frame",
+                NewLanguage => "language",
                 IsPhyrexian => "phyrexian",
                 IsHybrid => "hybrid",
                 IsSplit => "split",
@@ -217,6 +342,7 @@ impl Param for BooleanParam {
                 IsPromo => "promo",
                 IsSpotlight => "spotlight",
                 IsReprint => "reprint",
+                IsUnique => "unique",
                 SoldInBoosters => "boosters",
                 SoldInPWDecks => "planeswalker_deck",
                 SoldInLeague => "league",
@@ -263,7 +389,6 @@ impl std::fmt::Display for ComparisonExpr {
 pub enum StringParam {
     ManaCost(String),
     Type(String),
-    NotType(String),
     Oracle(String),
     OracleFull(String),
     Power(String, ComparisonExpr),
@@ -272,11 +397,13 @@ pub enum StringParam {
     Set([u8; 4]),
     Block([u8; 4]),
     WasInSet([u8; 4]),
-    WasntInSet([u8; 4]),
     InCube(String),
     Artist(String),
     Flavor(String),
     WaterMark(String),
+    Lang(String),
+    LangAny,
+    PrintedInLang(String),
 }
 
 impl Param for StringParam {
@@ -286,7 +413,6 @@ impl Param for StringParam {
         match self {
             ManaCost(s) => format!("s:{}", s),
             Type(s) => format!("t:{}", s),
-            NotType(s) => format!("-t:{}", s),
             Oracle(s) => format!("o:{}", s),
             OracleFull(s) => format!("fo:{}", s),
             Power(s, c) => format!("pow{}{}", c, s),
@@ -295,11 +421,13 @@ impl Param for StringParam {
             Set(s) => format!("s:{}", str::from_utf8(s).unwrap()), //TODO: Remove this unwrap
             Block(s) => format!("b:{}", str::from_utf8(s).unwrap()),
             WasInSet(s) => format!("in:{}", str::from_utf8(s).unwrap()),
-            WasntInSet(s) => format!("-in:{}", str::from_utf8(s).unwrap()),
             InCube(s) => format!("cube:{}", s),
             Artist(s) => format!("artist:{}", s),
             Flavor(s) => format!("ft:{}", s),
             WaterMark(s) => format!("wt:{}", s),
+            Lang(s) => format!("lang:{}", s),
+            LangAny => "lang:any".to_string(),
+            PrintedInLang(s) => format!("in:{}", s),
         }
     }
 }
@@ -311,6 +439,10 @@ pub enum NumericParam {
     TixPrice(usize, ComparisonExpr),
     EurPrice(usize, ComparisonExpr),
     UsdPrice(usize, ComparisonExpr),
+    Prints(usize, ComparisonExpr),
+    Sets(usize, ComparisonExpr),
+    PaperPrints(usize, ComparisonExpr),
+    PaperSets(usize, ComparisonExpr),
 }
 
 impl Param for NumericParam {
@@ -322,6 +454,10 @@ impl Param for NumericParam {
             TixPrice(n, c) => format!("tix{}{}", c, n),
             EurPrice(n, c) => format!("eur{}{}", c, n),
             UsdPrice(n, c) => format!("usd{}{}", c, n),
+            Prints(n, c) => format!("prints{}{}", c, n),
+            Sets(n, c) => format!("sets{}{}", c, n),
+            PaperPrints(n, c) => format!("paperprints{}{}", c, n),
+            PaperSets(n, c) => format!("papersets{}{}", c, n),
         }
     }
 }
@@ -436,109 +572,25 @@ impl Param for TimeParam {
         format!("year{}{}", self.1, self.0)
     }
 }
+/// The negative version of a param, for example, "is:spell" becomes "-is:spell"
+///
+/// # Caution
+/// `BooleanParam::IncludeExtras`, `BooleanParam::IncludeMultilingual` and
+/// `BooleanParam::IncludeVaraitions` cannot be negated.
+///
+/// ```rust
+/// use scryfall::card_searcher::{BooleanParam, not, Param};
+///
+/// assert_eq!(not(BooleanParam::IsSpell).to_param(), "-is:spell")
+/// ```
+pub struct NotParam<T: Param>(T);
 
-pub struct SearchBuilder {
-    unique: UniqueStrategy,
-    order: SortMethod,
-    dir: SortDirection,
-    page: usize,
-    include_extras: bool,
-    include_multilingual: bool,
-    include_variations: bool,
-    params: Vec<Box<dyn Param>>,
+pub fn not<T: Param>(t: T) -> NotParam<T> {
+    NotParam(t)
 }
 
-impl SearchBuilder {
-    fn new() -> Self {
-        SearchBuilder {
-            page: 1,
-            unique: Default::default(),
-            order: Default::default(),
-            dir: Default::default(),
-            include_extras: false,
-            include_multilingual: false,
-            include_variations: false,
-            params: vec![],
-        }
-    }
-    pub fn with_unique_strategy(&mut self, strat: UniqueStrategy) -> &mut Self {
-        self.unique = strat;
-        self
-    }
-
-    pub fn with_sort_order(&mut self, strat: SortMethod) -> &mut Self {
-        self.order = strat;
-        self
-    }
-
-    pub fn with_sort_direction(&mut self, dir: SortDirection) -> &mut Self {
-        self.dir = dir;
-        self
-    }
-
-    pub fn include_extras(&mut self) -> &mut Self {
-        self.include_extras = true;
-        self
-    }
-
-    pub fn include_multilingual(&mut self) -> &mut Self {
-        self.include_multilingual = true;
-        self
-    }
-
-    pub fn include_variations(&mut self) -> &mut Self {
-        self.include_variations = true;
-        self
-    }
-
-    pub fn on_page(&mut self, page: usize) -> &mut Self {
-        self.page = page;
-        self
-    }
-
-    pub fn add_param(&mut self, param: Box<dyn Param>) -> &mut Self {
-        self.params.push(param);
-        self
-    }
-}
-
-impl Search for SearchBuilder {
-    fn to_query(&self) -> String {
-        use itertools::Itertools;
-        let mut query = format!(
-            "{}&{}&{}",
-            self.unique.to_param(),
-            self.order.to_param(),
-            self.dir.to_param()
-        );
-        if self.include_extras {
-            query += "include_extras=true";
-        }
-        if self.include_multilingual {
-            query += "include_variations=true";
-        }
-        if self.include_variations {
-            query += "include_multilingual=true";
-        }
-        if self.page > 1 {
-            query += &format!("page={}", self.page + 1);
-        }
-        query += "q=";
-        let _ = write!(
-            query,
-            "{}",
-            percent_encode(
-                self.params
-                    .iter()
-                    .map(|x| {
-                        #[allow(clippy::redundant_closure)]
-                        x.to_param()
-                    })
-                    .join("+")
-                    .as_bytes(),
-                DEFAULT_ENCODE_SET,
-            )
-        );
-        query
+impl<T: Param> Param for NotParam<T> {
+    fn to_param(&self) -> String {
+        format!("-{}", self.0.to_param())
     }
 }

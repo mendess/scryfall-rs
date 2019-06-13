@@ -10,6 +10,10 @@ however until v1.0 releases breaking changes should be expected.
 ## TODO
 
 - [ ] Search Wrapper
+  - Shortcuts and nicknames
+  - Exact Names
+  - Using "OR"
+  - Display Keywords
 
 - [ ] Use `reqwest::Client` for faster requests
 
