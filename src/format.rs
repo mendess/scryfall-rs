@@ -1,3 +1,4 @@
+//! The available magic the gathering formats.
 pub enum Format {
     Standard,
     Modern,

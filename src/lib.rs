@@ -27,4 +27,22 @@ mod tests {
             .iter()
             .all(|x| x.name.to_lowercase().contains("lightning")));
     }
+
+    #[test]
+    fn search() {
+        use crate::card::Card;
+        use crate::card_searcher::{
+            NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
+        };
+
+        let mut search = SearchBuilder::new();
+        search
+            .param(Box::new(CollectorNumber(123)))
+            .param(Box::new(Set([b'W', b'A', b'R', 0])));
+        println!("{}", (&search).to_query());
+        assert_eq!(
+            Card::search(&search).next().unwrap().unwrap()[0].name,
+            "Demolish"
+        );
+    }
 }

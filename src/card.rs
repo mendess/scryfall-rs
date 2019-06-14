@@ -150,13 +150,24 @@ impl Card {
     ///     Ok(cards) => assert_ne!(cards.len(), 0),
     ///     Err(e) => eprintln!("{:?}", e)
     /// }
+    /// ```
+    /// ```rust
+    /// use scryfall::card::Card;
     /// assert!(Card::search("lightning")
     ///     .filter_map(|x| x.ok())
     ///     .flatten()
     ///     .all(|x| x.name.to_lowercase().contains("lightning")))
     /// ```
     /// ```rust
-    /// use scryfall::card_searcher::{SearchBuilder, NumericParam::CollectorNumber};
+    /// use scryfall::card::Card;
+    /// use scryfall::card_searcher::{
+    ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
+    /// };
+    /// let mut search = SearchBuilder::new();
+    /// search
+    ///     .param(Box::new(CollectorNumber(123)))
+    ///     .param(Box::new(Set([b'W', b'A', b'R', 0])));
+    /// assert!(Card::search(&search).all(|x| x.unwrap()[0].name == "Demolish"))
     /// ```
     pub fn search<S: Search>(query: S) -> PaginatedURI<Card> {
         let query = query.to_query().replace(" ", "+");
