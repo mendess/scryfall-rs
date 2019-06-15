@@ -1,7 +1,7 @@
 //! This module provides a defenition of a Magic: The Gathering card, as well as, ways to fetch
 //! them from scryfall.
 //!
-//! All the card's fields are public and identic in name to the ones documented in the oficial [scryfall page](https://scryfall.com/docs/api/cards).
+//! All the card's fields are public and identic in name to the ones documented in the oficial [scryfall page](https://scryfall.com/docs/api/cards).  pub mod border_color;
 pub mod border_color;
 pub mod card_faces;
 pub mod color;
@@ -44,7 +44,7 @@ pub use rarity::Rarity;
 pub use related_card::RelatedCard;
 
 use chrono::NaiveDate;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use std::collections::hash_map::HashMap;
 
@@ -52,7 +52,7 @@ use std::collections::hash_map::HashMap;
 ///
 /// For documentation on each field please refer to their
 /// [documentation](https://scryfall.com/docs/api/cards)
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[allow(missing_docs)]
 pub struct Card {
     // Core card fields
@@ -175,11 +175,10 @@ impl Card {
     /// use scryfall::card_searcher::{
     ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
     /// };
-    /// let mut search = SearchBuilder::new();
-    /// search
+    /// assert!(Card::search(SearchBuilder::new()
     ///     .param(Box::new(CollectorNumber(123)))
-    ///     .param(Box::new(Set([b'W', b'A', b'R', 0])));
-    /// assert!(Card::search(&search).all(|x| x.unwrap()[0].name == "Demolish"))
+    ///     .param(Box::new(Set([b'W', b'A', b'R', 0]))))
+    ///     .all(|x| x.unwrap()[0].name == "Demolish"))
     /// ```
     /// ```rust
     /// use scryfall::card::Card;

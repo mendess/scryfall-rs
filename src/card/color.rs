@@ -1,8 +1,8 @@
 //! Enum defining the 5 colors of magic
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Enum defining the 5 colors of magic
-#[derive(Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(missing_docs)]
 pub enum Color {
     #[serde(rename = "W")]

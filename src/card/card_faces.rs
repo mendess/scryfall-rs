@@ -2,7 +2,7 @@
 //!
 //! For documentation about the fields, please refer to the official scryfall
 //! [documentation](https://scryfall.com/docs/api/cards)
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::color::Color;
 use crate::util::UUID;
@@ -13,7 +13,7 @@ use std::collections::HashMap;
 ///
 /// For documentation about the fields, please refer to the official scryfall
 /// [documentation](https://scryfall.com/docs/api/cards)
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[allow(missing_docs)]
 pub struct CardFace {
     pub artist: Option<String>,

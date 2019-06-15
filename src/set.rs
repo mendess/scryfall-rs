@@ -15,17 +15,19 @@ use super::util::{API, API_SETS};
 use set_type::SetType;
 
 use chrono::NaiveDate;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// A Set object containing all fields that `scryfall` provides.
 ///
 /// For documentation on each field please refer to their
 /// [documentation](https://scryfall.com/docs/api/sets)
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[allow(missing_docs)]
 pub struct Set {
     pub id: UUID,
     pub code: String,
+    pub mtgo_code: Option<String>,
+    pub tcgplayer_id: Option<u64>,
     pub name: String,
     pub set_type: SetType,
     pub released_at: Option<NaiveDate>,
@@ -37,7 +39,7 @@ pub struct Set {
     pub foil_only: bool,
     pub scryfall_uri: String,
     pub uri: URI<Set>,
-    pub icon_svg_uri: String, //TODO: Revisit this
+    pub icon_svg_uri: String,
     pub search_uri: PaginatedURI<Card>,
 }
 
@@ -95,5 +97,10 @@ impl Set {
     /// ```
     pub fn uuid(uuid: UUID) -> crate::Result<Set> {
         url_fetch(&format!("{}/{}/{}", API, API_SETS, uuid))
+    }
+
+    /// Returns an iterartor over the cards of the set.
+    pub fn cards(&self) -> &PaginatedURI<Card> {
+        &self.search_uri
     }
 }

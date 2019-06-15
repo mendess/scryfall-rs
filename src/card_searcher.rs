@@ -1,12 +1,12 @@
 //! This module provides an abstraction over the search params provided by
 //! scryfall. For a complete documentation, refer to the
 //! [official site](https://scryfall.com/docs/syntax).
-#![allow(dead_code)]
 use crate::card::{
     border_color::BorderColor, color::Colors, frame::Frame, frame_effect::FrameEffect, game::Game,
-    rarity::Rarity,
+    rarity::Rarity, Card,
 };
 use crate::format::Format;
+use crate::util::uri::PaginatedURI;
 
 use std::fmt::Write;
 use std::str;
@@ -19,6 +19,24 @@ use percent_encoding::{percent_encode, DEFAULT_ENCODE_SET};
 pub trait Search {
     /// Turns a searchable into it's string representation.
     fn to_query(&self) -> String;
+}
+
+impl<T> Search for &T
+where
+    T: Search,
+{
+    fn to_query(&self) -> String {
+        Search::to_query(*self)
+    }
+}
+
+impl<T> Search for &mut T
+where
+    T: Search,
+{
+    fn to_query(&self) -> String {
+        Search::to_query(*self)
+    }
 }
 
 impl Search for &str {
@@ -140,9 +158,30 @@ impl SearchBuilder {
         self.params.push(param);
         self
     }
+
+    /// A covenience method for passing this to a search.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// use scryfall::card_searcher::{
+    ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
+    /// };
+    ///
+    /// let mut search = SearchBuilder::new();
+    /// search
+    ///     .param(Box::new(CollectorNumber(123)))
+    ///     .param(Box::new(Set([b'W', b'A', b'R', 0])));
+    /// assert_eq!(
+    ///     Card::search(&search).flatten().collect::<Vec<_>>(),
+    ///     search.search().flatten().collect::<Vec<_>>());
+    /// ```
+    pub fn search(&mut self) -> PaginatedURI<Card> {
+        Card::search(self)
+    }
 }
 
-impl Search for &SearchBuilder {
+impl Search for SearchBuilder {
     fn to_query(&self) -> String {
         use itertools::Itertools;
         let mut query = format!(

@@ -5,10 +5,10 @@
 use crate::error::Error;
 use std::marker::PhantomData;
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// A URI that will fetch something of a defined type `T`.
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[serde(transparent)]
 pub struct URI<T>(String, PhantomData<T>);
 
@@ -56,7 +56,7 @@ where
 /// Sometimes the data pointed to by a URL is paginated. In that case a
 /// [`PaginatedURI`] is needed to
 /// iterate over the pages of data.
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 #[serde(transparent)]
 pub struct PaginatedURI<T> {
     next: Option<URI<JsonParser<T>>>,
@@ -74,7 +74,7 @@ where
     }
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
 struct JsonParser<T> {
     next_page: Option<URI<JsonParser<T>>>,
     data: Vec<T>,

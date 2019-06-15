@@ -12,13 +12,13 @@ use crate::util::uri::{PaginatedURI, URI};
 use crate::util::{API, API_CARDS, API_RULING, UUID};
 
 use chrono::NaiveDate;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// A ruling object.
 ///
 /// For documentation on it's fields refer to the
 /// [ruling object](https://scryfall.com/docs/api/rulings) on the official site.
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[allow(missing_docs)]
 pub struct Ruling {
     pub oracle_id: UUID,
@@ -28,7 +28,7 @@ pub struct Ruling {
 }
 
 /// The two possible ruling sources
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum Source {
