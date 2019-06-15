@@ -14,6 +14,7 @@ use std::collections::HashMap;
 /// For documentation about the fields, please refer to the official scryfall
 /// [documentation](https://scryfall.com/docs/api/cards)
 #[derive(Debug, Deserialize, Clone)]
+#[allow(missing_docs)]
 pub struct CardFace {
     pub artist: Option<String>,
     pub color_indicator: Option<Vec<Color>>,

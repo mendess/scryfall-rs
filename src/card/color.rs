@@ -3,6 +3,7 @@ use serde::Deserialize;
 
 /// Enum defining the 5 colors of magic
 #[derive(Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[allow(missing_docs)]
 pub enum Color {
     #[serde(rename = "W")]
     White = 0,
@@ -16,36 +17,48 @@ pub enum Color {
     Green = 4,
 }
 
+/// Definition of a cards colors. This can be used to in conjunction with
+/// the search builder as a `ColorParam`.
 #[derive(Default, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Colors(u8);
 
 impl Colors {
-    pub fn from_slice(colors: &[Color]) -> Self {
+    /// Creates an instance representing a multicolored card without specifying it's colors.
+    pub fn multicolored() -> Self {
+        Colors(1 << 7)
+    }
+
+    /// Creates an instance representing a colorless card.
+    pub fn colorless() -> Self {
+        Colors(0)
+    }
+
+    /// Checks to see if a card is a certain color.
+    ///
+    /// Note: Multicolored cards are may not be any particular color.
+    pub fn is(self, color: Color) -> bool {
+        self.0 & (1 << (color as u8)) != 0
+    }
+
+    /// Checks if a card is multicolored. This only works for instances
+    /// created by `Colors::multicolored`.
+    pub fn is_multicolored(self) -> bool {
+        self.0 & (1 << 7) != 0
+    }
+
+    /// Checks if a card is colorless.
+    pub fn is_colorless(self) -> bool {
+        self.0 == 0
+    }
+}
+
+impl From<&[Color]> for Colors {
+    fn from(colors: &[Color]) -> Self {
         let mut s: u8 = 0;
         for c in colors {
             s ^= 1 << *c as u8;
         }
         Colors(s)
-    }
-
-    pub fn multicolored() -> Self {
-        Colors(1 << 7)
-    }
-
-    pub fn colorless() -> Self {
-        Colors(0)
-    }
-
-    pub fn is(self, color: Color) -> bool {
-        self.0 & (1 << (color as u8)) != 0
-    }
-
-    pub fn is_multicolored(self) -> bool {
-        self.0 & (1 << 7) != 0
-    }
-
-    pub fn is_colorless(self) -> bool {
-        self.0 == 0
     }
 }
 

@@ -4,6 +4,7 @@ use serde::Deserialize;
 /// Enum describing the 4 states of legality a card can have.
 #[derive(Deserialize, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
+#[allow(missing_docs)]
 pub enum Legality {
     Legal,
     NotLegal,

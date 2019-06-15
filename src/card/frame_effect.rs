@@ -2,8 +2,11 @@
 use serde::Deserialize;
 
 /// Enum describing the various frame effects a border can have.
+///
+/// [Official docs](https://scryfall.com/docs/api/layouts)
 #[derive(Debug, Deserialize, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
+#[allow(missing_docs)]
 pub enum FrameEffect {
     Legendary,
     Miracle,

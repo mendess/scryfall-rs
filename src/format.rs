@@ -1,4 +1,5 @@
 //! The available magic the gathering formats.
+#[allow(missing_docs)]
 pub enum Format {
     Standard,
     Modern,

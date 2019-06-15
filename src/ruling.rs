@@ -19,6 +19,7 @@ use serde::Deserialize;
 /// For documentation on it's fields refer to the
 /// [ruling object](https://scryfall.com/docs/api/rulings) on the official site.
 #[derive(Debug, Deserialize, Clone)]
+#[allow(missing_docs)]
 pub struct Ruling {
     pub oracle_id: UUID,
     pub source: Source,
@@ -29,6 +30,7 @@ pub struct Ruling {
 /// The two possible ruling sources
 #[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "snake_case")]
+#[allow(missing_docs)]
 pub enum Source {
     Wotc,
     Scryfall,

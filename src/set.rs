@@ -22,6 +22,7 @@ use serde::Deserialize;
 /// For documentation on each field please refer to their
 /// [documentation](https://scryfall.com/docs/api/sets)
 #[derive(Debug, Deserialize, Clone)]
+#[allow(missing_docs)]
 pub struct Set {
     pub id: UUID,
     pub code: String,

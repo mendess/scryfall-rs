@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 //! [Scryfall](https://scryfall.com) provides a REST-like API for ingesting our card data
 //! programatically. The API exposes information available on the regular site in easy-to-consume
 //! formats.

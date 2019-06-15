@@ -1,12 +1,15 @@
 //! A Catalog object contains an array of Magic datapoints (words, card values, etc). Catalog
 //! objects are provided by the API as aids for building other Magic software and understanding
 //! possible values for a field on Card objects.
+//!
+//! Visit the oficial [docs](https://scryfall.com/docs/api/catalogs) for more documentation.
 
 use serde::Deserialize;
 
 use crate::util::uri::{url_fetch, URI};
 
 #[derive(Debug, Deserialize, Clone)]
+#[allow(missing_docs)]
 pub struct Catalog {
     pub uri: URI<Catalog>,
     pub data: Vec<String>,

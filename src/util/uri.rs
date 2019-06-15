@@ -114,7 +114,9 @@ where
     let resp = reqwest::get(url.as_ref())?;
     if resp.status().is_success() {
         Ok(serde_json::from_reader(resp)?)
+    } else if resp.status().is_client_error() {
+        Err(Error::ScryfallError(serde_json::from_reader(resp)?))
     } else {
-        Err(Error::Other(format!("{:?}", resp.status())))
+        Err(format!("{:?}", resp.status()))?
     }
 }

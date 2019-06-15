@@ -17,6 +17,7 @@ use percent_encoding::{percent_encode, DEFAULT_ENCODE_SET};
 /// scryfall. This means that is should be
 /// [properly encoded](https://en.wikipedia.org/wiki/Percent-encoding).
 pub trait Search {
+    /// Turns a searchable into it's string representation.
     fn to_query(&self) -> String;
 }
 
@@ -30,6 +31,7 @@ impl Search for &str {
 /// in a scryfall search parameters. The valid parameters can be seen
 /// [here](https://scryfall.com/docs/syntax).
 pub trait Param {
+    /// Turns a parameter into it's string version.
     fn to_param(&self) -> String;
 }
 
@@ -184,19 +186,22 @@ impl Search for &SearchBuilder {
 /// The unique parameter specifies if Scryfall should remove “duplicate” results in your query. The
 /// options are:
 ///
-/// - [`Cards`]: Removes duplicate gameplay objects (cards that share a name and have the same
-/// functionality). For example, if your search matches more than one print of Pacifism, only one
-/// copy of Pacifism will be returned.
-/// - [`Art`]: Returns only one copy of each unique artwork for matching cards. For example, if
-/// your search matches more than one print of Pacifism, one card with each different illustration
-/// for Pacifism will be returned, but any cards that duplicate artwork already in the results will
-/// be omitted.
-/// - [`Prints`]: Returns all prints for all cards matched (disables rollup). For example, if your
-/// search matches more than one print of Pacifism, all matching prints will be returned.
+/// - `Cards`:
+/// - `Art`:
+/// - `Prints`:
 #[derive(Debug, Clone, Copy)]
 pub enum UniqueStrategy {
+    /// Removes duplicate gameplay objects (cards that share a name and have the same
+    /// functionality). For example, if your search matches more than one print of Pacifism, only one
+    /// copy of Pacifism will be returned.
     Cards,
+    /// Returns only one copy of each unique artwork for matching cards. For example, if
+    /// your search matches more than one print of Pacifism, one card with each different illustration
+    /// for Pacifism will be returned, but any cards that duplicate artwork already in the results will
+    /// be omitted.
     Arts,
+    /// Returns all prints for all cards matched (disables rollup). For example, if your
+    /// search matches more than one print of Pacifism, all matching prints will be returned.
     Prints,
 }
 
@@ -459,7 +464,7 @@ impl Param for BooleanParam {
 /// ```rust
 /// use scryfall::card_searcher::{ComparisonExpr, NumericParam, Param};
 ///
-/// assert_eq!(NumericParam::CMC(3, ComparisonExpr::AtLeast).to_param(), "cmc>3")
+/// assert_eq!(NumericParam::CMC(ComparisonExpr::AtLeast, 3).to_param(), "cmc>3")
 /// ```
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]

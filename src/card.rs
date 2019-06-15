@@ -20,16 +20,27 @@ use crate::set::Set;
 use crate::util::uri::{url_fetch, PaginatedURI, URI};
 use crate::util::UUID;
 use crate::util::{API, API_CARDS};
+#[doc(inline)]
 pub use border_color::BorderColor;
+#[doc(inline)]
 pub use card_faces::CardFace;
+#[doc(inline)]
 pub use color::Color;
+#[doc(inline)]
 pub use frame::Frame;
+#[doc(inline)]
 pub use frame_effect::FrameEffect;
+#[doc(inline)]
 pub use game::Game;
+#[doc(inline)]
 pub use layout::Layout;
+#[doc(inline)]
 pub use legality::Legality;
+#[doc(inline)]
 pub use price::Price;
+#[doc(inline)]
 pub use rarity::Rarity;
+#[doc(inline)]
 pub use related_card::RelatedCard;
 
 use chrono::NaiveDate;
@@ -42,6 +53,7 @@ use std::collections::hash_map::HashMap;
 /// For documentation on each field please refer to their
 /// [documentation](https://scryfall.com/docs/api/cards)
 #[derive(Deserialize, Debug, Clone)]
+#[allow(missing_docs)]
 pub struct Card {
     // Core card fields
     pub arena_id: Option<usize>,
@@ -112,7 +124,7 @@ pub struct Card {
 }
 
 impl Card {
-    /// Returns a [`PaginatedURI`] of all the cards in the `scryfall` database.
+    /// Returns a `PaginatedURI` of all the cards in the `scryfall` database.
     ///
     /// # Examples
     /// ```rust
@@ -127,7 +139,7 @@ impl Card {
         PaginatedURI::new(URI::from(cards))
     }
 
-    /// Fetches a random card
+    /// Fetches a random card.
     ///
     /// # Examples
     /// ```rust
@@ -141,7 +153,7 @@ impl Card {
         url_fetch("https://api.scryfall.com/cards/random")
     }
 
-    /// Returns a [`PaginatedURI`] of the cards that match the search terms.
+    /// Returns a `PaginatedURI` of the cards that match the search terms.
     ///
     /// # Examples
     /// ```rust
@@ -169,13 +181,31 @@ impl Card {
     ///     .param(Box::new(Set([b'W', b'A', b'R', 0])));
     /// assert!(Card::search(&search).all(|x| x.unwrap()[0].name == "Demolish"))
     /// ```
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// use scryfall::card_searcher::{
+    ///     ComparisonExpr, Search, SearchBuilder, StringParam,
+    /// };
+    /// use scryfall::error::Error;
+    ///
+    /// let mut search = SearchBuilder::new();
+    /// search.param(Box::new(StringParam::Power(ComparisonExpr::AtLeast, "pow".to_string())));
+    /// let error = Card::search(&search).find(Result::is_err).map(|x| x.unwrap_err()).unwrap();
+    /// match error {
+    ///     Error::ScryfallError(e) => {
+    ///             assert!(e.details.contains("All of your terms were ignored"));
+    ///             assert!(e.warnings.len() > 0);
+    ///         },
+    ///     _ => ()
+    /// };
+    /// ```
     pub fn search<S: Search>(query: S) -> PaginatedURI<Card> {
         let query = query.to_query().replace(" ", "+");
         let search = format!("{}/{}/search?{}", API, API_CARDS, query);
         PaginatedURI::new(URI::from(search))
     }
 
-    /// Return a card with the exact name
+    /// Return a card with the exact name.
     ///
     /// # Examples
     /// ```rust
@@ -194,7 +224,7 @@ impl Card {
         url_fetch(&named)
     }
 
-    /// Return a card using the scryfall fuzzy finder
+    /// Return a card using the scryfall fuzzy finder.
     ///
     /// # Examples
     /// ```rust
@@ -207,7 +237,7 @@ impl Card {
         url_fetch(&named)
     }
 
-    /// Fetch a card by it's multiverse id
+    /// Fetch a card by it's multiverse id.
     ///
     /// # Examples
     /// ```rust
@@ -218,7 +248,7 @@ impl Card {
         url_fetch(&format!("{}/{}/multiverse/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's mtgo id
+    /// Fetch a card by it's mtgo id.
     ///
     /// # Examples
     /// ```rust
@@ -229,7 +259,7 @@ impl Card {
         url_fetch(&format!("{}/{}/mtgo/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's arena id
+    /// Fetch a card by it's arena id.
     ///
     /// # Examples
     /// ```rust
@@ -240,7 +270,7 @@ impl Card {
         url_fetch(&format!("{}/{}/arena/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's tcgplayer id
+    /// Fetch a card by it's tcgplayer id.
     ///
     /// # Examples
     /// ```rust
@@ -251,7 +281,7 @@ impl Card {
         url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's UUID
+    /// Fetch a card by it's UUID.
     ///
     /// # Examples
     /// ```rust
