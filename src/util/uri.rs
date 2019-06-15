@@ -3,9 +3,13 @@
 //! Some fields of the scryfall api have URLs refering to queries that can be run to obtain more
 //! information. This module abstracts the work of fetching that data.
 use crate::error::Error;
+
 use std::marker::PhantomData;
 
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
+
+thread_local!(static CLIENT: Client = Client::new());
 
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
@@ -111,7 +115,7 @@ pub fn url_fetch<T, I: AsRef<str>>(url: I) -> crate::Result<T>
 where
     for<'de> T: Deserialize<'de>,
 {
-    let resp = reqwest::get(url.as_ref())?;
+    let resp = CLIENT.with(|c| c.get(url.as_ref()).send())?;
     if resp.status().is_success() {
         Ok(serde_json::from_reader(resp)?)
     } else if resp.status().is_client_error() {

@@ -15,6 +15,6 @@ however until v1.0 releases breaking changes should be expected.
   - Using "OR"
   - Display Keywords
 
-- [ ] Use `reqwest::Client` for faster requests
+- [x] Use `reqwest::Client` for faster requests
 
 - [ ] Cache results as requested by the `scryfall` API
