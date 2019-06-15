@@ -1,7 +1,7 @@
 //! Module defining a related card.
 //!
 //! Cards that are closely related to other cards (because they call them by name, or generate a
-//! token, or meld, etc) have a all_parts property that contains `RelatedCard` objects.
+//! token, or meld, etc) have a all_parts property that contains [`RelatedCard`] objects.
 use serde::Deserialize;
 
 use crate::card::Card;

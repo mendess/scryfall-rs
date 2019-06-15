@@ -46,13 +46,13 @@ impl Param for String {
 /// ## Settings
 /// The in depth documentation for the settings can be found
 /// [here](https://scryfall.com/docs/api/cards/search)
-/// - `unique`: The strategy used to reduce duplicates. (default: See `UniqueStrategy`)
-/// - `sort_by`: The order in which results appear. (default: See `SortMethod`)
-/// - `dir`: The sorting direction. (default: See `SortDirection`)
-/// - `page`: The page to start at. (default: 1)
-/// - `include extras`: Whether to include extras. (default: false)
-/// - `include multilingual`: Whether to include multilingual cards. (default: false)
-/// - `include variations`: Whether to include variations. (default: false)
+/// - [`with_unique_strategy`]: The strategy used to reduce duplicates. (default: See [`UniqueStrategy`])
+/// - [`sorting_by`]: The order in which results appear. (default: See [`SortMethod`])
+/// - [`with_sort_direction`]: The sorting direction. (default: See [`SortDirection`])
+/// - [`on_page`]: The page to start at. (default: 1)
+/// - [`including_extras`]: Whether to include extras. (default: false)
+/// - [`including_multilingual`]: Whether to include multilingual cards. (default: false)
+/// - [`including_variations`]: Whether to include variations. (default: false)
 ///
 /// ## Parameters
 /// Parameters are filters to provide to the search to reduce the cards returned.
@@ -98,7 +98,7 @@ impl SearchBuilder {
     }
 
     /// Change the sorting method used for the results.
-    pub fn with_sort_by(&mut self, strat: SortMethod) -> &mut Self {
+    pub fn sorting_by(&mut self, strat: SortMethod) -> &mut Self {
         self.sort_by = strat;
         self
     }
@@ -184,14 +184,14 @@ impl Search for &SearchBuilder {
 /// The unique parameter specifies if Scryfall should remove “duplicate” results in your query. The
 /// options are:
 ///
-/// - `Cards`: Removes duplicate gameplay objects (cards that share a name and have the same
+/// - [`Cards`]: Removes duplicate gameplay objects (cards that share a name and have the same
 /// functionality). For example, if your search matches more than one print of Pacifism, only one
 /// copy of Pacifism will be returned.
-/// - `Art`: Returns only one copy of each unique artwork for matching cards. For example, if
+/// - [`Art`]: Returns only one copy of each unique artwork for matching cards. For example, if
 /// your search matches more than one print of Pacifism, one card with each different illustration
 /// for Pacifism will be returned, but any cards that duplicate artwork already in the results will
 /// be omitted.
-/// - `Prints`: Returns all prints for all cards matched (disables rollup). For example, if your
+/// - [`Prints`]: Returns all prints for all cards matched (disables rollup). For example, if your
 /// search matches more than one print of Pacifism, all matching prints will be returned.
 #[derive(Debug, Clone, Copy)]
 pub enum UniqueStrategy {
@@ -282,9 +282,9 @@ impl Param for SortMethod {
 pub enum SortDirection {
     /// Scryfall will automatically choose the most inuitive direction to sort
     Auto,
-    /// Sort ascending (flip the direction of the arrows in `SortMethod`)
+    /// Sort ascending (flip the direction of the arrows in [`SortMethod`])
     Ascending,
-    /// Sort descending (flip the direction of the arrows in `SortMethod`)
+    /// Sort descending (flip the direction of the arrows in [`SortMethod`])
     Descending,
 }
 
@@ -478,7 +478,7 @@ pub enum ComparisonExpr {
     IsNot,
 }
 
-/// `ComparisonExpr::Is` (aka `=`)
+/// [`ComparisonExpr::Is`] (aka `=`)
 impl Default for ComparisonExpr {
     fn default() -> Self {
         ComparisonExpr::Is
@@ -586,7 +586,7 @@ impl Param for StringParam {
 pub enum NumericParam {
     /// Find cards of a specific converted mana cost
     CMC(ComparisonExpr, usize),
-    /// Find cards by collector number within a set. Combine this with `StringParam::Set` to find
+    /// Find cards by collector number within a set. Combine this with [`StringParam::Set`] to find
     /// specific card editions.
     CollectorNumber(usize),
     /// Find cards by price in tix.
@@ -747,7 +747,7 @@ impl Param for TimeParam {
 /// ```
 pub struct NotParam<T: Param>(T);
 
-/// Negates a parameter. See `NotParam` for the full documentation.
+/// Negates a parameter. See [`NotParam`] for the full documentation.
 pub fn not<T: Param>(t: T) -> NotParam<T> {
     NotParam(t)
 }

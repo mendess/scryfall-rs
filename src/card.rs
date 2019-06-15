@@ -112,7 +112,7 @@ pub struct Card {
 }
 
 impl Card {
-    /// Returns a `PaginatedURI` of all the cards in the `scryfall` database.
+    /// Returns a [`PaginatedURI`] of all the cards in the `scryfall` database.
     ///
     /// # Examples
     /// ```rust
@@ -141,7 +141,7 @@ impl Card {
         url_fetch("https://api.scryfall.com/cards/random")
     }
 
-    /// Returns a `PaginatedURI` of the cards that match the search terms.
+    /// Returns a [`PaginatedURI`] of the cards that match the search terms.
     ///
     /// # Examples
     /// ```rust
