@@ -5,7 +5,7 @@
 use serde::{Deserialize, Serialize};
 
 use super::color::Color;
-use crate::util::UUID;
+use crate::util::Uuid;
 
 use std::collections::HashMap;
 
@@ -13,14 +13,14 @@ use std::collections::HashMap;
 ///
 /// For documentation about the fields, please refer to the official scryfall
 /// [documentation](https://scryfall.com/docs/api/cards)
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct CardFace {
     pub artist: Option<String>,
     pub color_indicator: Option<Vec<Color>>,
     pub colors: Option<Vec<Color>>,
     pub flavor_text: Option<String>,
-    pub illustration_id: Option<UUID>,
+    pub illustration_id: Option<Uuid>,
     pub image_uris: Option<HashMap<String, String>>,
     pub loyalty: Option<String>,
     pub mana_cost: String,

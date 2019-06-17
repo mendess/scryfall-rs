@@ -4,11 +4,11 @@
 //!
 //! Visit the oficial [docs](https://scryfall.com/docs/api/catalogs) for more documentation.
 
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::util::uri::{url_fetch, URI};
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[allow(missing_docs)]
 pub struct Catalog {
     pub uri: URI<Catalog>,

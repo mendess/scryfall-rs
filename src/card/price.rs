@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Struct defining a price object containing data in various currencies.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[allow(missing_docs)]
 pub struct Price {
     pub usd: Option<String>,

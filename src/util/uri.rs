@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 thread_local!(static CLIENT: Client = Client::new());
 
 /// A URI that will fetch something of a defined type `T`.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
 pub struct URI<T>(String, PhantomData<T>);
 
@@ -60,7 +60,7 @@ where
 /// Sometimes the data pointed to by a URL is paginated. In that case a
 /// [`PaginatedURI`] is needed to
 /// iterate over the pages of data.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
 pub struct PaginatedURI<T> {
     next: Option<URI<JsonParser<T>>>,
@@ -78,7 +78,7 @@ where
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 struct JsonParser<T> {
     next_page: Option<URI<JsonParser<T>>>,
     data: Vec<T>,

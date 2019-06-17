@@ -25,11 +25,13 @@ pub enum Error {
     Other(String),
 }
 
+impl std::error::Error for Error {}
+
 /// An Error object represents a failure to find information or understand the input you provided
 /// to the API.
 ///
 /// [Official docs](https://scryfall.com/docs/api/errors)
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct ScryfallError {
     /// A human-readable string explaining the error.
     pub details: String,

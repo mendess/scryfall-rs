@@ -18,7 +18,7 @@ use crate::card_searcher::Search;
 use crate::ruling::Ruling;
 use crate::set::Set;
 use crate::util::uri::{url_fetch, PaginatedURI, URI};
-use crate::util::UUID;
+use crate::util::Uuid;
 use crate::util::{API, API_CARDS};
 #[doc(inline)]
 pub use border_color::BorderColor;
@@ -52,18 +52,18 @@ use std::collections::hash_map::HashMap;
 ///
 /// For documentation on each field please refer to their
 /// [documentation](https://scryfall.com/docs/api/cards)
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Card {
     // Core card fields
     pub arena_id: Option<usize>,
-    pub id: UUID,
+    pub id: Uuid,
     pub lang: String,
     pub mtgo_id: Option<usize>,
     pub mtgo_foil_id: Option<usize>,
     pub multiverse_ids: Option<Vec<usize>>,
     pub tcgplayer_id: Option<usize>,
-    pub oracle_id: UUID,
+    pub oracle_id: Uuid,
     pub prints_search_uri: PaginatedURI<Card>,
     pub rulings_uri: URI<Vec<Ruling>>,
     pub scryfall_uri: String,
@@ -102,7 +102,7 @@ pub struct Card {
     pub full_art: bool,
     pub games: Vec<Game>,
     pub highres_image: bool,
-    pub illustration_id: Option<UUID>,
+    pub illustration_id: Option<Uuid>,
     pub image_uris: Option<HashMap<String, String>>,
     pub prices: Price,
     pub printed_name: Option<String>,
@@ -134,6 +134,7 @@ impl Card {
     ///     Err(e) => eprintln!("{:?}", e)
     /// }
     /// ```
+    /// [`PaginatedURI`]: util.uri.struct.PaginatedURI.html
     pub fn all() -> PaginatedURI<Card> {
         let cards = format!("{}/{}?page=1", API, API_CARDS);
         PaginatedURI::new(URI::from(cards))
@@ -280,7 +281,7 @@ impl Card {
         url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's UUID.
+    /// Fetch a card by it's Uuid.
     ///
     /// # Examples
     /// ```rust
@@ -289,7 +290,7 @@ impl Card {
     ///     Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".to_string()).unwrap().name,
     ///     "Cowed by Wisdom")
     /// ```
-    pub fn card(query: UUID) -> crate::Result<Card> {
+    pub fn card(query: Uuid) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/{}", API, API_CARDS, query))
     }
 }

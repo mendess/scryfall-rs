@@ -10,5 +10,5 @@ pub const API_SETS: &str = "/sets";
 /// The [rulings](https://scryfall.com/docs/api/sets) endpoint.
 pub const API_RULING: &str = "/rulings";
 
-/// A type alias for a UUID.
-pub type UUID = String;
+/// A type alias for a Uuid.
+pub type Uuid = String;

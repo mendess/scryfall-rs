@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Enum defining the exiting platforms on with a magic card can exist.
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum Game {

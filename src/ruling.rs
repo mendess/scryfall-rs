@@ -9,7 +9,7 @@
 //! Duel Commander).
 
 use crate::util::uri::{PaginatedURI, URI};
-use crate::util::{API, API_CARDS, API_RULING, UUID};
+use crate::util::{Uuid, API, API_CARDS, API_RULING};
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -18,17 +18,17 @@ use serde::{Deserialize, Serialize};
 ///
 /// For documentation on it's fields refer to the
 /// [ruling object](https://scryfall.com/docs/api/rulings) on the official site.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[allow(missing_docs)]
 pub struct Ruling {
-    pub oracle_id: UUID,
+    pub oracle_id: Uuid,
     pub source: Source,
     pub published_at: NaiveDate,
     pub comment: String,
 }
 
 /// The two possible ruling sources
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum Source {
@@ -151,7 +151,7 @@ impl Ruling {
     ///     None => panic!(),
     /// }
     /// ```
-    pub fn uuid(id: UUID) -> PaginatedURI<Self> {
+    pub fn uuid(id: Uuid) -> PaginatedURI<Self> {
         PaginatedURI::new(URI::from(format!(
             "{}/{}/{}/{}",
             API, API_CARDS, id, API_RULING

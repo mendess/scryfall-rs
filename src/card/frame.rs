@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Enum describing the various magic card frames
 ///
 /// [Official docs](https://scryfall.com/docs/api/layouts)
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[allow(missing_docs)]
 pub enum Frame {
     #[serde(rename = "1993")]

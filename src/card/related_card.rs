@@ -5,14 +5,14 @@
 use serde::{Deserialize, Serialize};
 
 use crate::card::Card;
-use crate::util::{uri::URI, UUID};
+use crate::util::{uri::URI, Uuid};
 
 /// Related card object. Refer to the official [docs](https://scryfall.com/docs/api/cards)
 /// for information on the fields.
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct RelatedCard {
-    pub id: UUID,
+    pub id: Uuid,
     pub component: Component,
     pub name: String,
     pub type_line: String,
@@ -20,7 +20,7 @@ pub struct RelatedCard {
 }
 
 /// The kind of related card.
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum Component {

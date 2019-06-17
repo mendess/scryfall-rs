@@ -10,7 +10,7 @@ mod set_type;
 
 use super::card::Card;
 use super::util::uri::{url_fetch, PaginatedURI, URI};
-use super::util::UUID;
+use super::util::Uuid;
 use super::util::{API, API_SETS};
 use set_type::SetType;
 
@@ -21,10 +21,10 @@ use serde::{Deserialize, Serialize};
 ///
 /// For documentation on each field please refer to their
 /// [documentation](https://scryfall.com/docs/api/sets)
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Set {
-    pub id: UUID,
+    pub id: Uuid,
     pub code: String,
     pub mtgo_code: Option<String>,
     pub tcgplayer_id: Option<u64>,
@@ -95,7 +95,7 @@ impl Set {
     ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".to_string()).unwrap().name,
     ///     "Ultimate Masters")
     /// ```
-    pub fn uuid(uuid: UUID) -> crate::Result<Set> {
+    pub fn uuid(uuid: Uuid) -> crate::Result<Set> {
         url_fetch(&format!("{}/{}/{}", API, API_SETS, uuid))
     }
 
