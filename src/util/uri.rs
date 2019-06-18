@@ -58,8 +58,7 @@ where
 /// A paginating URL fetcher.
 ///
 /// Sometimes the data pointed to by a URL is paginated. In that case a
-/// [`PaginatedURI`] is needed to
-/// iterate over the pages of data.
+/// `PaginatedURI` is needed to iterate over the pages of data.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
 pub struct PaginatedURI<T> {
@@ -70,7 +69,7 @@ impl<T> PaginatedURI<T>
 where
     for<'de> T: Deserialize<'de>,
 {
-    /// Creates a new [`PaginatedURI`] iterator from a `URI` of type `T`.
+    /// Creates a new `PaginatedURI` iterator from a `URI` of type `T`.
     pub fn new(url: URI<T>) -> Self {
         PaginatedURI {
             next: Some(URI(url.0, PhantomData)),

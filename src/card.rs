@@ -124,7 +124,7 @@ pub struct Card {
 }
 
 impl Card {
-    /// Returns a `PaginatedURI` of all the cards in the `scryfall` database.
+    /// Returns a [`PaginatedURI`] of all the cards in the `scryfall` database.
     ///
     /// # Examples
     /// ```rust
@@ -134,7 +134,7 @@ impl Card {
     ///     Err(e) => eprintln!("{:?}", e)
     /// }
     /// ```
-    /// [`PaginatedURI`]: util.uri.struct.PaginatedURI.html
+    /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
     pub fn all() -> PaginatedURI<Card> {
         let cards = format!("{}/{}?page=1", API, API_CARDS);
         PaginatedURI::new(URI::from(cards))
@@ -154,7 +154,7 @@ impl Card {
         url_fetch("https://api.scryfall.com/cards/random")
     }
 
-    /// Returns a `PaginatedURI` of the cards that match the search terms.
+    /// Returns a [`PaginatedURI`] of the cards that match the search terms.
     ///
     /// # Examples
     /// ```rust
@@ -199,6 +199,7 @@ impl Card {
     ///     _ => ()
     /// };
     /// ```
+    /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
     pub fn search<S: Search>(query: S) -> PaginatedURI<Card> {
         let query = query.to_query().replace(" ", "+");
         let search = format!("{}/{}/search?{}", API, API_CARDS, query);

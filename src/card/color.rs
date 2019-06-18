@@ -18,7 +18,9 @@ pub enum Color {
 }
 
 /// Definition of a cards colors. This can be used to in conjunction with
-/// the search builder as a `ColorParam`.
+/// the search builder as a [`ColorParam`].
+///
+/// [`ColorParam`]: ../../card_searcher/enum.ColorParam.html
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub struct Colors(u8);
 
@@ -41,7 +43,9 @@ impl Colors {
     }
 
     /// Checks if a card is multicolored. This only works for instances
-    /// created by `Colors::multicolored`.
+    /// created by [`Colors::multicolored`].
+    ///
+    /// [`Colors::multicolored`]: #method.multicolored
     pub fn is_multicolored(self) -> bool {
         self.0 & (1 << 7) != 0
     }

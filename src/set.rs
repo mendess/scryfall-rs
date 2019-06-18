@@ -54,12 +54,14 @@ impl Set {
     ///     Err(e) => eprintln!("{:?}", e)
     /// }
     /// ```
+    ///
+    /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
     pub fn all() -> PaginatedURI<Set> {
         let sets = format!("{}/{}?page=1", API, API_SETS);
         PaginatedURI::new(URI::from(sets))
     }
 
-    /// Returns a [`Set`] with the given set code.
+    /// Returns a `Set` with the given set code.
     ///
     /// The code can be either the `code` or the `mtgo_code` for the set.
     ///
@@ -72,7 +74,7 @@ impl Set {
         url_fetch(&format!("{}/{}/{}", API, API_SETS, code))
     }
 
-    /// Returns a [`Set`] with the given `tcgplayer_id`.
+    /// Returns a `Set` with the given `tcgplayer_id`.
     ///
     /// Also known as the `groupId` on [TCGplayer’s API](https://docs.tcgplayer.com/docs).
     ///

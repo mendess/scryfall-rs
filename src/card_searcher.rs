@@ -80,6 +80,17 @@ impl Param for String {
 ///
 /// The official documentation for the parameters can be found
 /// [here](https://scryfall.com/docs/syntax)
+///
+/// [`with_unique_strategy`]: #method.with_unique_strategy
+/// [`sorting_by`]: #method.sorting_by
+/// [`with_sort_direction`]: #method.with_sort_direction
+/// [`on_page`]: #method.on_page
+/// [`including_extras`]: #method.including_extras
+/// [`including_multilingual`]: #method.including_multilingual
+/// [`including_variations`]: #method.including_variations
+/// [`UniqueStrategy`]: enum.UniqueStrategy.html
+/// [`SortMethod`]: enum.SortMethod.html
+/// [`SortDirection`]: enum.SortDirection.html
 pub struct SearchBuilder {
     unique: UniqueStrategy,
     sort_by: SortMethod,
@@ -223,12 +234,7 @@ impl Search for SearchBuilder {
     }
 }
 
-/// The unique parameter specifies if Scryfall should remove “duplicate” results in your query. The
-/// options are:
-///
-/// - `Cards`:
-/// - `Art`:
-/// - `Prints`:
+/// The unique parameter specifies if Scryfall should remove “duplicate” results in your query.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum UniqueStrategy {
     /// Removes duplicate gameplay objects (cards that share a name and have the same
@@ -328,8 +334,12 @@ pub enum SortDirection {
     /// Scryfall will automatically choose the most inuitive direction to sort
     Auto,
     /// Sort ascending (flip the direction of the arrows in [`SortMethod`])
+    ///
+    /// [`SortMethod`]: enum.SortMethod.html
     Ascending,
     /// Sort descending (flip the direction of the arrows in [`SortMethod`])
+    ///
+    /// [`SortMethod`]: enum.SortMethod.html
     Descending,
 }
 
@@ -408,7 +418,7 @@ pub enum BooleanParam {
     IsNonFoil,
     /// Find foil printings of cards.
     IsFoil,
-    /// Find cards in scryfall's database with high-resolution images.
+    /// Find cards in `scryfall`'s database with high-resolution images.
     IsHires,
     /// Find prints that are only available digitally (MTGO and Arena)
     IsDigital,
@@ -523,7 +533,9 @@ pub enum ComparisonExpr {
     IsNot,
 }
 
-/// `ComparisonExpr::Is` (aka `=`)
+/// [`ComparisonExpr::Is`] (aka `=`)
+///
+/// [`ComparisonExpr::Is`]: enum.ComparisonExpr.html#variant.Is
 impl Default for ComparisonExpr {
     fn default() -> Self {
         ComparisonExpr::Is
@@ -633,6 +645,8 @@ pub enum NumericParam {
     CMC(ComparisonExpr, usize),
     /// Find cards by collector number within a set. Combine this with [`StringParam::Set`] to find
     /// specific card editions.
+    ///
+    /// [`StringParam::Set`]: enum.StringParam.html#variant.Set
     CollectorNumber(usize),
     /// Find cards by price in tix.
     TixPrice(ComparisonExpr, usize),
@@ -797,6 +811,8 @@ impl Param for TimeParam {
 pub struct NotParam<T: Param>(T);
 
 /// Negates a parameter. See [`NotParam`] for the full documentation.
+///
+/// [`NotParam`]: struct.NotParam.html
 pub fn not<T: Param>(t: T) -> NotParam<T> {
     NotParam(t)
 }
