@@ -6,13 +6,17 @@
 //! that begins with p or t, such as pcel or tori.
 //!
 //! Official sets always have a three-letter set code, such as zen
-mod set_type;
+pub mod set_code;
+pub mod set_type;
 
 use super::card::Card;
 use super::util::uri::{url_fetch, PaginatedURI, URI};
 use super::util::Uuid;
 use super::util::{API, API_SETS};
-use set_type::SetType;
+#[doc(inline)]
+pub use set_code::SetCode;
+#[doc(inline)]
+pub use set_type::SetType;
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -25,7 +29,7 @@ use serde::{Deserialize, Serialize};
 #[allow(missing_docs)]
 pub struct Set {
     pub id: Uuid,
-    pub code: String,
+    pub code: SetCode,
     pub mtgo_code: Option<String>,
     pub tcgplayer_id: Option<u64>,
     pub name: String,

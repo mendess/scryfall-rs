@@ -3,13 +3,13 @@
 //! programatically. The API exposes information available on the regular site in easy-to-consume
 //! formats.
 //!
-//! # Cards
+//! ## Cards
 //! The main way to fetch cards from this API is the [`Card`] struct.
 //!
 //! This allows you to get cards from `scryfall` using all of their available
 //! REST Apis
 //!
-//! ```rust,norun
+//! ```rust,no_run
 //! use scryfall::card::Card;
 //! match Card::named_fuzzy("Light Bolt") {
 //!     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
@@ -17,7 +17,34 @@
 //! }
 //! ```
 //!
+//! ## Sets
+//! You can also fetch information about a card set.
+//!
+//! The available routes for this can be seen on [`Set`]
+//!
+//! ```rust,no_run
+//! use scryfall::set::Set;
+//! assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
+//! ```
+//!
+//! ## Catalogs
+//! Finally `scryfall` also allows you to fetch *catalogs* witch
+//! are collections of Magic the Gathering data points.
+//!
+//! For example, one could fetch all available card names.
+//! ```rust,no_run
+//! use scryfall::catalog::Catalog;
+//! assert!(Catalog::card_names().unwrap().data.len() > 0)
+//! ```
+//!
+//! ## Advanced Search
+//! One of the main features of `scryfall` is it's advanced search.
+//! For this the [`card_searcher`] module provides a type safe api
+//! to interact and query the search engine.
+//!
 //! [`Card`]: card/struct.Card.html
+//! [`Set`]: set/struct.Set.html
+//! [`card_searcher`]: card_searcher/index.html
 pub mod card;
 pub mod card_searcher;
 pub mod catalog;
@@ -31,35 +58,18 @@ pub use error::Result;
 
 #[cfg(test)]
 mod tests {
-    use super::card::Card;
+    use crate::set::set_code::SetCode;
+    use serde_json::{from_str, to_string};
+    use std::convert::TryFrom;
 
     #[test]
-    fn flat_map() {
-        let cards = Card::search("lightning")
-            .filter_map(|x| x.ok())
-            .flatten()
-            .collect::<Vec<_>>();
-        assert_ne!(cards.len(), 0);
-        assert!(cards
-            .iter()
-            .all(|x| x.name.to_lowercase().contains("lightning")));
-    }
+    fn set_code_serde_test() {
+        let instance = SetCode::try_from("war").unwrap();
+        let new_instance: SetCode = from_str(&to_string(&instance).unwrap()).unwrap();
+        assert_eq!(new_instance, instance);
 
-    #[test]
-    fn search() {
-        use crate::card::Card;
-        use crate::card_searcher::{
-            NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
-        };
-
-        let mut search = SearchBuilder::new();
-        search
-            .param(Box::new(CollectorNumber(123)))
-            .param(Box::new(Set([b'W', b'A', b'R', 0])));
-        println!("{}", (&search).to_query());
-        assert_eq!(
-            Card::search(&search).next().unwrap().unwrap()[0].name,
-            "Demolish"
-        );
+        let instance = SetCode::try_from("wwar").unwrap();
+        let new_instance: SetCode = from_str(&to_string(&instance).unwrap()).unwrap();
+        assert_eq!(new_instance, instance)
     }
 }

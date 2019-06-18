@@ -26,6 +26,7 @@ use crate::card::{
     rarity::Rarity, Card,
 };
 use crate::format::Format;
+use crate::set::set_code::SetCode;
 use crate::util::uri::PaginatedURI;
 
 use std::fmt::Write;
@@ -67,7 +68,7 @@ impl Search for &str {
     /// The use case of this implementation is usually this. (See [`Card::search`]
     /// for details)
     ///
-    /// ```rust,norun
+    /// ```rust,no_run
     /// use scryfall::card::Card;
     /// assert!(Card::search("lightning")
     ///     .filter_map(|x| x.ok())
@@ -214,18 +215,20 @@ impl SearchBuilder {
     /// use scryfall::card_searcher::{
     ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
     /// };
+    /// use scryfall::set::SetCode;
+    /// use std::convert::TryFrom;
     ///
     /// assert_eq!(
     ///     Card::search(
     ///         SearchBuilder::new()
     ///             .param(Box::new(CollectorNumber(123)))
-    ///             .param(Box::new(Set([b'W', b'A', b'R', 0])))
+    ///             .param(Box::new(Set(SetCode::try_from("war").unwrap())))
     ///     )
     ///     .flatten()
     ///     .collect::<Vec<_>>(),
     ///     SearchBuilder::new()
     ///         .param(Box::new(CollectorNumber(123)))
-    ///         .param(Box::new(Set([b'W', b'A', b'R', 0])))
+    ///         .param(Box::new(Set(SetCode::try_from("war").unwrap())))
     ///         .search()
     ///         .flatten()
     ///         .collect::<Vec<_>>()
@@ -633,12 +636,12 @@ pub enum StringParam {
     /// The starting loyalty of the card. The parameter can be a number, a `*`, an `X`, etc.
     Loyalty(ComparisonExpr, String),
     /// Which set the cards are from using their three or four-letter Magic set code.
-    Set([u8; 4]),
+    Set(SetCode),
     /// Which block the cards are from using any of the codes of the sets that make up the
     /// block.
-    Block([u8; 4]),
+    Block(SetCode),
     /// Find cards that once “passed through” the given set code.
-    WasInSet([u8; 4]),
+    WasInSet(SetCode),
     /// Find cards that are part of cube lists. For the supported values see
     /// the scryfall [docs](https://scryfall.com/docs/syntax#cubes).
     InCube(String),
@@ -667,9 +670,9 @@ impl Param for StringParam {
             Power(c, s) => format!("pow{}{}", c, s),
             Toughness(c, s) => format!("tou{}{}", c, s),
             Loyalty(c, s) => format!("loy{}{}", c, s),
-            Set(s) => format!("s:{}", str::from_utf8(s).unwrap()), //TODO: Remove this unwrap
-            Block(s) => format!("b:{}", str::from_utf8(s).unwrap()),
-            WasInSet(s) => format!("in:{}", str::from_utf8(s).unwrap()),
+            Set(s) => format!("s:{}", s),
+            Block(s) => format!("b:{}", s),
+            WasInSet(s) => format!("in:{}", s),
             InCube(s) => format!("cube:{}", s),
             Artist(s) => format!("a:{}", s),
             Flavor(s) => format!("ft:{}", s),
@@ -829,7 +832,7 @@ pub enum TimeParam {
     /// Find cards that were released relative to a certain date.
     Date(ComparisonExpr, chrono::NaiveDate),
     /// Find cards that were released relative to a certain set.
-    Set(ComparisonExpr, [u8; 4]),
+    Set(ComparisonExpr, SetCode),
 }
 
 impl Param for TimeParam {
@@ -838,7 +841,7 @@ impl Param for TimeParam {
         match self {
             Year(c, y) => format!("year{}{}", c, y),
             Date(c, d) => format!("date{}{}", c, d),
-            Set(c, s) => format!("date{}{}", c, str::from_utf8(s).unwrap()),
+            Set(c, s) => format!("date{}{}", c, s),
         }
     }
 }

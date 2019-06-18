@@ -170,9 +170,12 @@ impl Card {
     /// use scryfall::card_searcher::{
     ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
     /// };
+    /// use scryfall::set::SetCode;
+    /// use std::convert::TryFrom;
+    ///
     /// assert!(SearchBuilder::new()
     ///     .param(Box::new(CollectorNumber(123)))
-    ///     .param(Box::new(Set([b'W', b'A', b'R', 0])))
+    ///     .param(Box::new(Set(SetCode::try_from("war").unwrap())))
     ///     .search()
     ///     .all(|x| x.map(|x| x[0].name == "Demolish").unwrap_or(false)))
     /// ```
