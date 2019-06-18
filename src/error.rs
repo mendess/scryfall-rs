@@ -40,18 +40,21 @@ pub struct ScryfallError {
     pub warnings: Vec<String>,
 }
 
+#[doc(hidden)]
 impl From<SerdeError> for Error {
     fn from(error: SerdeError) -> Self {
         Error::JsonError(error)
     }
 }
 
+#[doc(hidden)]
 impl From<ReqwestError> for Error {
     fn from(error: ReqwestError) -> Self {
         Error::ReqwestError(error)
     }
 }
 
+#[doc(hidden)]
 impl From<ScryfallError> for Error {
     fn from(error: ScryfallError) -> Self {
         Error::ScryfallError(error)

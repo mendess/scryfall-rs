@@ -1,7 +1,8 @@
 //! This module provides a defenition of a Magic: The Gathering card, as well as, ways to fetch
 //! them from scryfall.
 //!
-//! All the card's fields are public and identic in name to the ones documented in the oficial [scryfall page](https://scryfall.com/docs/api/cards).  pub mod border_color;
+//! All the card's fields are public and identic in name to the ones documented in the oficial
+//! [scryfall page](https://scryfall.com/docs/api/cards).
 pub mod border_color;
 pub mod card_faces;
 pub mod color;
@@ -159,15 +160,8 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::search("Jace").next().unwrap() {
-    ///     Ok(cards) => assert_ne!(cards.len(), 0),
-    ///     Err(e) => eprintln!("{:?}", e)
-    /// }
-    /// ```
-    /// ```rust
-    /// use scryfall::card::Card;
     /// assert!(Card::search("lightning")
-    ///     .filter_map(|x| x.ok())
+    ///     .filter_map(Result::ok)
     ///     .flatten()
     ///     .all(|x| x.name.to_lowercase().contains("lightning")))
     /// ```
@@ -176,10 +170,11 @@ impl Card {
     /// use scryfall::card_searcher::{
     ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
     /// };
-    /// assert!(Card::search(SearchBuilder::new()
+    /// assert!(SearchBuilder::new()
     ///     .param(Box::new(CollectorNumber(123)))
-    ///     .param(Box::new(Set([b'W', b'A', b'R', 0]))))
-    ///     .all(|x| x.unwrap()[0].name == "Demolish"))
+    ///     .param(Box::new(Set([b'W', b'A', b'R', 0])))
+    ///     .search()
+    ///     .all(|x| x.map(|x| x[0].name == "Demolish").unwrap_or(false)))
     /// ```
     /// ```rust
     /// use scryfall::card::Card;
@@ -188,11 +183,12 @@ impl Card {
     /// };
     /// use scryfall::error::Error;
     ///
-    /// let mut search = SearchBuilder::new();
-    /// search.param(Box::new(StringParam::Power(ComparisonExpr::AtLeast, "pow".to_string())));
-    /// let error = Card::search(&search).find(Result::is_err).map(|x| x.unwrap_err()).unwrap();
+    /// let error = SearchBuilder::new()
+    ///     .param(Box::new(StringParam::Power(ComparisonExpr::AtLeast, "pow".to_string())))
+    ///     .search()
+    ///     .find_map(Result::err);
     /// match error {
-    ///     Error::ScryfallError(e) => {
+    ///     Some(Error::ScryfallError(e)) => {
     ///             assert!(e.details.contains("All of your terms were ignored"));
     ///             assert!(e.warnings.len() > 0);
     ///         },
@@ -211,7 +207,10 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert_eq!(Card::named("Lightning Bolt").unwrap().name, "Lightning Bolt")
+    /// match Card::named("Lightning Bolt") {
+    ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
+    ///     Err(e) => panic!(format!("{:?}", e)),
+    /// }
     /// ```
     ///
     /// ```rust
@@ -230,7 +229,10 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert_eq!(Card::named_fuzzy("Light Bolt").unwrap().name, "Lightning Bolt")
+    /// match Card::named_fuzzy("Light Bolt") {
+    ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
+    ///     Err(e) => panic!(format!("{:?}", e))
+    /// }
     /// ```
     pub fn named_fuzzy(query: &str) -> crate::Result<Card> {
         let query = query.replace(" ", "+");
@@ -243,7 +245,10 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert_eq!(Card::multiverse(409574).unwrap().name, "Strip Mine")
+    /// match Card::multiverse(409574) {
+    ///     Ok(card) => assert_eq!(card.name, "Strip Mine"),
+    ///     Err(e) => panic!(format!("{:?}", e)),
+    /// }
     /// ```
     pub fn multiverse(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/multiverse/{}", API, API_CARDS, query))
@@ -254,7 +259,10 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert_eq!(Card::mtgo(54957).unwrap().name, "Ghost Quarter")
+    /// match Card::mtgo(54957) {
+    ///     Ok(card) => assert_eq!(card.name, "Ghost Quarter"),
+    ///     Err(e) => panic!(format!("{:?}", e)),
+    /// }
     /// ```
     pub fn mtgo(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/mtgo/{}", API, API_CARDS, query))
@@ -265,7 +273,10 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert_eq!(Card::arena(67330).unwrap().name, "Yargle, Glutton of Urborg")
+    /// match Card::arena(67330) {
+    ///     Ok(card) => assert_eq!(card.name, "Yargle, Glutton of Urborg"),
+    ///     Err(e) => panic!(format!("{:?}", e)),
+    /// }
     /// ```
     pub fn arena(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/arena/{}", API, API_CARDS, query))
@@ -276,7 +287,10 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert_eq!(Card::tcgplayer(67330).unwrap().name, "Fathom Mage")
+    /// match Card::tcgplayer(67330) {
+    ///     Ok(card) => assert_eq!(card.name, "Fathom Mage"),
+    ///     Err(e) => panic!(format!("{:?}", e)),
+    /// }
     /// ```
     pub fn tcgplayer(query: usize) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
@@ -287,9 +301,10 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert_eq!(
-    ///     Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".to_string()).unwrap().name,
-    ///     "Cowed by Wisdom")
+    /// match Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".to_string()) {
+    ///     Ok(card) => assert_eq!(card.name, "Cowed by Wisdom"),
+    ///     Err(e) => panic!(format!("{:?}", e)),
+    /// }
     /// ```
     pub fn card(query: Uuid) -> crate::Result<Card> {
         url_fetch(&format!("{}/{}/{}", API, API_CARDS, query))

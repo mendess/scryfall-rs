@@ -2,6 +2,22 @@
 //! [Scryfall](https://scryfall.com) provides a REST-like API for ingesting our card data
 //! programatically. The API exposes information available on the regular site in easy-to-consume
 //! formats.
+//!
+//! # Cards
+//! The main way to fetch cards from this API is the [`Card`] struct.
+//!
+//! This allows you to get cards from `scryfall` using all of their available
+//! REST Apis
+//!
+//! ```rust,norun
+//! use scryfall::card::Card;
+//! match Card::named_fuzzy("Light Bolt") {
+//!     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
+//!     Err(e) => panic!(format!("{:?}", e))
+//! }
+//! ```
+//!
+//! [`Card`]: card/struct.Card.html
 pub mod card;
 pub mod card_searcher;
 pub mod catalog;

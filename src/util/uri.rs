@@ -59,6 +59,11 @@ where
 ///
 /// Sometimes the data pointed to by a URL is paginated. In that case a
 /// `PaginatedURI` is needed to iterate over the pages of data.
+///
+/// When iterating over one, every call to next returns a either a vector of `T` or
+/// an error.
+/// If an `Err` is returned then subsequent calls to `next()` will return `None`,
+/// since the error is likely to repeat after that point.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
 pub struct PaginatedURI<T> {

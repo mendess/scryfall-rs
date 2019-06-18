@@ -1,6 +1,26 @@
-//! This module provides an abstraction over the search params provided by
-//! scryfall. For a complete documentation, refer to the
+//! This module provides an abstraction over the search parameters provided by
+//! `scryfall`. For a complete documentation, refer to the
 //! [official site](https://scryfall.com/docs/syntax).
+//!
+//! The main struct of this module is the [`SearchBuilder`], this represents
+//! a search compatible with `scryfall` search route.
+//!
+//! All types whose name ends in `Param` are parameters that can be passed to
+//! the builder.
+//!
+//! [`SortMethod`], [`SortDirection`] and [`UniqueStrategy`] are options that
+//! can be set on the builder.
+//!
+//!
+//! Finally the [`Search`] trait, defines what is a valid search for `scryfall`
+//! it's implemented for `String` in case it's easier for the user to directly
+//! use a text representation.
+//!
+//! [`SortMethod`]: enum.SortMethod.html
+//! [`SortDirection`]: enum.SortDirection.html
+//! [`UniqueStrategy`]: enum.UniqueStrategy.html
+//! [`SearchBuilder`]: struct.SearchBuilder.html
+//! [`Search`]: trait.Search.html
 use crate::card::{
     border_color::BorderColor, color::Colors, frame::Frame, frame_effect::FrameEffect, game::Game,
     rarity::Rarity, Card,
@@ -15,7 +35,7 @@ use percent_encoding::{percent_encode, DEFAULT_ENCODE_SET};
 use serde::{Deserialize, Serialize};
 
 /// Search expresses that the implementing type can be turned into a query to
-/// scryfall. This means that is should be
+/// `scryfall`. This means that is should be
 /// [properly encoded](https://en.wikipedia.org/wiki/Percent-encoding).
 pub trait Search {
     /// Turns a searchable into it's string representation.
@@ -41,6 +61,21 @@ where
 }
 
 impl Search for &str {
+    /// This guarantees that the query is properly encoded. Be wary that you need
+    /// to follow `scryfall` syntax.
+    ///
+    /// The use case of this implementation is usually this. (See [`Card::search`]
+    /// for details)
+    ///
+    /// ```rust,norun
+    /// use scryfall::card::Card;
+    /// assert!(Card::search("lightning")
+    ///     .filter_map(|x| x.ok())
+    ///     .flatten()
+    ///     .all(|x| x.name.to_lowercase().contains("lightning")))
+    /// ```
+    ///
+    /// [`Card::search`]: ../card/struct.Card.html#method.search
     fn to_query(&self) -> String {
         format!("q={}", percent_encode(self.as_bytes(), DEFAULT_ENCODE_SET))
     }
@@ -130,8 +165,8 @@ impl SearchBuilder {
     }
 
     /// Change the sorting method used for the results.
-    pub fn sorting_by(&mut self, strat: SortMethod) -> &mut Self {
-        self.sort_by = strat;
+    pub fn sorting_by(&mut self, method: SortMethod) -> &mut Self {
+        self.sort_by = method;
         self
     }
 
@@ -180,13 +215,21 @@ impl SearchBuilder {
     ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
     /// };
     ///
-    /// let mut search = SearchBuilder::new();
-    /// search
-    ///     .param(Box::new(CollectorNumber(123)))
-    ///     .param(Box::new(Set([b'W', b'A', b'R', 0])));
     /// assert_eq!(
-    ///     Card::search(&search).flatten().collect::<Vec<_>>(),
-    ///     search.search().flatten().collect::<Vec<_>>());
+    ///     Card::search(
+    ///         SearchBuilder::new()
+    ///             .param(Box::new(CollectorNumber(123)))
+    ///             .param(Box::new(Set([b'W', b'A', b'R', 0])))
+    ///     )
+    ///     .flatten()
+    ///     .collect::<Vec<_>>(),
+    ///     SearchBuilder::new()
+    ///         .param(Box::new(CollectorNumber(123)))
+    ///         .param(Box::new(Set([b'W', b'A', b'R', 0])))
+    ///         .search()
+    ///         .flatten()
+    ///         .collect::<Vec<_>>()
+    /// );
     /// ```
     pub fn search(&mut self) -> PaginatedURI<Card> {
         Card::search(self)
