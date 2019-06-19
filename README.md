@@ -21,3 +21,5 @@ however until v1.0 releases breaking changes should be expected.
 - [x] Use `reqwest::Client` for faster requests
 
 - [ ] Cache results as requested by the `scryfall` API
+
+- [ ] Fully test the `card_searcher::SearchBuilder`.
