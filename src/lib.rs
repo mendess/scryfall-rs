@@ -58,7 +58,10 @@ pub use error::Result;
 
 #[cfg(test)]
 mod tests {
+    use crate::card::Card;
     use crate::set::set_code::SetCode;
+    use crate::set::Set;
+    use crate::util::uri::{PaginatedURI, URI};
     use serde_json::{from_str, to_string};
     use std::convert::TryFrom;
 
@@ -71,5 +74,31 @@ mod tests {
         let instance = SetCode::try_from("wwar").unwrap();
         let new_instance: SetCode = from_str(&to_string(&instance).unwrap()).unwrap();
         assert_eq!(new_instance, instance)
+    }
+
+    #[test]
+    fn all_cards() {
+        let mut page = 1;
+        for cards in Card::all() {
+            if cards.is_err() {
+                eprintln!("{:?}", cards);
+                eprintln!("{}", page);
+            }
+            page += 1;
+            cards.unwrap();
+        }
+    }
+
+    #[test]
+    fn all_sets() {
+        let mut page = 1;
+        for sets in Set::all() {
+            if sets.is_err() {
+                eprintln!("{:?}", sets);
+                eprintln!("{}", page);
+            }
+            page += 1;
+            sets.unwrap();
+        }
     }
 }
