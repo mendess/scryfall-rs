@@ -76,29 +76,29 @@ mod tests {
         assert_eq!(new_instance, instance)
     }
 
-    #[test]
-    fn all_cards() {
-        let mut page = 1;
-        for cards in Card::all() {
-            if cards.is_err() {
-                eprintln!("{:?}", cards);
-                eprintln!("{}", page);
-            }
-            page += 1;
-            cards.unwrap();
-        }
-    }
+    // #[test]
+    // fn all_cards() {
+    //     let mut page = 1;
+    //     for cards in Card::all() {
+    //         if cards.is_err() {
+    //             eprintln!("{:?}", cards);
+    //             eprintln!("{}", page);
+    //         }
+    //         page += 1;
+    //         cards.unwrap();
+    //     }
+    // }
 
-    #[test]
-    fn all_sets() {
-        let mut page = 1;
-        for sets in Set::all() {
-            if sets.is_err() {
-                eprintln!("{:?}", sets);
-                eprintln!("{}", page);
-            }
-            page += 1;
-            sets.unwrap();
-        }
-    }
+    // #[test]
+    // fn all_sets() {
+    //     let mut page = 1;
+    //     for sets in Set::all() {
+    //         if sets.is_err() {
+    //             eprintln!("{:?}", sets);
+    //             eprintln!("{}", page);
+    //         }
+    //         page += 1;
+    //         sets.unwrap();
+    //     }
+    // }
 }
