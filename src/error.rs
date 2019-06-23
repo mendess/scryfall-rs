@@ -37,6 +37,7 @@ pub struct ScryfallError {
     pub details: String,
     /// If your input also generated non-failure warnings, they will be provided as human-readable
     /// strings in this array.
+    #[serde(default = "Default::default")]
     pub warnings: Vec<String>,
 }
 
