@@ -18,7 +18,8 @@ use std::collections::HashMap;
 pub struct CardFace {
     pub artist: Option<String>,
     pub color_indicator: Option<Vec<Color>>,
-    pub colors: Option<Vec<Color>>,
+    #[serde(default)]
+    pub colors: Vec<Color>,
     pub flavor_text: Option<String>,
     pub illustration_id: Option<Uuid>,
     pub image_uris: Option<HashMap<String, String>>,

@@ -73,7 +73,8 @@ pub struct Card {
     pub card_faces: Option<Vec<CardFace>>,
     pub all_parts: Option<Vec<RelatedCard>>,
     pub cmc: f32,
-    pub colors: Option<Vec<Color>>,
+    #[serde(default)]
+    pub colors: Vec<Color>,
     pub color_identity: Vec<Color>,
     pub color_indicator: Option<Vec<Color>>,
     pub edhrec_rank: Option<usize>,
