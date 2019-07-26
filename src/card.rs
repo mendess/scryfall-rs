@@ -22,11 +22,11 @@ use crate::util::uri::{url_fetch, PaginatedURI, URI};
 use crate::util::Uuid;
 use crate::util::{API, API_CARDS};
 #[doc(inline)]
-pub use border_color::BorderColor;
+pub use border_color::BorderColour;
 #[doc(inline)]
 pub use card_faces::CardFace;
 #[doc(inline)]
-pub use color::Color;
+pub use color::Colour;
 #[doc(inline)]
 pub use frame::Frame;
 #[doc(inline)]
@@ -74,9 +74,9 @@ pub struct Card {
     pub all_parts: Option<Vec<RelatedCard>>,
     pub cmc: f32,
     #[serde(default)]
-    pub colors: Vec<Color>,
-    pub color_identity: Vec<Color>,
-    pub color_indicator: Option<Vec<Color>>,
+    pub colors: Vec<Colour>,
+    pub color_identity: Vec<Colour>,
+    pub color_indicator: Option<Vec<Colour>>,
     pub edhrec_rank: Option<usize>,
     pub foil: bool,
     pub hand_modifier: Option<String>,
@@ -95,7 +95,7 @@ pub struct Card {
     pub type_line: String,
     // Print Fields
     pub artist: Option<String>,
-    pub border_color: BorderColor,
+    pub border_color: BorderColour,
     pub collector_number: String,
     pub digital: bool,
     pub flavor_text: Option<String>,

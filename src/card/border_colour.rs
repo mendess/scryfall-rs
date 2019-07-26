@@ -1,7 +1,7 @@
-//! Enum defining the colors a mtg card border can have.
+//! Enum defining the colours a mtg card border can have.
 use serde::{Deserialize, Serialize};
 
-/// Enum defining the colors a mtg card border can have.
+/// Enum defining the colours a mtg card border can have.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
