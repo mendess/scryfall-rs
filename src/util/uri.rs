@@ -7,37 +7,32 @@ use crate::error::Error;
 use std::marker::PhantomData;
 
 use reqwest::Client;
-use serde::{Deserialize, Serialize};
-
-thread_local!(static CLIENT: Client = Client::new());
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
 pub struct URI<T>(String, PhantomData<T>);
 
-impl<T> From<String> for URI<T> {
+impl<T: DeserializeOwned> From<String> for URI<T> {
     fn from(s: String) -> Self {
         URI(s, PhantomData)
     }
 }
 
-impl<T> URI<T> {
+impl<T: DeserializeOwned> URI<T> {
     fn as_str(&self) -> &str {
         &self.0
     }
 }
 
-impl<T> AsRef<str> for URI<T> {
+impl<T: DeserializeOwned> AsRef<str> for URI<T> {
     fn as_ref(&self) -> &str {
         self.as_str()
     }
 }
 
-impl<T> URI<T>
-where
-    for<'de> T: Deserialize<'de>,
-{
+impl<T: DeserializeOwned> URI<T> {
     /// Fetch the object of type `T` that this `URL` is pointing to.
     ///
     /// # Examples
@@ -70,10 +65,7 @@ pub struct PaginatedURI<T> {
     next: Option<URI<JsonParser<T>>>,
 }
 
-impl<T> PaginatedURI<T>
-where
-    for<'de> T: Deserialize<'de>,
-{
+impl<T: DeserializeOwned> PaginatedURI<T> {
     /// Creates a new `PaginatedURI` iterator from a `URI` of type `T`.
     pub fn new(url: URI<T>) -> Self {
         PaginatedURI {
@@ -88,10 +80,7 @@ struct JsonParser<T> {
     data: Vec<T>,
 }
 
-impl<T> Iterator for PaginatedURI<T>
-where
-    for<'de> T: Deserialize<'de>,
-{
+impl<T: DeserializeOwned> Iterator for PaginatedURI<T> {
     type Item = crate::Result<Vec<T>>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -104,6 +93,9 @@ where
     }
 }
 
+// Reusable client instance to optimize multiple network calls. Used only in `url_fetch`
+// thread_local!(static CLIENT: Client = Client::new());
+
 /// Utility function to fetch data pointed to by a URL string.
 ///
 /// # Examples
@@ -115,10 +107,8 @@ where
 ///         .name,
 ///     Card::arena(67330).unwrap().name)
 /// ```
-pub fn url_fetch<T, I: AsRef<str>>(url: I) -> crate::Result<T>
-where
-    for<'de> T: Deserialize<'de>,
-{
+pub fn url_fetch<T: DeserializeOwned, I: AsRef<str>>(url: I) -> crate::Result<T> {
+    thread_local!(static CLIENT: Client = Client::new());
     let resp = CLIENT.with(|c| c.get(url.as_ref()).send())?;
     if resp.status().is_success() {
         Ok(serde_json::from_reader(resp)?)

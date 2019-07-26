@@ -155,7 +155,7 @@ impl SearchBuilder {
             include_extras: false,
             include_multilingual: false,
             include_variations: false,
-            params: vec![],
+            params: Default::default(),
         }
     }
 
