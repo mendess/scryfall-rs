@@ -76,12 +76,19 @@ impl fmt::Display for Error {
             ReqwestError(e) => write!(f, "Error making request: {}", e),
             ScryfallError(e) => write!(
                 f,
-                "Scryfall error:\n\tdetails: {}\n\twarnings:\n{}",
+                "Scryfall error:\n\tdetails: {}{}",
                 e.details,
-                e.warnings
-                    .iter()
-                    .map(|w| String::from("\t\t") + w)
-                    .join("\n")
+                if e.warnings.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "\n\twarnings:\n{}",
+                        e.warnings
+                            .iter()
+                            .map(|w| format!("\t\t{}", w))
+                            .join("\n")
+                    )
+                }
             ),
             Other(s) => write!(f, "{}", s),
         }
