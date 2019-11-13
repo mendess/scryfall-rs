@@ -11,6 +11,7 @@ pub mod frame_effect;
 pub mod game;
 pub mod layout;
 pub mod legality;
+pub mod preview;
 pub mod price;
 pub mod rarity;
 pub mod related_card;
@@ -37,6 +38,8 @@ pub use game::Game;
 pub use layout::Layout;
 #[doc(inline)]
 pub use legality::Legality;
+#[doc(inline)]
+pub use preview::Preview;
 #[doc(inline)]
 pub use price::Price;
 #[doc(inline)]
@@ -125,6 +128,7 @@ pub struct Card {
     pub set: String,
     pub story_spotlight: bool,
     pub watermark: Option<String>,
+    pub preview: Preview,
 }
 
 impl Card {
