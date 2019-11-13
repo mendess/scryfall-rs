@@ -99,7 +99,7 @@ pub struct Card {
     pub collector_number: String,
     pub digital: bool,
     pub flavor_text: Option<String>,
-    pub frame_effect: Option<FrameEffect>,
+    pub frame_effects: Option<Vec<FrameEffect>>,
     pub frame: Frame,
     pub full_art: bool,
     pub games: Vec<Game>,
