@@ -21,6 +21,7 @@ pub enum FrameEffect {
     Originpwdfc,
     Mooneldrazidfc,
     Moonreversemoondfc,
+    Waxingandwaningmoondfc,
     Showcase,
     Extendedart,
 }
@@ -44,7 +45,8 @@ impl std::fmt::Display for FrameEffect {
                 Compasslanddfc => "compasslanddfc",
                 Originpwdfc => "originwdfc",
                 Mooneldrazidfc => "mooneldrazidfc",
-                Moonreversemoondfc => "Moonreversemoondfc",
+                Moonreversemoondfc => "moonreversemoondfc",
+                Waxingandwaningmoondfc => "waxingandwaningmoondfc",
                 Showcase => "showcase",
                 Extendedart => "extendedart",
             }
