@@ -128,6 +128,7 @@ pub struct Card {
     pub set: String,
     pub story_spotlight: bool,
     pub watermark: Option<String>,
+    #[serde(default)]
     pub preview: Preview,
 }
 
