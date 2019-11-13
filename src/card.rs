@@ -95,7 +95,8 @@ pub struct Card {
     pub power: Option<String>,
     pub reserved: bool,
     pub toughness: Option<String>,
-    pub type_line: String,
+    #[serde(default)]
+    pub type_line: Option<String>,
     // Print Fields
     pub artist: Option<String>,
     pub border_color: BorderColour,
