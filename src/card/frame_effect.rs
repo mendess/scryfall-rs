@@ -15,10 +15,14 @@ pub enum FrameEffect {
     Devoid,
     Tombstone,
     Colourshifted,
+    Inverted,
     Sunmoondfc,
     Compasslanddfc,
     Originpwdfc,
     Mooneldrazidfc,
+    Moonreversemoondfc,
+    Showcase,
+    Extendedart,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -35,10 +39,14 @@ impl std::fmt::Display for FrameEffect {
                 Devoid => "devoid",
                 Tombstone => "tombstone",
                 Colourshifted => "colorshifted",
+                Inverted => "inverted",
                 Sunmoondfc => "sunmoondfc",
                 Compasslanddfc => "compasslanddfc",
                 Originpwdfc => "originwdfc",
                 Mooneldrazidfc => "mooneldrazidfc",
+                Moonreversemoondfc => "Moonreversemoondfc",
+                Showcase => "showcase",
+                Extendedart => "extendedart",
             }
         )
     }
