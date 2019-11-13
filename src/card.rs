@@ -112,6 +112,7 @@ pub struct Card {
     pub printed_text: Option<String>,
     pub printed_type_line: Option<String>,
     pub promo: bool,
+    #[serde(default)]
     pub purchase_uris: HashMap<String, String>,
     pub rarity: Rarity,
     pub related_uris: HashMap<String, String>,
