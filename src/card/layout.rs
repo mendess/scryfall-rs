@@ -15,6 +15,7 @@ pub enum Layout {
     Meld,
     Leveler,
     Saga,
+    Adventure,
     Planar,
     Scheme,
     Vanguard,
@@ -23,4 +24,6 @@ pub enum Layout {
     Emblem,
     Augment,
     Host,
+    ArtSeries,
+    DoubleSided,
 }
