@@ -106,6 +106,7 @@ pub struct Card {
     pub highres_image: bool,
     pub illustration_id: Option<Uuid>,
     pub image_uris: Option<HashMap<String, String>>,
+    #[serde(default)]
     pub prices: Price,
     pub printed_name: Option<String>,
     pub printed_text: Option<String>,
