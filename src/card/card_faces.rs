@@ -32,6 +32,6 @@ pub struct CardFace {
     pub printed_text: Option<String>,
     pub printed_type_line: Option<String>,
     pub toughness: Option<String>,
-    pub type_line: String,
+    pub type_line: Option<String>,
     pub watermark: Option<String>,
 }

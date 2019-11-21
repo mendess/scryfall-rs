@@ -11,6 +11,7 @@ pub mod frame_effect;
 pub mod game;
 pub mod layout;
 pub mod legality;
+pub mod preview;
 pub mod price;
 pub mod rarity;
 pub mod related_card;
@@ -37,6 +38,8 @@ pub use game::Game;
 pub use layout::Layout;
 #[doc(inline)]
 pub use legality::Legality;
+#[doc(inline)]
+pub use preview::Preview;
 #[doc(inline)]
 pub use price::Price;
 #[doc(inline)]
@@ -92,25 +95,28 @@ pub struct Card {
     pub power: Option<String>,
     pub reserved: bool,
     pub toughness: Option<String>,
-    pub type_line: String,
+    #[serde(default)]
+    pub type_line: Option<String>,
     // Print Fields
     pub artist: Option<String>,
     pub border_color: BorderColour,
     pub collector_number: String,
     pub digital: bool,
     pub flavor_text: Option<String>,
-    pub frame_effect: Option<FrameEffect>,
+    pub frame_effects: Option<Vec<FrameEffect>>,
     pub frame: Frame,
     pub full_art: bool,
     pub games: Vec<Game>,
     pub highres_image: bool,
     pub illustration_id: Option<Uuid>,
     pub image_uris: Option<HashMap<String, String>>,
+    #[serde(default)]
     pub prices: Price,
     pub printed_name: Option<String>,
     pub printed_text: Option<String>,
     pub printed_type_line: Option<String>,
     pub promo: bool,
+    #[serde(default)]
     pub purchase_uris: HashMap<String, String>,
     pub rarity: Rarity,
     pub related_uris: HashMap<String, String>,
@@ -123,6 +129,8 @@ pub struct Card {
     pub set: String,
     pub story_spotlight: bool,
     pub watermark: Option<String>,
+    #[serde(default)]
+    pub preview: Preview,
 }
 
 impl Card {
