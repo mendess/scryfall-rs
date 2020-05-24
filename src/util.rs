@@ -9,6 +9,8 @@ pub const API_CARDS: &str = "/cards";
 pub const API_SETS: &str = "/sets";
 /// The [rulings](https://scryfall.com/docs/api/sets) endpoint.
 pub const API_RULING: &str = "/rulings";
+/// The [bulk-data](https://scryfall.com/docs/api/bulk-data) endpoint.
+pub const API_BULK_DATA: &str = "/bulk-data";
 
 /// A type alias for a Uuid.
 pub type Uuid = String;

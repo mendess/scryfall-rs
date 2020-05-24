@@ -24,6 +24,8 @@ pub enum FrameEffect {
     Waxingandwaningmoondfc,
     Showcase,
     Extendedart,
+    Companion,
+    Nyxborn,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -49,6 +51,8 @@ impl std::fmt::Display for FrameEffect {
                 Waxingandwaningmoondfc => "waxingandwaningmoondfc",
                 Showcase => "showcase",
                 Extendedart => "extendedart",
+                Companion => "companion",
+                Nyxborn => "nyxborn",
             }
         )
     }

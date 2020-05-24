@@ -103,7 +103,8 @@ pub struct Card {
     pub collector_number: String,
     pub digital: bool,
     pub flavor_text: Option<String>,
-    pub frame_effects: Option<Vec<FrameEffect>>,
+    #[serde(default)]
+    pub frame_effects: Vec<FrameEffect>,
     pub frame: Frame,
     pub full_art: bool,
     pub games: Vec<Game>,
@@ -145,6 +146,10 @@ impl Card {
     /// }
     /// ```
     /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
+    #[deprecated(
+        since = "0.6.0",
+        note = "Scryfall is deprecating this endpoint on the 30/May/2020 in favour of the bulk endpoints"
+    )]
     pub fn all() -> PaginatedURI<Card> {
         let cards = format!("{}/{}?page=1", API, API_CARDS);
         PaginatedURI::new(URI::from(cards))
