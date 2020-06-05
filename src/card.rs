@@ -189,7 +189,7 @@ impl Card {
     ///
     /// assert!(SearchBuilder::new()
     ///     .param(Box::new(CollectorNumber(123)))
-    ///     .param(Box::new(Set(SetCode::try_from("war").unwrap())))
+    ///     .param(Box::new(Set(SetCode::try_from("war").expect("Not a valid set code"))))
     ///     .search()
     ///     .all(|x| x.map(|x| x[0].name == "Demolish").unwrap_or(false)))
     /// ```

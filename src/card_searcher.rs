@@ -32,7 +32,7 @@ use crate::util::uri::PaginatedURI;
 use std::fmt::Write;
 use std::str;
 
-use percent_encoding::{percent_encode, DEFAULT_ENCODE_SET};
+use percent_encoding::{percent_encode, CONTROLS};
 use serde::{Deserialize, Serialize};
 
 /// Search expresses that the implementing type can be turned into a query to
@@ -78,7 +78,7 @@ impl Search for &str {
     ///
     /// [`Card::search`]: ../card/struct.Card.html#method.search
     fn to_query(&self) -> String {
-        format!("q={}", percent_encode(self.as_bytes(), DEFAULT_ENCODE_SET))
+        format!("q={}", percent_encode(self.as_bytes(), CONTROLS))
     }
 }
 
@@ -273,7 +273,7 @@ impl Search for SearchBuilder {
                     })
                     .join("+")
                     .as_bytes(),
-                DEFAULT_ENCODE_SET,
+                CONTROLS,
             )
         );
         query
