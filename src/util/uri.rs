@@ -6,7 +6,7 @@ use crate::error::Error;
 
 use std::marker::PhantomData;
 
-use reqwest::Client;
+use reqwest::blocking::Client;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
 /// A URI that will fetch something of a defined type `T`.
