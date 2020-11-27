@@ -9,3 +9,31 @@ A wrapper around the scryfall magic the gathering API
 
 It wraps the scryfall API as close to it as possible and I try to keep it up to
 date
+
+
+## Cards
+
+The main way to fetch cards from this API is the `Card` struct.
+
+This allows you to get cards from `scryfall` using all of their available
+REST Apis
+
+```rust
+use scryfall::card::Card;
+match Card::named_fuzzy("Light Bolt") {
+    Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
+    Err(e) => panic!(format!("{:?}", e))
+}
+```
+
+## Sets
+
+You can also fetch information about a card set.
+
+The available routes for this can be seen on `Set`
+
+```rust
+use scryfall::set::Set;
+assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
+```
+

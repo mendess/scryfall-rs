@@ -28,7 +28,7 @@
 //! ```
 //!
 //! ## Catalogs
-//! Finally `scryfall` also allows you to fetch *catalogs* witch
+//! Finally `scryfall` also allows you to fetch *catalogs* which
 //! are collections of Magic the Gathering data points.
 //!
 //! For example, one could fetch all available card names.
