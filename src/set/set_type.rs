@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Scryfall provides an overall categorization for each Set in the set_type property.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum SetType {
     /// A yearly Magic core set (Tenth Edition, etc)
     Core,

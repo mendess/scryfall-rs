@@ -22,8 +22,8 @@
 //! [`SearchBuilder`]: struct.SearchBuilder.html
 //! [`Search`]: trait.Search.html
 use crate::card::{
-    border_color::BorderColour, color::Colours, frame::Frame, frame_effect::FrameEffect, game::Game,
-    rarity::Rarity, Card,
+    border_color::BorderColour, color::Colours, frame::Frame, frame_effect::FrameEffect,
+    game::Game, rarity::Rarity, Card,
 };
 use crate::format::Format;
 use crate::set::set_code::SetCode;
@@ -93,6 +93,15 @@ pub trait Param {
 impl Param for String {
     fn to_param(&self) -> String {
         self.clone()
+    }
+}
+
+impl<P> From<P> for Box<dyn Param>
+where
+    P: Param + 'static,
+{
+    fn from(param: P) -> Self {
+        Box::new(param)
     }
 }
 
@@ -202,8 +211,11 @@ impl SearchBuilder {
     }
 
     /// Add a param to the search.
-    pub fn param(&mut self, param: Box<dyn Param>) -> &mut Self {
-        self.params.push(param);
+    pub fn param<P>(&mut self, param: P) -> &mut Self
+    where
+        P: Into<Box<dyn Param>>,
+    {
+        self.params.push(param.into());
         self
     }
 
@@ -221,14 +233,14 @@ impl SearchBuilder {
     /// assert_eq!(
     ///     Card::search(
     ///         SearchBuilder::new()
-    ///             .param(Box::new(CollectorNumber(123)))
-    ///             .param(Box::new(Set(SetCode::try_from("war").unwrap())))
+    ///             .param(CollectorNumber(123))
+    ///             .param(Set(SetCode::try_from("war").unwrap()))
     ///     )
     ///     .flatten()
     ///     .collect::<Vec<_>>(),
     ///     SearchBuilder::new()
-    ///         .param(Box::new(CollectorNumber(123)))
-    ///         .param(Box::new(Set(SetCode::try_from("war").unwrap())))
+    ///         .param(CollectorNumber(123))
+    ///         .param(Set(SetCode::try_from("war").unwrap()))
     ///         .search()
     ///         .flatten()
     ///         .collect::<Vec<_>>()
@@ -729,7 +741,12 @@ impl Param for NumericParam {
 
 /// Find cards by their print rarity.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub struct RarityParam(pub ComparisonExpr, pub Rarity);
+pub struct RarityParam(
+    /// How to filter for the rarity
+    pub ComparisonExpr,
+    /// The rarity to search for
+    pub Rarity,
+);
 
 impl Param for RarityParam {
     fn to_param(&self) -> String {

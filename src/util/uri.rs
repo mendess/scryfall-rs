@@ -79,7 +79,7 @@ where
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
 pub struct PaginatedURI<T> {
-    next: Option<URI<JsonParser<T>>>,
+    next: Option<URI<Page<T>>>,
 }
 
 impl<T: DeserializeOwned> PaginatedURI<T> {
@@ -92,8 +92,8 @@ impl<T: DeserializeOwned> PaginatedURI<T> {
 }
 
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-struct JsonParser<T> {
-    next_page: Option<URI<JsonParser<T>>>,
+struct Page<T> {
+    next_page: Option<URI<Page<T>>>,
     data: Vec<T>,
 }
 
@@ -101,8 +101,8 @@ impl<T: DeserializeOwned> Iterator for PaginatedURI<T> {
     type Item = crate::Result<Vec<T>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.next.take().map(|url| {
-            url_fetch(url).map(|cards: JsonParser<T>| {
+        self.next.take().map(url_fetch).map(|cards| {
+            cards.map(|cards: Page<T>| {
                 self.next = cards.next_page;
                 cards.data
             })

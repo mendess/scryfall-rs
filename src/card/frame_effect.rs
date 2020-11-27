@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
+#[non_exhaustive]
 pub enum FrameEffect {
     Legendary,
     Miracle,
@@ -26,6 +27,8 @@ pub enum FrameEffect {
     Extendedart,
     Companion,
     Nyxborn,
+    Fullart,
+    Etched,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -53,6 +56,8 @@ impl std::fmt::Display for FrameEffect {
                 Extendedart => "extendedart",
                 Companion => "companion",
                 Nyxborn => "nyxborn",
+                Fullart => "fullart",
+                Etched => "etched",
             }
         )
     }

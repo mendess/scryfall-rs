@@ -45,6 +45,7 @@
 //! [`Card`]: card/struct.Card.html
 //! [`Set`]: set/struct.Set.html
 //! [`card_searcher`]: card_searcher/index.html
+pub mod bulk;
 pub mod card;
 pub mod card_searcher;
 pub mod catalog;
@@ -53,14 +54,16 @@ pub mod format;
 pub mod ruling;
 pub mod set;
 pub mod util;
-pub mod bulk;
 
 pub use error::Result;
 
 #[cfg(test)]
 mod tests {
-    use crate::set::set_code::SetCode;
-    use crate::set::Set;
+    use crate::{
+        card_searcher::{SearchBuilder, StringParam},
+        set::{set_code::SetCode, Set},
+    };
+    use rayon::prelude::*;
     use serde_json::{from_str, to_string};
     use std::convert::TryFrom;
 
@@ -85,5 +88,26 @@ mod tests {
             }
             page += 1;
         }
+    }
+
+    #[test]
+    #[ignore]
+    fn lattest_cards() {
+        Set::all()
+            .map(Result::unwrap)
+            .flatten()
+            .take(30)
+            .par_bridge()
+            .for_each(|set| {
+                SearchBuilder::new()
+                    .param(StringParam::Set(set.code))
+                    .search()
+                    .enumerate()
+                    .for_each(|(i, c)| {
+                        if let Err(e) = c {
+                            panic!("Card {} in set {} couldn't be parsed: {}", i, set.name, e)
+                        }
+                    });
+            })
     }
 }

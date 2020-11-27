@@ -188,8 +188,8 @@ impl Card {
     /// use std::convert::TryFrom;
     ///
     /// assert!(SearchBuilder::new()
-    ///     .param(Box::new(CollectorNumber(123)))
-    ///     .param(Box::new(Set(SetCode::try_from("war").expect("Not a valid set code"))))
+    ///     .param(CollectorNumber(123))
+    ///     .param(Set(SetCode::try_from("war").expect("Not a valid set code")))
     ///     .search()
     ///     .all(|x| x.map(|x| x[0].name == "Demolish").unwrap_or(false)))
     /// ```
@@ -201,7 +201,7 @@ impl Card {
     /// use scryfall::error::Error;
     ///
     /// let error = SearchBuilder::new()
-    ///     .param(Box::new(StringParam::Power(ComparisonExpr::AtLeast, "pow".to_string())))
+    ///     .param(StringParam::Power(ComparisonExpr::AtLeast, "pow".to_string()))
     ///     .search()
     ///     .find_map(Result::err);
     /// match error {

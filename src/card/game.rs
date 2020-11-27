@@ -5,10 +5,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
+#[non_exhaustive]
 pub enum Game {
     Paper,
     Arena,
     Mtgo,
+    Astral,
+    Sega,
 }
 
 impl std::fmt::Display for Game {
@@ -21,6 +24,8 @@ impl std::fmt::Display for Game {
                 Paper => "paper",
                 Arena => "arena",
                 Mtgo => "mtgo",
+                Astral => "astral",
+                Sega => "sega",
             }
         )
     }
