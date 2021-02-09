@@ -6,13 +6,13 @@ use crate::error::Error;
 
 use std::marker::PhantomData;
 
-use reqwest::blocking::Client;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use ureq::{Agent, Response};
 
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
-pub struct URI<T>(String, PhantomData<T>);
+pub struct URI<T>(String, PhantomData<fn() -> T>);
 
 impl<T: DeserializeOwned> From<String> for URI<T> {
     fn from(s: String) -> Self {
@@ -110,7 +110,24 @@ impl<T: DeserializeOwned> Iterator for PaginatedURI<T> {
     }
 }
 
-thread_local!(static CLIENT: Client = Client::new());
+thread_local!(static CLIENT: Agent = Agent::new());
+
+/// Transforms a `Response` using the provided function. If the status code indicates an error,
+/// produces an appropriate error instead.
+fn map_response<T>(
+    response: Response,
+    read_json: impl FnOnce(Response) -> serde_json::Result<T>,
+) -> crate::Result<T> {
+    if matches!(response.status(), 200..=299) {
+        Ok(read_json(response)?)
+    } else if matches!(response.status(), 400..=499) {
+        Err(Error::ScryfallError(serde_json::from_reader(
+            response.into_reader(),
+        )?))
+    } else {
+        Err(format!("{:?}", response.status()))?
+    }
+}
 
 /// Utility function to fetch data pointed to by a URL string.
 ///
@@ -124,14 +141,8 @@ thread_local!(static CLIENT: Client = Client::new());
 ///     Card::arena(67330).unwrap().name)
 /// ```
 pub fn url_fetch<T: DeserializeOwned, I: AsRef<str>>(url: I) -> crate::Result<T> {
-    let resp = CLIENT.with(|c| c.get(url.as_ref()).send())?;
-    if resp.status().is_success() {
-        Ok(serde_json::from_reader(resp)?)
-    } else if resp.status().is_client_error() {
-        Err(Error::ScryfallError(serde_json::from_reader(resp)?))
-    } else {
-        Err(format!("{:?}", resp.status()))?
-    }
+    let resp = CLIENT.with(|c| c.get(url.as_ref()).call())?;
+    map_response(resp, |resp| serde_json::from_reader(resp.into_reader()))
 }
 
 /// An iterator over `T`s return by [`URI::iter`] and [`url_fetch_iter`]
@@ -160,15 +171,9 @@ where
     T: DeserializeOwned,
     U: AsRef<str>,
 {
-    let resp = CLIENT.with(|c| c.get(url.as_ref()).send())?;
-    if resp.status().is_success() {
-        Ok(UriIter {
-            // de: Deserializer::from_reader(resp).into_iter(),
-            de: serde_json::from_reader::<_, Vec<T>>(resp)?.into_iter(),
-        })
-    } else if resp.status().is_client_error() {
-        Err(Error::ScryfallError(serde_json::from_reader(resp)?))
-    } else {
-        Err(format!("{:?}", resp.status()))?
-    }
+    let resp = CLIENT.with(|c| c.get(url.as_ref()).call())?;
+    map_response(resp, |resp| {
+        serde_json::from_reader::<_, Vec<T>>(resp.into_reader())
+            .map(|v| UriIter { de: v.into_iter() })
+    })
 }
