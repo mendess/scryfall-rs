@@ -6,8 +6,8 @@ use crate::error::Error;
 
 use std::marker::PhantomData;
 
-use reqwest::blocking::Client;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use ureq::Agent;
 
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -110,7 +110,7 @@ impl<T: DeserializeOwned> Iterator for PaginatedURI<T> {
     }
 }
 
-thread_local!(static CLIENT: Client = Client::new());
+thread_local!(static CLIENT: Agent = Agent::new());
 
 /// Utility function to fetch data pointed to by a URL string.
 ///
@@ -124,11 +124,11 @@ thread_local!(static CLIENT: Client = Client::new());
 ///     Card::arena(67330).unwrap().name)
 /// ```
 pub fn url_fetch<T: DeserializeOwned, I: AsRef<str>>(url: I) -> crate::Result<T> {
-    let resp = CLIENT.with(|c| c.get(url.as_ref()).send())?;
-    if resp.status().is_success() {
-        Ok(serde_json::from_reader(resp)?)
-    } else if resp.status().is_client_error() {
-        Err(Error::ScryfallError(serde_json::from_reader(resp)?))
+    let resp = CLIENT.with(|c| c.get(url.as_ref()).call())?;
+    if matches!(resp.status(), 200..=299) {
+        Ok(serde_json::from_reader(resp.into_reader())?)
+    } else if matches!(resp.status(), 400..=499) {
+        Err(Error::ScryfallError(serde_json::from_reader(resp.into_reader())?))
     } else {
         Err(format!("{:?}", resp.status()))?
     }
@@ -160,14 +160,14 @@ where
     T: DeserializeOwned,
     U: AsRef<str>,
 {
-    let resp = CLIENT.with(|c| c.get(url.as_ref()).send())?;
-    if resp.status().is_success() {
+    let resp = CLIENT.with(|c| c.get(url.as_ref()).call())?;
+    if matches!(resp.status(), 200..=299) {
         Ok(UriIter {
             // de: Deserializer::from_reader(resp).into_iter(),
-            de: serde_json::from_reader::<_, Vec<T>>(resp)?.into_iter(),
+            de: serde_json::from_reader::<_, Vec<T>>(resp.into_reader())?.into_iter(),
         })
-    } else if resp.status().is_client_error() {
-        Err(Error::ScryfallError(serde_json::from_reader(resp)?))
+    } else if matches!(resp.status(), 400..=499) {
+        Err(Error::ScryfallError(serde_json::from_reader(resp.into_reader())?))
     } else {
         Err(format!("{:?}", resp.status()))?
     }

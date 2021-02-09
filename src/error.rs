@@ -1,7 +1,7 @@
 //! This module exposes the possible errors this crate has, and ways to interact
 //! with them.
 use itertools::Itertools;
-use reqwest::Error as ReqwestError;
+use ureq::Error as UreqError;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 
@@ -18,7 +18,7 @@ pub enum Error {
     /// [open an issue](https://github.com/Mendess2526/scryfall-rs/issues).
     JsonError(SerdeError),
     /// Something went wrong when making the HTTP request.
-    ReqwestError(ReqwestError),
+    UreqError(UreqError),
     /// Scryfall error. Please refer to the [official docs](https://scryfall.com/docs/api/errors).
     ScryfallError(ScryfallError),
     /// Other.
@@ -49,9 +49,9 @@ impl From<SerdeError> for Error {
 }
 
 #[doc(hidden)]
-impl From<ReqwestError> for Error {
-    fn from(error: ReqwestError) -> Self {
-        Error::ReqwestError(error)
+impl From<UreqError> for Error {
+    fn from(error: UreqError) -> Self {
+        Error::UreqError(error)
     }
 }
 
@@ -73,7 +73,7 @@ impl fmt::Display for Error {
         use Error::*;
         match self {
             JsonError(e) => write!(f, "Error deserializing json: {}", e),
-            ReqwestError(e) => write!(f, "Error making request: {}", e),
+            UreqError(e) => write!(f, "Error making request: {}", e),
             ScryfallError(e) => write!(
                 f,
                 "Scryfall error:\n\tdetails: {}{}",
