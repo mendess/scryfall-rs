@@ -115,12 +115,12 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// match Ruling::set_and_number("ima", 65).next() {
+    /// match Ruling::set_and_number("bfz", 17).next() {
     ///     Some(rulings) => assert_eq!(
     ///         rulings
     ///             .unwrap()
     ///             .iter()
-    ///             .filter(|r| r.comment == "If the target spell is an illegal target when Mana Drain tries to resolve, it won’t resolve and none of its effects will happen. You won’t get any mana.")
+    ///             .filter(|r| r.comment == "Yes, your opponent can’t even. We know.")
     ///             .count(),
     ///         1
     ///     ),
