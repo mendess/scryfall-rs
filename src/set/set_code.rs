@@ -36,7 +36,7 @@ impl SetCode {
     pub fn get(&self) -> &str {
         // The inner code is always a valid utf8 str since it can
         // only be created from a valid &str.
-        unsafe { str::from_utf8_unchecked(self.0.as_slice()) }
+        str::from_utf8(self.0.as_slice()).unwrap()
     }
 }
 
