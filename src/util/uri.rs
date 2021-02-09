@@ -12,7 +12,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[serde(transparent)]
-pub struct URI<T>(String, PhantomData<T>);
+pub struct URI<T>(String, PhantomData<fn() -> T>);
 
 impl<T: DeserializeOwned> From<String> for URI<T> {
     fn from(s: String) -> Self {
