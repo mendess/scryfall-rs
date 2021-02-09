@@ -7,7 +7,7 @@ use crate::error::Error;
 use std::marker::PhantomData;
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use ureq::Agent;
+use ureq::{Agent, Response};
 
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -112,6 +112,23 @@ impl<T: DeserializeOwned> Iterator for PaginatedURI<T> {
 
 thread_local!(static CLIENT: Agent = Agent::new());
 
+/// Transforms a `Response` using the provided function. If the status code indicates an error,
+/// produces an appropriate error instead.
+fn map_response<T>(
+    response: Response,
+    read_json: impl FnOnce(Response) -> serde_json::Result<T>,
+) -> crate::Result<T> {
+    if matches!(response.status(), 200..=299) {
+        Ok(read_json(response)?)
+    } else if matches!(response.status(), 400..=499) {
+        Err(Error::ScryfallError(serde_json::from_reader(
+            response.into_reader(),
+        )?))
+    } else {
+        Err(format!("{:?}", response.status()))?
+    }
+}
+
 /// Utility function to fetch data pointed to by a URL string.
 ///
 /// # Examples
@@ -125,13 +142,7 @@ thread_local!(static CLIENT: Agent = Agent::new());
 /// ```
 pub fn url_fetch<T: DeserializeOwned, I: AsRef<str>>(url: I) -> crate::Result<T> {
     let resp = CLIENT.with(|c| c.get(url.as_ref()).call())?;
-    if matches!(resp.status(), 200..=299) {
-        Ok(serde_json::from_reader(resp.into_reader())?)
-    } else if matches!(resp.status(), 400..=499) {
-        Err(Error::ScryfallError(serde_json::from_reader(resp.into_reader())?))
-    } else {
-        Err(format!("{:?}", resp.status()))?
-    }
+    map_response(resp, |resp| serde_json::from_reader(resp.into_reader()))
 }
 
 /// An iterator over `T`s return by [`URI::iter`] and [`url_fetch_iter`]
@@ -161,14 +172,8 @@ where
     U: AsRef<str>,
 {
     let resp = CLIENT.with(|c| c.get(url.as_ref()).call())?;
-    if matches!(resp.status(), 200..=299) {
-        Ok(UriIter {
-            // de: Deserializer::from_reader(resp).into_iter(),
-            de: serde_json::from_reader::<_, Vec<T>>(resp.into_reader())?.into_iter(),
-        })
-    } else if matches!(resp.status(), 400..=499) {
-        Err(Error::ScryfallError(serde_json::from_reader(resp.into_reader())?))
-    } else {
-        Err(format!("{:?}", resp.status()))?
-    }
+    map_response(resp, |resp| {
+        serde_json::from_reader::<_, Vec<T>>(resp.into_reader())
+            .map(|v| UriIter { de: v.into_iter() })
+    })
 }

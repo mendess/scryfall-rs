@@ -64,7 +64,6 @@ pub fn rullings() -> crate::Result<UriIter<Ruling>> {
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     #[ignore]
     fn oracle_cards() {

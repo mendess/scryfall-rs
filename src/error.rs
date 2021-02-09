@@ -1,9 +1,9 @@
 //! This module exposes the possible errors this crate has, and ways to interact
 //! with them.
 use itertools::Itertools;
-use ureq::Error as UreqError;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
+use ureq::Error as UreqError;
 
 use std::fmt;
 
@@ -83,10 +83,7 @@ impl fmt::Display for Error {
                 } else {
                     format!(
                         "\n\twarnings:\n{}",
-                        e.warnings
-                            .iter()
-                            .map(|w| format!("\t\t{}", w))
-                            .join("\n")
+                        e.warnings.iter().map(|w| format!("\t\t{}", w)).join("\n")
                     )
                 }
             ),
