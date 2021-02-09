@@ -11,21 +11,26 @@ use std::fmt;
 pub type Result<T> = std::result::Result<T, Error>;
 
 /// The errors that may occur when interacting with the scryfall API.
-#[derive(Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Couldn't parse the json returned from scryfall. This error should never
     /// occur. If it does, please
     /// [open an issue](https://github.com/Mendess2526/scryfall-rs/issues).
-    JsonError(SerdeError),
+    #[error("Error deserializing json: {0}")]
+    JsonError(#[from] SerdeError),
+
     /// Something went wrong when making the HTTP request.
-    UreqError(UreqError),
+    #[error("Error making request: {0}")]
+    UreqError(#[from] UreqError),
+
     /// Scryfall error. Please refer to the [official docs](https://scryfall.com/docs/api/errors).
+    #[error("Scryfall error: {0}")]
     ScryfallError(ScryfallError),
+
     /// Other.
+    #[error("{0}")]
     Other(String),
 }
-
-impl std::error::Error for Error {}
 
 /// An Error object represents a failure to find information or understand the input you provided
 /// to the API.
@@ -41,53 +46,23 @@ pub struct ScryfallError {
     pub warnings: Vec<String>,
 }
 
-#[doc(hidden)]
-impl From<SerdeError> for Error {
-    fn from(error: SerdeError) -> Self {
-        Error::JsonError(error)
-    }
-}
-
-#[doc(hidden)]
-impl From<UreqError> for Error {
-    fn from(error: UreqError) -> Self {
-        Error::UreqError(error)
-    }
-}
-
-#[doc(hidden)]
-impl From<ScryfallError> for Error {
-    fn from(error: ScryfallError) -> Self {
-        Error::ScryfallError(error)
-    }
-}
-
-impl From<String> for Error {
-    fn from(error: String) -> Self {
-        Error::Other(error)
-    }
-}
-
-impl fmt::Display for Error {
+impl fmt::Display for ScryfallError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        use Error::*;
-        match self {
-            JsonError(e) => write!(f, "Error deserializing json: {}", e),
-            UreqError(e) => write!(f, "Error making request: {}", e),
-            ScryfallError(e) => write!(
-                f,
-                "Scryfall error:\n\tdetails: {}{}",
-                e.details,
-                if e.warnings.is_empty() {
-                    String::new()
-                } else {
-                    format!(
-                        "\n\twarnings:\n{}",
-                        e.warnings.iter().map(|w| format!("\t\t{}", w)).join("\n")
-                    )
-                }
-            ),
-            Other(s) => write!(f, "{}", s),
-        }
+        write!(
+            f,
+            "\n\tdetails:{}{}",
+            self.details,
+            if self.warnings.is_empty() {
+                String::new()
+            } else {
+                format!(
+                    "\n\twarnings:\n{}",
+                    self.warnings
+                        .iter()
+                        .map(|w| format!("\t\t{}", w))
+                        .join("\n")
+                )
+            }
+        )
     }
 }

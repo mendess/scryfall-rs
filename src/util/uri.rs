@@ -125,7 +125,7 @@ fn map_response<T>(
             response.into_reader(),
         )?))
     } else {
-        Err(format!("{:?}", response.status()))?
+        Err(Error::Other(format!("{:?}", response.status())))
     }
 }
 

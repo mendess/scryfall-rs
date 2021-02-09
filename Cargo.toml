@@ -17,6 +17,7 @@ chrono = { version = "0.4", features = ["serde"] }
 percent-encoding = "2.1"
 itertools = "0.9"
 ureq = "2.0.1"
+thiserror = "1.0.23"
 
 [dev-dependencies]
 rayon = "1"
