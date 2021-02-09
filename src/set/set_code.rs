@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use std::convert::AsRef;
 use std::convert::TryFrom;
+use std::cmp::Ordering;
 use std::fmt::{self, Display, Formatter};
 use std::str;
 
@@ -113,13 +114,25 @@ impl Display for SetCode {
     }
 }
 
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(clippy::enum_variant_names)]
 enum CodeInner {
     Code3([u8; 3]),
     Code4([u8; 4]),
     Code5([u8; 5]),
     Code6([u8; 6]),
+}
+
+impl PartialOrd for CodeInner {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.get().partial_cmp(other.get())
+    }
+}
+
+impl Ord for CodeInner {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
 }
 
 impl CodeInner {

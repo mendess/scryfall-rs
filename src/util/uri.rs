@@ -10,7 +10,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use ureq::{Agent, Response};
 
 /// A URI that will fetch something of a defined type `T`.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(transparent)]
 pub struct URI<T>(String, PhantomData<fn() -> T>);
 
@@ -76,7 +76,7 @@ where
 /// an error.
 /// If an `Err` is returned then subsequent calls to `next()` will return `None`,
 /// since the error is likely to repeat after that point.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(transparent)]
 pub struct PaginatedURI<T> {
     next: Option<URI<Page<T>>>,
@@ -91,7 +91,7 @@ impl<T: DeserializeOwned> PaginatedURI<T> {
     }
 }
 
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 struct Page<T> {
     next_page: Option<URI<Page<T>>>,
     data: Vec<T>,

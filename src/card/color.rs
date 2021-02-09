@@ -2,7 +2,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Enum defining the 5 colors of magic
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(missing_docs)]
 pub enum Colour {
     #[serde(rename = "W")]
@@ -21,7 +21,7 @@ pub enum Colour {
 /// the search builder as a [`ColourParam`].
 ///
 /// [`ColourParam`]: ../../card_searcher/enum.ColourParam.html
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Colours(u8);
 
 impl Colours {

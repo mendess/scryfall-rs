@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Enum describing the various frame effects a border can have.
 ///
 /// [Official docs](https://scryfall.com/docs/api/layouts)
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 #[non_exhaustive]
