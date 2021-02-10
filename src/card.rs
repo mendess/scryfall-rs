@@ -3,18 +3,18 @@
 //!
 //! All the card's fields are public and identic in name to the ones documented in the oficial
 //! [scryfall page](https://scryfall.com/docs/api/cards).
-pub mod border_color;
-pub mod card_faces;
-pub mod color;
-pub mod frame;
-pub mod frame_effect;
-pub mod game;
-pub mod layout;
-pub mod legality;
-pub mod preview;
-pub mod price;
-pub mod rarity;
-pub mod related_card;
+mod border_color;
+mod card_faces;
+mod color;
+mod frame;
+mod frame_effect;
+mod game;
+mod layout;
+mod legality;
+mod preview;
+mod price;
+mod rarity;
+mod related_card;
 
 use crate::card_searcher::Search;
 use crate::ruling::Ruling;
@@ -27,7 +27,7 @@ pub use border_color::BorderColour;
 #[doc(inline)]
 pub use card_faces::CardFace;
 #[doc(inline)]
-pub use color::Colour;
+pub use color::{Colour, Colours};
 #[doc(inline)]
 pub use frame::Frame;
 #[doc(inline)]

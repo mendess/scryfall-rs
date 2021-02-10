@@ -53,7 +53,7 @@ pub mod error;
 pub mod format;
 pub mod ruling;
 pub mod set;
-pub mod util;
+mod util;
 
 /// The result type used to describe all fallible operations of the scryfall crate.
 pub type Result<T> = std::result::Result<T, error::Error>;
@@ -67,7 +67,7 @@ pub use set::Set;
 mod tests {
     use crate::{
         card_searcher::{SearchBuilder, StringParam},
-        set::{set_code::SetCode, Set},
+        set::{Set, SetCode},
     };
     use rayon::prelude::*;
     use serde_json::{from_str, to_string};

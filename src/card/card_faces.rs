@@ -4,7 +4,7 @@
 //! [documentation](https://scryfall.com/docs/api/cards)
 use serde::{Deserialize, Serialize};
 
-use super::color::Colour;
+use crate::card::Colour;
 use crate::util::Uuid;
 
 use std::collections::HashMap;

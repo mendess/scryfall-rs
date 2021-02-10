@@ -17,10 +17,10 @@ pub struct SetCode(ArrayVec<[u8; 6]>);
 impl SetCode {
     /// Creates a set code from a str.
     ///
-    /// Valid set codes are ascii and 3 our 6 letters long. If any of these conditions
+    /// Valid set codes are ascii between 3 and 6 letters long. If any of these conditions
     /// fails, the conversion fails.
     ///
-    /// The error value is None if the `str` was no ascii, otherwise it holds the size
+    /// The error value is None if the `str` was not ascii, otherwise it holds the size
     /// of the `str`.
     ///
     /// ```rust
