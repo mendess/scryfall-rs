@@ -23,7 +23,7 @@ use crate::util::uri::{url_fetch, PaginatedURI, URI};
 use crate::util::Uuid;
 use crate::util::{API, API_CARDS};
 
-pub use self::border_color::BorderColour;
+pub use self::border_color::BorderColor;
 pub use self::card_faces::CardFace;
 pub use self::color::{Color, Colors};
 pub use self::frame::Frame;
@@ -88,7 +88,7 @@ pub struct Card {
     pub type_line: Option<String>,
     // Print Fields
     pub artist: Option<String>,
-    pub border_color: BorderColour,
+    pub border_color: BorderColor,
     pub collector_number: String,
     pub digital: bool,
     pub flavor_text: Option<String>,

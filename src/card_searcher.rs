@@ -22,7 +22,7 @@
 //! [`SearchBuilder`]: struct.SearchBuilder.html
 //! [`Search`]: trait.Search.html
 use crate::card::{
-    BorderColour, Colors, Frame, FrameEffect,
+    BorderColor, Colors, Frame, FrameEffect,
     Game, Rarity, Card,
 };
 use crate::format::Format;
@@ -339,7 +339,7 @@ pub enum SortMethod {
     /// Sort cards by their rarity: Common → Mythic
     Rarity,
     /// Sort cards by their color and color identity: WUBRG → multicolor → colorless
-    Colour,
+    Color,
     /// Sort cards by their lowest known U.S. Dollar price: 0.01 → highest, null last
     Usd,
     /// Sort cards by their lowest known TIX price: 0.01 → highest, null last
@@ -373,7 +373,7 @@ impl Param for SortMethod {
                 Set => "set",
                 Released => "released",
                 Rarity => "rarity",
-                Colour => "color",
+                Color => "color",
                 Usd => "usd",
                 Tix => "tix",
                 Eur => "eur",
@@ -425,7 +425,7 @@ impl Param for SortDirection {
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum BooleanParam {
     /// Cards that have a color indicator.
-    ColourIndicator,
+    ColorIndicator,
     /// Cards that have a watermark.
     WaterMark,
     /// Find reprint cards printed at a new rarity for the first time.
@@ -514,12 +514,12 @@ impl Param for BooleanParam {
         format!(
             "{}:{}",
             match self {
-                ColourIndicator | WaterMark => "has",
+                ColorIndicator | WaterMark => "has",
                 NewRarity | NewArt | NewFlavor | NewArtist | NewFrame | NewLanguage => "new",
                 _ => "is",
             },
             match self {
-                ColourIndicator => "indicator",
+                ColorIndicator => "indicator",
                 WaterMark => "watermark",
                 NewRarity => "rarity",
                 NewArt => "art",
@@ -763,21 +763,21 @@ impl Param for RarityParam {
     }
 }
 
-/// A parameter that takes a colour as it's value.
+/// A parameter that takes a color as it's value.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub enum ColourParam {
-    /// Find cards that are a certain colour.
-    Colour(ComparisonExpr, Colors),
-    /// Find cards by their colour identity.
-    ColourIdentity(ComparisonExpr, Colors),
+pub enum ColorParam {
+    /// Find cards that are a certain color.
+    Color(ComparisonExpr, Colors),
+    /// Find cards by their color identity.
+    ColorIdentity(ComparisonExpr, Colors),
 }
 
-impl Param for ColourParam {
+impl Param for ColorParam {
     fn to_param(&self) -> String {
-        use ColourParam::*;
+        use ColorParam::*;
         match self {
-            Colour(ce, cl) => format!("c{}{}", cl, ce),
-            ColourIdentity(ce, cl) => format!("id{}{}", cl, ce),
+            Color(ce, cl) => format!("c{}{}", cl, ce),
+            ColorIdentity(ce, cl) => format!("id{}{}", cl, ce),
         }
     }
 }
@@ -804,7 +804,7 @@ impl Param for FormatParam {
     }
 }
 
-impl Param for BorderColour {
+impl Param for BorderColor {
     fn to_param(&self) -> String {
         format!("border:{}", self)
     }
