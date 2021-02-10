@@ -22,30 +22,19 @@ use crate::set::Set;
 use crate::util::uri::{url_fetch, PaginatedURI, URI};
 use crate::util::Uuid;
 use crate::util::{API, API_CARDS};
-#[doc(inline)]
-pub use border_color::BorderColour;
-#[doc(inline)]
-pub use card_faces::CardFace;
-#[doc(inline)]
-pub use color::{Colour, Colours};
-#[doc(inline)]
-pub use frame::Frame;
-#[doc(inline)]
-pub use frame_effect::FrameEffect;
-#[doc(inline)]
-pub use game::Game;
-#[doc(inline)]
-pub use layout::Layout;
-#[doc(inline)]
-pub use legality::Legality;
-#[doc(inline)]
-pub use preview::Preview;
-#[doc(inline)]
-pub use price::Price;
-#[doc(inline)]
-pub use rarity::Rarity;
-#[doc(inline)]
-pub use related_card::RelatedCard;
+
+pub use self::border_color::BorderColour;
+pub use self::card_faces::CardFace;
+pub use self::color::{Colour, Colours};
+pub use self::frame::Frame;
+pub use self::frame_effect::FrameEffect;
+pub use self::game::Game;
+pub use self::layout::Layout;
+pub use self::legality::Legality;
+pub use self::preview::Preview;
+pub use self::price::Price;
+pub use self::rarity::Rarity;
+pub use self::related_card::RelatedCard;
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};

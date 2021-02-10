@@ -13,10 +13,9 @@ use crate::card::Card;
 use crate::util::uri::{url_fetch, PaginatedURI, URI};
 use crate::util::Uuid;
 use crate::util::{API, API_SETS};
-#[doc(inline)]
-pub use set_code::SetCode;
-#[doc(inline)]
-pub use set_type::SetType;
+
+pub use self::set_code::SetCode;
+pub use self::set_type::SetType;
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
