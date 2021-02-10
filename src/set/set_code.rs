@@ -2,15 +2,16 @@
 use serde::de::{self, Deserializer, Visitor};
 use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
+use tinyvec::ArrayVec;
 
-use std::convert::AsRef;
-use std::convert::TryFrom;
-use std::fmt::{self, Display, Formatter};
+use std::convert::{AsRef, TryFrom};
+use std::fmt;
+use std::iter::FromIterator;
 use std::str;
 
-/// A 3 or 4 letter set code, like 'war' for 'War of the Spark'.
+/// A 3 to 6 letter set code, like 'war' for 'War of the Spark'.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub struct SetCode(CodeInner);
+pub struct SetCode(ArrayVec<[u8; 6]>);
 
 #[allow(dead_code)]
 impl SetCode {
@@ -35,7 +36,7 @@ impl SetCode {
     pub fn get(&self) -> &str {
         // The inner code is always a valid utf8 str since it can
         // only be created from a valid &str.
-        unsafe { str::from_utf8_unchecked(self.0.get()) }
+        unsafe { str::from_utf8_unchecked(self.0.as_slice()) }
     }
 }
 
@@ -48,10 +49,7 @@ impl TryFrom<&str> for SetCode {
         }
         let code = code.as_bytes();
         Ok(SetCode(match code.len() {
-            3 => CodeInner::Code3(<[u8; 3]>::try_from(code).unwrap()),
-            4 => CodeInner::Code4(<[u8; 4]>::try_from(code).unwrap()),
-            5 => CodeInner::Code5(<[u8; 5]>::try_from(code).unwrap()),
-            6 => CodeInner::Code6(<[u8; 6]>::try_from(code).unwrap()),
+            3..=6 => ArrayVec::from_iter(code.iter().cloned()),
             invalid => return Err(Some(invalid)),
         }))
     }
@@ -64,14 +62,14 @@ impl AsRef<str> for SetCode {
 }
 
 #[derive(Default)]
-struct SetCodeVisior {
+struct SetCodeVisitor {
     size: Option<usize>,
 }
 
-impl<'de> Visitor<'de> for SetCodeVisior {
+impl<'de> Visitor<'de> for SetCodeVisitor {
     type Value = SetCode;
 
-    fn expecting(&self, f: &mut Formatter) -> fmt::Result {
+    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.size {
             Some(size) => write!(f, "set code size between 3 and 6, found {}", size),
             None => write!(f, "set code to be ascii"),
@@ -94,7 +92,7 @@ impl<'de> Deserialize<'de> for SetCode {
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_str(SetCodeVisior::default())
+        deserializer.deserialize_str(SetCodeVisitor::default())
     }
 }
 
@@ -103,33 +101,12 @@ impl Serialize for SetCode {
     where
         S: Serializer,
     {
-        serializer.serialize_str(str::from_utf8(self.0.get()).unwrap())
+        serializer.serialize_str(self.get())
     }
 }
 
-impl Display for SetCode {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+impl fmt::Display for SetCode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.get())
-    }
-}
-
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-#[allow(clippy::enum_variant_names)]
-enum CodeInner {
-    Code3([u8; 3]),
-    Code4([u8; 4]),
-    Code5([u8; 5]),
-    Code6([u8; 6]),
-}
-
-impl CodeInner {
-    fn get(&self) -> &[u8] {
-        use CodeInner::*;
-        match self {
-            Code3(c) => &c[..],
-            Code4(c) => &c[..],
-            Code5(c) => &c[..],
-            Code6(c) => &c[..],
-        }
     }
 }
