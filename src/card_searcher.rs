@@ -22,7 +22,7 @@
 //! [`SearchBuilder`]: struct.SearchBuilder.html
 //! [`Search`]: trait.Search.html
 use crate::card::{
-    BorderColour, Colours, Frame, FrameEffect,
+    BorderColour, Colors, Frame, FrameEffect,
     Game, Rarity, Card,
 };
 use crate::format::Format;
@@ -767,9 +767,9 @@ impl Param for RarityParam {
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 pub enum ColourParam {
     /// Find cards that are a certain colour.
-    Colour(ComparisonExpr, Colours),
+    Colour(ComparisonExpr, Colors),
     /// Find cards by their colour identity.
-    ColourIdentity(ComparisonExpr, Colours),
+    ColourIdentity(ComparisonExpr, Colors),
 }
 
 impl Param for ColourParam {

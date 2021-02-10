@@ -25,7 +25,7 @@ use crate::util::{API, API_CARDS};
 
 pub use self::border_color::BorderColour;
 pub use self::card_faces::CardFace;
-pub use self::color::{Colour, Colours};
+pub use self::color::{Color, Colors};
 pub use self::frame::Frame;
 pub use self::frame_effect::FrameEffect;
 pub use self::game::Game;
@@ -66,9 +66,9 @@ pub struct Card {
     pub all_parts: Option<Vec<RelatedCard>>,
     pub cmc: f32,
     #[serde(default)]
-    pub colors: Vec<Colour>,
-    pub color_identity: Vec<Colour>,
-    pub color_indicator: Option<Vec<Colour>>,
+    pub colors: Vec<Color>,
+    pub color_identity: Vec<Color>,
+    pub color_indicator: Option<Vec<Color>>,
     pub edhrec_rank: Option<usize>,
     pub foil: bool,
     pub hand_modifier: Option<String>,
