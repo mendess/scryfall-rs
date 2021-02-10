@@ -55,7 +55,13 @@ pub mod ruling;
 pub mod set;
 pub mod util;
 
-pub use error::Result;
+/// The result type used to describe all fallible operations of the scryfall crate.
+pub type Result<T> = std::result::Result<T, error::Error>;
+
+pub use card::Card;
+pub use catalog::Catalog;
+pub use ruling::Ruling;
+pub use set::Set;
 
 #[cfg(test)]
 mod tests {
