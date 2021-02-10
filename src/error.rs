@@ -27,6 +27,10 @@ pub enum Error {
     #[error("Scryfall error: {0}")]
     ScryfallError(ScryfallError),
 
+    /// HTTP error with status code and message.
+    #[error("HTTP error: {0} {1}")]
+    HttpError(u16, String),
+
     /// Other.
     #[error("{0}")]
     Other(String),
