@@ -42,7 +42,7 @@ impl<T: DeserializeOwned> URI<T> {
     /// Fetch the object of type `T` that this `URL` is pointing to.
     ///
     /// # Examples
-    /// ```rust
+    /// ```rust ignore
     /// use scryfall::{util::uri::URI, card::Card};
     /// assert_eq!(
     ///     URI::<Card>::from("https://api.scryfall.com/cards/arena/67330")
@@ -132,7 +132,7 @@ fn map_response<T>(
 /// Utility function to fetch data pointed to by a URL string.
 ///
 /// # Examples
-/// ```rust
+/// ```rust ignore
 /// use scryfall::{util::uri::url_fetch, card::Card};
 /// assert_eq!(
 ///     url_fetch::<Card,_>("https://api.scryfall.com/cards/arena/67330")

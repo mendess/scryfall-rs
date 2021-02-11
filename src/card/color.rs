@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 /// Enum defining the 5 colors of magic
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[allow(missing_docs)]
-pub enum Colour {
+pub enum Color {
     #[serde(rename = "W")]
     White = 0,
     #[serde(rename = "U")]
@@ -18,34 +18,34 @@ pub enum Colour {
 }
 
 /// Definition of a cards colors. This can be used to in conjunction with
-/// the search builder as a [`ColourParam`].
+/// the search builder as a [`ColorParam`].
 ///
-/// [`ColourParam`]: ../../card_searcher/enum.ColourParam.html
+/// [`ColorParam`]: ../../card_searcher/enum.ColorParam.html
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-pub struct Colours(u8);
+pub struct Colors(u8);
 
-impl Colours {
+impl Colors {
     /// Creates an instance representing a multicolored card without specifying it's colors.
     pub fn multicolored() -> Self {
-        Colours(1 << 7)
+        Colors(1 << 7)
     }
 
     /// Creates an instance representing a colorless card.
     pub fn colorless() -> Self {
-        Colours(0)
+        Colors(0)
     }
 
     /// Checks to see if a card is a certain color.
     ///
     /// Note: Multicolored cards are may not be any particular color.
-    pub fn is(self, color: Colour) -> bool {
+    pub fn is(self, color: Color) -> bool {
         self.0 & (1 << (color as u8)) != 0
     }
 
     /// Checks if a card is multicolored. This only works for instances
-    /// created by [`Colours::multicolored`].
+    /// created by [`Colors::multicolored`].
     ///
-    /// [`Colours::multicolored`]: #method.multicolored
+    /// [`Colors::multicolored`]: #method.multicolored
     pub fn is_multicolored(self) -> bool {
         self.0 & (1 << 7) != 0
     }
@@ -56,19 +56,19 @@ impl Colours {
     }
 }
 
-impl From<&[Colour]> for Colours {
-    fn from(colors: &[Colour]) -> Self {
+impl From<&[Color]> for Colors {
+    fn from(colors: &[Color]) -> Self {
         let mut s: u8 = 0;
         for c in colors {
             s ^= 1 << *c as u8;
         }
-        Colours(s)
+        Colors(s)
     }
 }
 
-impl std::fmt::Display for Colours {
+impl std::fmt::Display for Colors {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use self::Colour::*;
+        use self::Color::*;
         if self.is_multicolored() {
             write!(f, "m")
         } else if self.is_colorless() {

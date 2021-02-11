@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 #[non_exhaustive]
-pub enum BorderColour {
+pub enum BorderColor {
     Black,
     Borderless,
     Gold,
@@ -14,15 +14,15 @@ pub enum BorderColour {
     Silver,
 }
 
-impl Default for BorderColour {
+impl Default for BorderColor {
     fn default() -> Self {
-        BorderColour::Black
+        BorderColor::Black
     }
 }
 
-impl std::fmt::Display for BorderColour {
+impl std::fmt::Display for BorderColor {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use BorderColour::*;
+        use BorderColor::*;
         write!(
             f,
             "{}",

@@ -3,18 +3,18 @@
 //!
 //! All the card's fields are public and identic in name to the ones documented in the oficial
 //! [scryfall page](https://scryfall.com/docs/api/cards).
-pub mod border_color;
-pub mod card_faces;
-pub mod color;
-pub mod frame;
-pub mod frame_effect;
-pub mod game;
-pub mod layout;
-pub mod legality;
-pub mod preview;
-pub mod price;
-pub mod rarity;
-pub mod related_card;
+mod border_color;
+mod card_faces;
+mod color;
+mod frame;
+mod frame_effect;
+mod game;
+mod layout;
+mod legality;
+mod preview;
+mod price;
+mod rarity;
+mod related_card;
 
 use crate::card_searcher::Search;
 use crate::ruling::Ruling;
@@ -22,30 +22,19 @@ use crate::set::Set;
 use crate::util::uri::{url_fetch, PaginatedURI, URI};
 use crate::util::Uuid;
 use crate::util::{API, API_CARDS};
-#[doc(inline)]
-pub use border_color::BorderColour;
-#[doc(inline)]
-pub use card_faces::CardFace;
-#[doc(inline)]
-pub use color::Colour;
-#[doc(inline)]
-pub use frame::Frame;
-#[doc(inline)]
-pub use frame_effect::FrameEffect;
-#[doc(inline)]
-pub use game::Game;
-#[doc(inline)]
-pub use layout::Layout;
-#[doc(inline)]
-pub use legality::Legality;
-#[doc(inline)]
-pub use preview::Preview;
-#[doc(inline)]
-pub use price::Price;
-#[doc(inline)]
-pub use rarity::Rarity;
-#[doc(inline)]
-pub use related_card::RelatedCard;
+
+pub use self::border_color::BorderColor;
+pub use self::card_faces::CardFace;
+pub use self::color::{Color, Colors};
+pub use self::frame::Frame;
+pub use self::frame_effect::FrameEffect;
+pub use self::game::Game;
+pub use self::layout::Layout;
+pub use self::legality::Legality;
+pub use self::preview::Preview;
+pub use self::price::Price;
+pub use self::rarity::Rarity;
+pub use self::related_card::RelatedCard;
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -77,9 +66,9 @@ pub struct Card {
     pub all_parts: Option<Vec<RelatedCard>>,
     pub cmc: f32,
     #[serde(default)]
-    pub colors: Vec<Colour>,
-    pub color_identity: Vec<Colour>,
-    pub color_indicator: Option<Vec<Colour>>,
+    pub colors: Vec<Color>,
+    pub color_identity: Vec<Color>,
+    pub color_indicator: Option<Vec<Color>>,
     pub edhrec_rank: Option<usize>,
     pub foil: bool,
     pub hand_modifier: Option<String>,
@@ -99,7 +88,7 @@ pub struct Card {
     pub type_line: Option<String>,
     // Print Fields
     pub artist: Option<String>,
-    pub border_color: BorderColour,
+    pub border_color: BorderColor,
     pub collector_number: String,
     pub digital: bool,
     pub flavor_text: Option<String>,

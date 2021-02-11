@@ -17,10 +17,10 @@ pub struct SetCode(ArrayVec<[u8; 6]>);
 impl SetCode {
     /// Creates a set code from a str.
     ///
-    /// Valid set codes are ascii and 3 our 6 letters long. If any of these conditions
+    /// Valid set codes are ascii between 3 and 6 letters long. If any of these conditions
     /// fails, the conversion fails.
     ///
-    /// The error value is None if the `str` was no ascii, otherwise it holds the size
+    /// The error value is None if the `str` was not ascii, otherwise it holds the size
     /// of the `str`.
     ///
     /// ```rust
@@ -36,7 +36,7 @@ impl SetCode {
     pub fn get(&self) -> &str {
         // The inner code is always a valid utf8 str since it can
         // only be created from a valid &str.
-        unsafe { str::from_utf8_unchecked(self.0.as_slice()) }
+        str::from_utf8(self.0.as_slice()).unwrap()
     }
 }
 
