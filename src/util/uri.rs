@@ -118,14 +118,12 @@ fn map_response<T>(
     response: Response,
     read_json: impl FnOnce(Response) -> serde_json::Result<T>,
 ) -> crate::Result<T> {
-    if matches!(response.status(), 200..=299) {
-        Ok(read_json(response)?)
-    } else if matches!(response.status(), 400..=499) {
-        Err(Error::ScryfallError(serde_json::from_reader(
+    match response.status() {
+        200..=299 => Ok(read_json(response)?),
+        400..=499 => Err(Error::ScryfallError(serde_json::from_reader(
             response.into_reader(),
-        )?))
-    } else {
-        Err(format!("{:?}", response.status()))?
+        )?)),
+        status => Err(Error::HttpError(status, response.status_text().to_string())),
     }
 }
 
