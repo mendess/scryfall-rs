@@ -7,9 +7,6 @@ use ureq::Error as UreqError;
 
 use std::fmt;
 
-/// The result type used to describe all falible operations of the scryfall crate.
-pub type Result<T> = std::result::Result<T, Error>;
-
 /// The errors that may occur when interacting with the scryfall API.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {

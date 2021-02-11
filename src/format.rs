@@ -1,5 +1,6 @@
 //! The available magic the gathering formats.
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[allow(missing_docs)]
@@ -18,8 +19,8 @@ pub enum Format {
     Oldschool,
 }
 
-impl std::fmt::Display for Format {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl fmt::Display for Format {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use Format::*;
         write!(
             f,
