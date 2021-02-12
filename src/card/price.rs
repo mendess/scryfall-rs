@@ -49,9 +49,9 @@ impl PartialOrd for Price {
                 | (Some(Ordering::Equal), order)
                 | (order, Some(Ordering::Equal)) => {
                     result = order;
-                }
+                },
                 // If the two orderings already agree, do nothing.
-                (Some(a), Some(b)) if a == b => {}
+                (Some(a), Some(b)) if a == b => {},
                 // Otherwise, they disagree, so these prices cannot be ordered.
                 _ => return None,
             }

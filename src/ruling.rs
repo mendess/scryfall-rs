@@ -1,22 +1,22 @@
-//! Rulings represent Oracle rulings, Wizards of the Coast set release notes, or Scryfall notes for
-//! a particular card.
+//! Rulings represent Oracle rulings, Wizards of the Coast set release notes, or
+//! Scryfall notes for a particular card.
 //!
-//! If two cards have the same name, they will have the same set of rulings objects. If a card has
-//! rulings, it usually has more than one.
+//! If two cards have the same name, they will have the same set of rulings
+//! objects. If a card has rulings, it usually has more than one.
 //!
-//! Rulings with a `Scryfall` source have been added by the Scryfall team, either to provide
-//! additional context for the card, or explain how the card works in an unofficial format (such as
-//! Duel Commander).
-
-use crate::util::uri::{PaginatedURI, URI};
-use crate::util::{Uuid, API, API_CARDS, API_RULING};
+//! Rulings with a `Scryfall` source have been added by the Scryfall team,
+//! either to provide additional context for the card, or explain how the card
+//! works in an unofficial format (such as Duel Commander).
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
+use crate::util::uri::{PaginatedURI, URI};
+use crate::util::{Uuid, API, API_CARDS, API_RULING};
+
 /// A ruling object.
 ///
-/// For documentation on it's fields refer to the
+/// For documentation on its fields refer to the
 /// [ruling object](https://scryfall.com/docs/api/rulings) on the official site.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(missing_docs)]
@@ -37,8 +37,9 @@ pub enum Source {
 }
 
 impl Ruling {
-    /// Returns a List of rulings for a card with the given Multiverse ID. If the card has multiple
-    /// multiverse IDs, this method can find either of them.
+    /// Returns a List of rulings for a card with the given Multiverse ID. If
+    /// the card has multiple multiverse IDs, this method can find either of
+    /// them.
     ///
     /// # Examples
     /// ```rust
@@ -62,8 +63,9 @@ impl Ruling {
         )))
     }
 
-    /// Returns rulings for a card with the given MTGO ID (also known as the Catalog ID). The ID
-    /// can either be the card’s `mtgo_id` or its `mtgo_foil_id`.
+    /// Returns rulings for a card with the given MTGO ID (also known as the
+    /// Catalog ID). The ID can either be the card’s `mtgo_id` or its
+    /// `mtgo_foil_id`.
     ///
     /// # Examples
     /// ```rust
@@ -110,7 +112,8 @@ impl Ruling {
         )))
     }
 
-    /// Returns a List of rulings for the card with the given set code and collector number.
+    /// Returns a List of rulings for the card with the given set code and
+    /// collector number.
     ///
     /// # Examples
     /// ```rust

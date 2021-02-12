@@ -1,8 +1,8 @@
-//! This module provides a definition of a Magic: The Gathering card, as well as, ways to fetch
-//! them from scryfall.
+//! This module provides a definition of a Magic: The Gathering card, as well
+//! as, ways to fetch them from scryfall.
 //!
-//! All the card's fields are public and identical in name to the ones documented in the official
-//! [scryfall page](https://scryfall.com/docs/api/cards).
+//! All the card's fields are public and identical in name to the ones
+//! documented in the official [scryfall page](https://scryfall.com/docs/api/cards).
 mod border_color;
 mod card_faces;
 mod color;
@@ -16,12 +16,10 @@ mod price;
 mod rarity;
 mod related_card;
 
-use crate::card_searcher::Search;
-use crate::ruling::Ruling;
-use crate::set::Set;
-use crate::util::uri::{url_fetch, PaginatedURI, URI};
-use crate::util::Uuid;
-use crate::util::{API, API_CARDS};
+use std::collections::hash_map::HashMap;
+
+use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
 
 pub use self::border_color::BorderColor;
 pub use self::card_faces::CardFace;
@@ -35,11 +33,11 @@ pub use self::preview::Preview;
 pub use self::price::Price;
 pub use self::rarity::Rarity;
 pub use self::related_card::RelatedCard;
-
-use chrono::NaiveDate;
-use serde::{Deserialize, Serialize};
-
-use std::collections::hash_map::HashMap;
+use crate::card_searcher::Search;
+use crate::ruling::Ruling;
+use crate::set::Set;
+use crate::util::uri::{url_fetch, PaginatedURI, URI};
+use crate::util::{Uuid, API, API_CARDS};
 
 /// A Card object containing all fields that `scryfall` provides,
 ///
@@ -132,7 +130,7 @@ impl Card {
     /// # #[allow(deprecated)]
     /// match Card::all().next().unwrap() {
     ///     Ok(cards) => assert_ne!(cards.len(), 0),
-    ///     Err(e) => eprintln!("{:?}", e)
+    ///     Err(e) => eprintln!("{:?}", e),
     /// }
     /// ```
     /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
@@ -152,7 +150,7 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::random() {
     ///     Ok(card) => println!("{}", card.name),
-    ///     Err(e) => eprintln!("{:?}", e)
+    ///     Err(e) => eprintln!("{:?}", e),
     /// }
     /// ```
     pub fn random() -> crate::Result<Card> {
@@ -164,42 +162,48 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// assert!(Card::search("lightning")
-    ///     .filter_map(Result::ok)
-    ///     .flatten()
-    ///     .all(|x| x.name.to_lowercase().contains("lightning")))
+    /// assert!(
+    ///     Card::search("lightning")
+    ///         .filter_map(Result::ok)
+    ///         .flatten()
+    ///         .all(|x| x.name.to_lowercase().contains("lightning"))
+    /// )
     /// ```
     /// ```rust
-    /// use scryfall::card::Card;
-    /// use scryfall::card_searcher::{
-    ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
-    /// };
-    /// use scryfall::set::SetCode;
     /// use std::convert::TryFrom;
     ///
-    /// assert!(SearchBuilder::new()
-    ///     .param(CollectorNumber(123))
-    ///     .param(Set(SetCode::try_from("war").expect("Not a valid set code")))
-    ///     .search()
-    ///     .all(|x| x.map(|x| x[0].name == "Demolish").unwrap_or(false)))
+    /// use scryfall::card::Card;
+    /// use scryfall::card_searcher::NumericParam::CollectorNumber;
+    /// use scryfall::card_searcher::StringParam::Set;
+    /// use scryfall::card_searcher::{Search, SearchBuilder};
+    /// use scryfall::set::SetCode;
+    ///
+    /// assert!(
+    ///     SearchBuilder::new()
+    ///         .param(CollectorNumber(123))
+    ///         .param(Set(SetCode::try_from("war").expect("Not a valid set code")))
+    ///         .search()
+    ///         .all(|x| x.map(|x| x[0].name == "Demolish").unwrap_or(false))
+    /// )
     /// ```
     /// ```rust
     /// use scryfall::card::Card;
-    /// use scryfall::card_searcher::{
-    ///     ComparisonExpr, Search, SearchBuilder, StringParam,
-    /// };
+    /// use scryfall::card_searcher::{ComparisonExpr, Search, SearchBuilder, StringParam};
     /// use scryfall::error::Error;
     ///
     /// let error = SearchBuilder::new()
-    ///     .param(StringParam::Power(ComparisonExpr::AtLeast, "pow".to_string()))
+    ///     .param(StringParam::Power(
+    ///         ComparisonExpr::AtLeast,
+    ///         "pow".to_string(),
+    ///     ))
     ///     .search()
     ///     .find_map(Result::err);
     /// match error {
     ///     Some(Error::ScryfallError(e)) => {
-    ///             assert!(e.details.contains("All of your terms were ignored"));
-    ///             assert!(e.warnings.len() > 0);
-    ///         },
-    ///     _ => ()
+    ///         assert!(e.details.contains("All of your terms were ignored"));
+    ///         assert!(e.warnings.len() > 0);
+    ///     },
+    ///     _ => {},
     /// };
     /// ```
     /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
@@ -238,7 +242,7 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::named_fuzzy("Light Bolt") {
     ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
-    ///     Err(e) => panic!(format!("{:?}", e))
+    ///     Err(e) => panic!(format!("{:?}", e)),
     /// }
     /// ```
     pub fn named_fuzzy(query: &str) -> crate::Result<Card> {
@@ -247,7 +251,7 @@ impl Card {
         url_fetch(&named)
     }
 
-    /// Fetch a card by it's multiverse id.
+    /// Fetch a card by its multiverse id.
     ///
     /// # Examples
     /// ```rust
@@ -261,7 +265,7 @@ impl Card {
         url_fetch(&format!("{}/{}/multiverse/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's mtgo id.
+    /// Fetch a card by its mtgo id.
     ///
     /// # Examples
     /// ```rust
@@ -275,7 +279,7 @@ impl Card {
         url_fetch(&format!("{}/{}/mtgo/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's arena id.
+    /// Fetch a card by its arena id.
     ///
     /// # Examples
     /// ```rust
@@ -289,7 +293,7 @@ impl Card {
         url_fetch(&format!("{}/{}/arena/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's tcgplayer id.
+    /// Fetch a card by its tcgplayer id.
     ///
     /// # Examples
     /// ```rust
@@ -303,7 +307,7 @@ impl Card {
         url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
     }
 
-    /// Fetch a card by it's Uuid.
+    /// Fetch a card by its Uuid.
     ///
     /// # Examples
     /// ```rust
