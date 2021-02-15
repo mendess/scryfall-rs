@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn lattest_cards() {
+    fn latest_cards() {
         Set::all()
             .map(Result::unwrap)
             .flatten()

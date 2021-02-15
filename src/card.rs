@@ -1,7 +1,7 @@
-//! This module provides a defenition of a Magic: The Gathering card, as well as, ways to fetch
+//! This module provides a definition of a Magic: The Gathering card, as well as, ways to fetch
 //! them from scryfall.
 //!
-//! All the card's fields are public and identic in name to the ones documented in the oficial
+//! All the card's fields are public and identical in name to the ones documented in the official
 //! [scryfall page](https://scryfall.com/docs/api/cards).
 mod border_color;
 mod card_faces;
@@ -127,8 +127,9 @@ impl Card {
     /// Returns a [`PaginatedURI`] of all the cards in the `scryfall` database.
     ///
     /// # Examples
-    /// ```rust
+    /// ```rust,no_run
     /// use scryfall::card::Card;
+    /// # #[allow(deprecated)]
     /// match Card::all().next().unwrap() {
     ///     Ok(cards) => assert_ne!(cards.len(), 0),
     ///     Err(e) => eprintln!("{:?}", e)

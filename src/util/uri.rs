@@ -1,6 +1,6 @@
 //! Module for handling unresolved URLs returned by the scryfall api
 //!
-//! Some fields of the scryfall api have URLs refering to queries that can be run to obtain more
+//! Some fields of the scryfall api have URLs referring to queries that can be run to obtain more
 //! information. This module abstracts the work of fetching that data.
 use crate::error::Error;
 
@@ -42,7 +42,7 @@ impl<T: DeserializeOwned> URI<T> {
     /// Fetch the object of type `T` that this `URL` is pointing to.
     ///
     /// # Examples
-    /// ```rust ignore
+    /// ```compile_fail
     /// use scryfall::{util::uri::URI, card::Card};
     /// assert_eq!(
     ///     URI::<Card>::from("https://api.scryfall.com/cards/arena/67330")
@@ -130,7 +130,7 @@ fn map_response<T>(
 /// Utility function to fetch data pointed to by a URL string.
 ///
 /// # Examples
-/// ```rust ignore
+/// ```compile_fail
 /// use scryfall::{util::uri::url_fetch, card::Card};
 /// assert_eq!(
 ///     url_fetch::<Card,_>("https://api.scryfall.com/cards/arena/67330")
