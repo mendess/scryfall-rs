@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Official docs](https://scryfall.com/docs/api/layouts)
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
-#[serde(rename_all = "snake_case")]
+#[serde(rename_all = "lowercase")]
 #[allow(missing_docs)]
 #[non_exhaustive]
 pub enum FrameEffect {
@@ -17,17 +17,17 @@ pub enum FrameEffect {
     Tombstone,
     Colorshifted,
     Inverted,
-    Sunmoondfc,
-    Compasslanddfc,
-    Originpwdfc,
-    Mooneldrazidfc,
-    Moonreversemoondfc,
-    Waxingandwaningmoondfc,
+    SunMoonDfc,
+    CompassLandDfc,
+    OriginPwDfc,
+    MoonEldraziDfc,
+    MoonReverseMoonDfc,
+    WaxingAndWaningMoonDfc,
     Showcase,
-    Extendedart,
+    ExtendedArt,
     Companion,
     Nyxborn,
-    Fullart,
+    FullArt,
     Etched,
 }
 
@@ -46,17 +46,17 @@ impl std::fmt::Display for FrameEffect {
                 Tombstone => "tombstone",
                 Colorshifted => "colorshifted",
                 Inverted => "inverted",
-                Sunmoondfc => "sunmoondfc",
-                Compasslanddfc => "compasslanddfc",
-                Originpwdfc => "originwdfc",
-                Mooneldrazidfc => "mooneldrazidfc",
-                Moonreversemoondfc => "moonreversemoondfc",
-                Waxingandwaningmoondfc => "waxingandwaningmoondfc",
+                SunMoonDfc => "sunmoondfc",
+                CompassLandDfc => "compasslanddfc",
+                OriginPwDfc => "originpwdfc",
+                MoonEldraziDfc => "mooneldrazidfc",
+                MoonReverseMoonDfc => "moonreversemoondfc",
+                WaxingAndWaningMoonDfc => "waxingandwaningmoondfc",
                 Showcase => "showcase",
-                Extendedart => "extendedart",
+                ExtendedArt => "extendedart",
                 Companion => "companion",
                 Nyxborn => "nyxborn",
-                Fullart => "fullart",
+                FullArt => "fullart",
                 Etched => "etched",
             }
         )
