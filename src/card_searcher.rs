@@ -293,7 +293,7 @@ impl Search for SearchBuilder {
 }
 
 /// The unique parameter specifies if Scryfall should remove “duplicate” results in your query.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum UniqueStrategy {
     /// Removes duplicate gameplay objects (cards that share a name and have the same
     /// functionality). For example, if your search matches more than one print of Pacifism, only one
@@ -328,7 +328,7 @@ impl Param for UniqueStrategy {
 }
 
 /// The order parameter determines how Scryfall should sort the returned cards.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum SortMethod {
     /// Sort cards by name, A → Z
     Name,
@@ -387,7 +387,7 @@ impl Param for SortMethod {
 }
 
 /// Which direction the sorting should occur:
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum SortDirection {
     /// Scryfall will automatically choose the most inuitive direction to sort
     Auto,
@@ -422,7 +422,7 @@ impl Param for SortDirection {
 }
 
 /// Parameters that are either added or are `false`.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum BooleanParam {
     /// Cards that have a color indicator.
     ColorIndicator,
@@ -575,7 +575,7 @@ impl Param for BooleanParam {
 /// assert_eq!(NumericParam::CMC(ComparisonExpr::AtLeast, 3).to_param(), "cmc>3")
 /// ```
 ///
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum ComparisonExpr {
     /// `>`
     AtLeast,
@@ -618,8 +618,8 @@ impl std::fmt::Display for ComparisonExpr {
     }
 }
 
-/// A parameter that takes a string as it's value.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+/// A parameter that takes a string as its value.
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum StringParam {
     /// The mana cost of the cards. This uses the official text version of mana costs set forth in the
     /// [Comprehensive Rules](http://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules)
@@ -696,8 +696,8 @@ impl Param for StringParam {
     }
 }
 
-/// A parameter that takes a number as it's value.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+/// A parameter that takes a number as its value.
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum NumericParam {
     /// Find cards of a specific converted mana cost
     CMC(ComparisonExpr, usize),
@@ -740,7 +740,7 @@ impl Param for NumericParam {
 }
 
 /// Find cards by their print rarity.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct RarityParam(
     /// How to filter for the rarity
     pub ComparisonExpr,
@@ -763,8 +763,8 @@ impl Param for RarityParam {
     }
 }
 
-/// A parameter that takes a color as it's value.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+/// A parameter that takes a colour as its value.
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum ColorParam {
     /// Find cards that are a certain color.
     Color(ComparisonExpr, Colors),
@@ -782,8 +782,8 @@ impl Param for ColorParam {
     }
 }
 
-/// A parameter that takes a format as it's value.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+/// A parameter that takes a format as its value.
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum FormatParam {
     /// Find cards legal in a format.
     Legal(Format),
@@ -822,8 +822,8 @@ impl Param for FrameEffect {
     }
 }
 
-/// A parameter that takes a game mode as it's value.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+/// A parameter that takes a game mode as its value.
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum GameParam {
     /// Find specific prints available in different Magic game environments
     Game(Game),
@@ -841,8 +841,8 @@ impl Param for GameParam {
     }
 }
 
-/// A parameter that takes a time string as it's value.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+/// A parameter that takes a time string as its value.
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum TimeParam {
     /// Find cards that were released relative to a certain year.
     Year(ComparisonExpr, usize),
@@ -870,7 +870,7 @@ impl Param for TimeParam {
 ///
 /// assert_eq!(not(BooleanParam::IsSpell).to_param(), "-is:spell")
 /// ```
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct NotParam<T: Param>(T);
 
 /// Negates a parameter. See [`NotParam`] for the full documentation.

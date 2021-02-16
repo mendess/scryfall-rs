@@ -3,7 +3,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 /// Struct describing card preview information.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug, Default)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug, Default)]
 #[allow(missing_docs)]
 pub struct Preview {
     pub previewed_at: Option<NaiveDate>,
