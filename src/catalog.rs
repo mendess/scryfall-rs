@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::util::uri::{url_fetch, URI};
 
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(missing_docs)]
 pub struct Catalog {
     pub uri: URI<Catalog>,
