@@ -1,6 +1,5 @@
 //! This module defines a set code.
 use std::convert::{AsRef, TryFrom};
-use std::iter::FromIterator;
 use std::{fmt, str};
 
 use serde::de::{self, Deserializer, Visitor};
@@ -50,7 +49,7 @@ impl TryFrom<&str> for SetCode {
         }
         let code = code.as_bytes();
         Ok(SetCode(match code.len() {
-            3..=6 => ArrayVec::from_iter(code.iter().cloned()),
+            3..=6 => code.iter().cloned().collect(),
             invalid => return Err(Some(invalid)),
         }))
     }

@@ -36,7 +36,7 @@ pub use self::related_card::RelatedCard;
 use crate::card_searcher::Search;
 use crate::ruling::Ruling;
 use crate::set::Set;
-use crate::util::uri::{url_fetch, PaginatedURI, URI};
+use crate::util::uri::{url_fetch, PaginatedUri, Uri};
 use crate::util::{Uuid, API, API_CARDS};
 
 /// A Card object containing all fields that `scryfall` provides,
@@ -55,10 +55,10 @@ pub struct Card {
     pub multiverse_ids: Option<Vec<usize>>,
     pub tcgplayer_id: Option<usize>,
     pub oracle_id: Uuid,
-    pub prints_search_uri: PaginatedURI<Card>,
-    pub rulings_uri: URI<Vec<Ruling>>,
+    pub prints_search_uri: PaginatedUri<Card>,
+    pub rulings_uri: Uri<Vec<Ruling>>,
     pub scryfall_uri: String,
-    pub uri: URI<Card>,
+    pub uri: Uri<Card>,
     // Gameplay Fields
     pub card_faces: Option<Vec<CardFace>>,
     pub all_parts: Option<Vec<RelatedCard>>,
@@ -112,8 +112,8 @@ pub struct Card {
     pub reprint: bool,
     pub scryfall_set_uri: String,
     pub set_name: String,
-    pub set_search_uri: PaginatedURI<Card>,
-    pub set_uri: URI<Set>,
+    pub set_search_uri: PaginatedUri<Card>,
+    pub set_uri: Uri<Set>,
     pub set: String,
     pub story_spotlight: bool,
     pub watermark: Option<String>,
@@ -138,9 +138,9 @@ impl Card {
         since = "0.6.0",
         note = "Scryfall is deprecating this endpoint on the 30/May/2020 in favour of the bulk endpoints"
     )]
-    pub fn all() -> PaginatedURI<Card> {
+    pub fn all() -> PaginatedUri<Card> {
         let cards = format!("{}/{}?page=1", API, API_CARDS);
-        PaginatedURI::new(URI::from(cards))
+        PaginatedUri::new(Uri::from(cards))
     }
 
     /// Fetches a random card.
@@ -207,10 +207,10 @@ impl Card {
     /// };
     /// ```
     /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
-    pub fn search<S: Search>(query: S) -> PaginatedURI<Card> {
+    pub fn search<S: Search>(query: S) -> PaginatedUri<Card> {
         let query = query.to_query().replace(" ", "+");
         let search = format!("{}/{}/search?{}", API, API_CARDS, query);
-        PaginatedURI::new(URI::from(search))
+        PaginatedUri::new(Uri::from(search))
     }
 
     /// Return a card with the exact name.

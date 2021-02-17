@@ -14,7 +14,7 @@ use serde::Deserialize;
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::util;
-use crate::util::uri::{UriIter, URI};
+use crate::util::uri::{Uri, UriIter};
 
 #[derive(Deserialize, Debug, Clone)]
 struct BulkObject {
@@ -22,7 +22,7 @@ struct BulkObject {
 }
 
 fn fetch_bulk_uri(url: &str) -> crate::Result<String> {
-    URI::<BulkObject>::from(format!("{}{}{}", util::API, util::API_BULK_DATA, url))
+    Uri::<BulkObject>::from(format!("{}{}{}", util::API, util::API_BULK_DATA, url))
         .fetch()
         .map(|b| b.download_uri)
 }
@@ -31,19 +31,19 @@ fn fetch_bulk_uri(url: &str) -> crate::Result<String> {
 /// Scryfall. The chosen sets for the cards are an attempt to return the most
 /// up-to-date recognizable version of the card.
 pub fn oracle_cards() -> crate::Result<UriIter<Card>> {
-    URI::<Vec<_>>::from(fetch_bulk_uri("/oracle_cards")?).iter()
+    Uri::<Vec<_>>::from(fetch_bulk_uri("/oracle_cards")?).iter()
 }
 
 /// An iterator of Scryfall card objects that together contain all unique
 /// artworks. The chosen cards promote the best image scans.
 pub fn unique_artwork() -> crate::Result<UriIter<Card>> {
-    URI::<Vec<_>>::from(fetch_bulk_uri("/unique_artwork")?).iter()
+    Uri::<Vec<_>>::from(fetch_bulk_uri("/unique_artwork")?).iter()
 }
 
 /// An iterator containing every card object on Scryfall in English or the
 /// printed language if the card is only available in one language.
 pub fn default_cards() -> crate::Result<UriIter<Card>> {
-    URI::<Vec<_>>::from(fetch_bulk_uri("/default_cards")?).iter()
+    Uri::<Vec<_>>::from(fetch_bulk_uri("/default_cards")?).iter()
 }
 
 /// An iterator of every card object on Scryfall in every language.
@@ -51,13 +51,13 @@ pub fn default_cards() -> crate::Result<UriIter<Card>> {
 /// # Note
 /// This currently takes about 2GB of RAM before returning 👀.
 pub fn all_cards() -> crate::Result<UriIter<Card>> {
-    URI::<Vec<_>>::from(fetch_bulk_uri("/all_cards")?).iter()
+    Uri::<Vec<_>>::from(fetch_bulk_uri("/all_cards")?).iter()
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
 pub fn rulings() -> crate::Result<UriIter<Ruling>> {
-    URI::<Vec<_>>::from(fetch_bulk_uri("/rulings")?).iter()
+    Uri::<Vec<_>>::from(fetch_bulk_uri("/rulings")?).iter()
 }
 
 #[cfg(test)]

@@ -11,7 +11,7 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::util::uri::{PaginatedURI, URI};
+use crate::util::uri::{PaginatedUri, Uri};
 use crate::util::{Uuid, API, API_CARDS, API_RULING};
 
 /// A ruling object.
@@ -56,8 +56,8 @@ impl Ruling {
     ///     None => panic!("Nothing")
     /// }
     /// ```
-    pub fn multiverse_id(id: usize) -> PaginatedURI<Self> {
-        PaginatedURI::new(URI::from(format!(
+    pub fn multiverse_id(id: usize) -> PaginatedUri<Self> {
+        PaginatedUri::new(Uri::from(format!(
             "{}/{}/multiverse/{}/{}",
             API, API_CARDS, id, API_RULING
         )))
@@ -82,8 +82,8 @@ impl Ruling {
     ///     None => panic!(),
     /// }
     /// ```
-    pub fn mtgo_id(id: usize) -> PaginatedURI<Self> {
-        PaginatedURI::new(URI::from(format!(
+    pub fn mtgo_id(id: usize) -> PaginatedUri<Self> {
+        PaginatedUri::new(Uri::from(format!(
             "{}/{}/mtgo/{}/{}",
             API, API_CARDS, id, API_RULING
         )))
@@ -105,8 +105,8 @@ impl Ruling {
     ///     None => panic!(),
     /// }
     /// ```
-    pub fn arena_id(id: usize) -> PaginatedURI<Self> {
-        PaginatedURI::new(URI::from(format!(
+    pub fn arena_id(id: usize) -> PaginatedUri<Self> {
+        PaginatedUri::new(Uri::from(format!(
             "{}/{}/arena/{}/{}",
             API, API_CARDS, id, API_RULING
         )))
@@ -130,8 +130,8 @@ impl Ruling {
     ///     None => panic!(),
     /// }
     /// ```
-    pub fn set_and_number(set: &str, number: u32) -> PaginatedURI<Self> {
-        PaginatedURI::new(URI::from(format!(
+    pub fn set_and_number(set: &str, number: u32) -> PaginatedUri<Self> {
+        PaginatedUri::new(Uri::from(format!(
             "{}/{}/{}/{}/{}",
             API, API_CARDS, set, number, API_RULING
         )))
@@ -154,8 +154,8 @@ impl Ruling {
     ///     None => panic!(),
     /// }
     /// ```
-    pub fn uuid(id: Uuid) -> PaginatedURI<Self> {
-        PaginatedURI::new(URI::from(format!(
+    pub fn uuid(id: Uuid) -> PaginatedUri<Self> {
+        PaginatedUri::new(Uri::from(format!(
             "{}/{}/{}/{}",
             API, API_CARDS, id, API_RULING
         )))

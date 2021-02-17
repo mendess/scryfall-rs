@@ -9,6 +9,7 @@ use ureq::Error as UreqError;
 
 /// The errors that may occur when interacting with the scryfall API.
 #[derive(Debug, thiserror::Error)]
+#[allow(clippy::large_enum_variant)]
 pub enum Error {
     /// Couldn't parse the json returned from scryfall. This error should never
     /// occur. If it does, please

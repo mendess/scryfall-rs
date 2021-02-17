@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 pub use self::set_code::SetCode;
 pub use self::set_type::SetType;
 use crate::card::Card;
-use crate::util::uri::{url_fetch, PaginatedURI, URI};
+use crate::util::uri::{url_fetch, PaginatedUri, Uri};
 use crate::util::{Uuid, API, API_SETS};
 
 /// A Set object containing all fields that `scryfall` provides.
@@ -40,9 +40,9 @@ pub struct Set {
     pub digital: bool,
     pub foil_only: bool,
     pub scryfall_uri: String,
-    pub uri: URI<Set>,
+    pub uri: Uri<Set>,
     pub icon_svg_uri: String,
-    pub search_uri: PaginatedURI<Card>,
+    pub search_uri: PaginatedUri<Card>,
 }
 
 impl Set {
@@ -58,9 +58,9 @@ impl Set {
     /// ```
     ///
     /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
-    pub fn all() -> PaginatedURI<Set> {
+    pub fn all() -> PaginatedUri<Set> {
         let sets = format!("{}/{}?page=1", API, API_SETS);
-        PaginatedURI::new(URI::from(sets))
+        PaginatedUri::new(Uri::from(sets))
     }
 
     /// Returns a `Set` with the given set code.
@@ -107,7 +107,7 @@ impl Set {
     }
 
     /// Returns an iterator over the cards of the set.
-    pub fn cards(&self) -> &PaginatedURI<Card> {
+    pub fn cards(&self) -> &PaginatedUri<Card> {
         &self.search_uri
     }
 }

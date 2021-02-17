@@ -7,12 +7,12 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::util::uri::{url_fetch, URI};
+use crate::util::uri::{url_fetch, Uri};
 
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(missing_docs)]
 pub struct Catalog {
-    pub uri: URI<Catalog>,
+    pub uri: Uri<Catalog>,
     pub data: Vec<String>,
 }
 

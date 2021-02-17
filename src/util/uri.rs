@@ -14,33 +14,33 @@ use crate::error::Error;
 /// A URI that will fetch something of a defined type `T`.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(transparent)]
-pub struct URI<T>(String, PhantomData<fn() -> T>);
+pub struct Uri<T>(String, PhantomData<fn() -> T>);
 
-impl<T: DeserializeOwned> From<String> for URI<T> {
+impl<T: DeserializeOwned> From<String> for Uri<T> {
     fn from(s: String) -> Self {
-        URI(s, PhantomData)
+        Uri(s, PhantomData)
     }
 }
 
-impl<T: DeserializeOwned> From<&str> for URI<T> {
+impl<T: DeserializeOwned> From<&str> for Uri<T> {
     fn from(s: &str) -> Self {
-        URI(s.into(), PhantomData)
+        Uri(s.into(), PhantomData)
     }
 }
 
-impl<T: DeserializeOwned> URI<T> {
+impl<T: DeserializeOwned> Uri<T> {
     fn as_str(&self) -> &str {
         &self.0
     }
 }
 
-impl<T: DeserializeOwned> AsRef<str> for URI<T> {
+impl<T: DeserializeOwned> AsRef<str> for Uri<T> {
     fn as_ref(&self) -> &str {
         self.as_str()
     }
 }
 
-impl<T: DeserializeOwned> URI<T> {
+impl<T: DeserializeOwned> Uri<T> {
     /// Fetch the object of type `T` that this `URL` is pointing to.
     ///
     /// # Examples
@@ -60,7 +60,7 @@ impl<T: DeserializeOwned> URI<T> {
     }
 }
 
-impl<T, I> URI<I>
+impl<T, I> Uri<I>
 where
     T: DeserializeOwned + 'static,
     I: IntoIterator<Item = T>,
@@ -83,26 +83,26 @@ where
 /// `None`, since the error is likely to repeat after that point.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(transparent)]
-pub struct PaginatedURI<T> {
-    next: Option<URI<Page<T>>>,
+pub struct PaginatedUri<T> {
+    next: Option<Uri<Page<T>>>,
 }
 
-impl<T: DeserializeOwned> PaginatedURI<T> {
+impl<T: DeserializeOwned> PaginatedUri<T> {
     /// Creates a new `PaginatedURI` iterator from a `URI` of type `T`.
-    pub fn new(url: URI<T>) -> Self {
-        PaginatedURI {
-            next: Some(URI(url.0, PhantomData)),
+    pub fn new(url: Uri<T>) -> Self {
+        PaginatedUri {
+            next: Some(Uri(url.0, PhantomData)),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 struct Page<T> {
-    next_page: Option<URI<Page<T>>>,
+    next_page: Option<Uri<Page<T>>>,
     data: Vec<T>,
 }
 
-impl<T: DeserializeOwned> Iterator for PaginatedURI<T> {
+impl<T: DeserializeOwned> Iterator for PaginatedUri<T> {
     type Item = crate::Result<Vec<T>>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -166,8 +166,7 @@ where
     type Item = crate::Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // self.de.next().map(|t| t.map_err(crate::error::Error::from))
-        self.de.next().map(|t| Ok(t))
+        self.de.next().map(Ok)
     }
 }
 

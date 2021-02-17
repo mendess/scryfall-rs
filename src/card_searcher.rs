@@ -30,7 +30,7 @@ use serde::{Deserialize, Serialize};
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
 use crate::set::SetCode;
-use crate::util::uri::PaginatedURI;
+use crate::util::uri::PaginatedUri;
 
 /// Search expresses that the implementing type can be turned into a query to
 /// `scryfall`. This means that is should be
@@ -249,7 +249,7 @@ impl SearchBuilder {
     ///         .collect::<Vec<_>>()
     /// );
     /// ```
-    pub fn search(&mut self) -> PaginatedURI<Card> {
+    pub fn search(&mut self) -> PaginatedUri<Card> {
         Card::search(self)
     }
 }
@@ -282,10 +282,7 @@ impl Search for SearchBuilder {
             percent_encode(
                 self.params
                     .iter()
-                    .map(|x| {
-                        #[allow(clippy::redundant_closure)]
-                        x.to_param()
-                    })
+                    .map(|x| { x.to_param() })
                     .join("+")
                     .as_bytes(),
                 CONTROLS,
@@ -500,7 +497,7 @@ pub enum BooleanParam {
     /// Find cards that were sold in boosters.
     SoldInBoosters,
     /// Find cards that were sold in planeswalker decks.
-    SoldInPWDecks,
+    SoldInPwDecks,
     /// Find cards that were given away in leagues.
     SoldInLeague,
     /// Find cards that were given away as buy a box promos.
@@ -561,7 +558,7 @@ impl Param for BooleanParam {
                 IsReprint => "reprint",
                 IsUnique => "unique",
                 SoldInBoosters => "boosters",
-                SoldInPWDecks => "planeswalker_deck",
+                SoldInPwDecks => "planeswalker_deck",
                 SoldInLeague => "league",
                 SoldInBuyABox => "buyabox",
                 SoldInGiftBox => "giftbox",
@@ -582,7 +579,7 @@ impl Param for BooleanParam {
 /// use scryfall::card_searcher::{ComparisonExpr, NumericParam, Param};
 ///
 /// assert_eq!(
-///     NumericParam::CMC(ComparisonExpr::AtLeast, 3).to_param(),
+///     NumericParam::Cmc(ComparisonExpr::AtLeast, 3).to_param(),
 ///     "cmc>3"
 /// )
 /// ```
@@ -718,7 +715,7 @@ impl Param for StringParam {
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum NumericParam {
     /// Find cards of a specific converted mana cost
-    CMC(ComparisonExpr, usize),
+    Cmc(ComparisonExpr, usize),
     /// Find cards by collector number within a set. Combine this with
     /// [`StringParam::Set`] to find specific card editions.
     ///
@@ -744,7 +741,7 @@ impl Param for NumericParam {
     fn to_param(&self) -> String {
         use NumericParam::*;
         match self {
-            CMC(c, p) => format!("cmc{}{}", c, p),
+            Cmc(c, p) => format!("cmc{}{}", c, p),
             CollectorNumber(n) => format!("cn:{}", n),
             TixPrice(c, n) => format!("tix{}{}", c, n),
             EurPrice(c, n) => format!("eur{}{}", c, n),
