@@ -58,7 +58,7 @@ pub fn all_cards() -> crate::Result<UriIter<Card>> {
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an `oracle_id`.
-pub fn rullings() -> crate::Result<UriIter<Ruling>> {
+pub fn rulings() -> crate::Result<UriIter<Ruling>> {
     URI::<Vec<_>>::from(fetch_bulk_uri("/rulings")?).iter()
 }
 
@@ -118,8 +118,8 @@ mod tests {
 
     #[test]
     #[ignore]
-    fn rullings() {
-        super::rullings()
+    fn rulings() {
+        super::rulings()
             .expect("Couldn't get the bulk object")
             .enumerate()
             .for_each(|(i, c)| {

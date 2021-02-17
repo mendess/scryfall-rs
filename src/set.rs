@@ -2,10 +2,10 @@
 //! exactly one set.
 //!
 //! Due to Magic’s long and complicated history, Scryfall includes many un-official sets as a way
-//! to group promotional or outlier cards together. Such sets will likely have a four-letter code
-//! that begins with p or t, such as pcel or tori.
+//! to group promotional or outlier cards together. Such sets will likely have a code that begins
+//! with `p` or `t`, such as `pcel` or `tori`.
 //!
-//! Official sets always have a three-letter set code, such as zen
+//! Official sets always have a three-letter set code, such as `zen`.
 mod set_code;
 mod set_type;
 
@@ -104,7 +104,7 @@ impl Set {
         url_fetch(&format!("{}/{}/{}", API, API_SETS, uuid))
     }
 
-    /// Returns an iterartor over the cards of the set.
+    /// Returns an iterator over the cards of the set.
     pub fn cards(&self) -> &PaginatedURI<Card> {
         &self.search_uri
     }

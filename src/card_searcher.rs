@@ -389,7 +389,7 @@ impl Param for SortMethod {
 /// Which direction the sorting should occur:
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum SortDirection {
-    /// Scryfall will automatically choose the most inuitive direction to sort
+    /// Scryfall will automatically choose the most intuitive direction to sort
     Auto,
     /// Sort ascending (flip the direction of the arrows in [`SortMethod`])
     ///

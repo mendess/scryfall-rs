@@ -1,8 +1,10 @@
 //! The available magic the gathering formats.
-use serde::{Deserialize, Serialize};
 use std::fmt;
 
+use serde::{Deserialize, Serialize};
+
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[serde(rename_all = "lowercase")]
 #[allow(missing_docs)]
 #[non_exhaustive]
 pub enum Format {
@@ -16,7 +18,7 @@ pub enum Format {
     Frontier,
     Penny,
     Duel,
-    Oldschool,
+    OldSchool,
 }
 
 impl fmt::Display for Format {
@@ -36,7 +38,7 @@ impl fmt::Display for Format {
                 Frontier => "frontier",
                 Penny => "penny",
                 Duel => "duel",
-                Oldschool => "oldschool",
+                OldSchool => "oldschool",
             }
         )
     }

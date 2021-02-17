@@ -2,7 +2,7 @@
 //! objects are provided by the API as aids for building other Magic software and understanding
 //! possible values for a field on Card objects.
 //!
-//! Visit the oficial [docs](https://scryfall.com/docs/api/catalogs) for more documentation.
+//! Visit the official [docs](https://scryfall.com/docs/api/catalogs) for more documentation.
 
 use serde::{Deserialize, Serialize};
 
