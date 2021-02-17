@@ -71,6 +71,8 @@ pub struct Card {
     pub foil: bool,
     pub hand_modifier: Option<String>,
     pub layout: Layout,
+    // This map does not use the `Format` enum, since it would cause deserialization to fail when
+    // new formats are added by Scryfall.
     pub legalities: HashMap<String, Legality>,
     pub life_modifier: Option<String>,
     pub loyalty: Option<String>,
