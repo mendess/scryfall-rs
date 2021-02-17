@@ -1,11 +1,11 @@
 //! This module exposes the possible errors this crate has, and ways to interact
 //! with them.
+use std::fmt;
+
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 use ureq::Error as UreqError;
-
-use std::fmt;
 
 /// The errors that may occur when interacting with the scryfall API.
 #[derive(Debug, thiserror::Error)]
@@ -33,16 +33,16 @@ pub enum Error {
     Other(String),
 }
 
-/// An Error object represents a failure to find information or understand the input you provided
-/// to the API.
+/// An Error object represents a failure to find information or understand the
+/// input you provided to the API.
 ///
 /// [Official docs](https://scryfall.com/docs/api/errors)
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct ScryfallError {
     /// A human-readable string explaining the error.
     pub details: String,
-    /// If your input also generated non-failure warnings, they will be provided as human-readable
-    /// strings in this array.
+    /// If your input also generated non-failure warnings, they will be provided
+    /// as human-readable strings in this array.
     #[serde(default = "Default::default")]
     pub warnings: Vec<String>,
 }

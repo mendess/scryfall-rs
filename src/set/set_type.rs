@@ -1,4 +1,5 @@
-//! Scryfall provides an overall categorization for each Set in the set_type property.
+//! Scryfall provides an overall categorization for each Set in the set_type
+//! property.
 use serde::{Deserialize, Serialize};
 
 /// Scryfall provides an overall categorization for each Set in the set_type
@@ -46,6 +47,7 @@ pub enum SetType {
     Promo,
     /// A set made up of tokens and emblems.
     Token,
-    /// A set made up of gold-bordered, oversize, or trophy cards that are not legal
+    /// A set made up of gold-bordered, oversize, or trophy cards that are not
+    /// legal
     Memorabilia,
 }

@@ -1,13 +1,12 @@
 //! This module defines a set code.
+use std::convert::{AsRef, TryFrom};
+use std::iter::FromIterator;
+use std::{fmt, str};
+
 use serde::de::{self, Deserializer, Visitor};
 use serde::ser::Serializer;
 use serde::{Deserialize, Serialize};
 use tinyvec::ArrayVec;
-
-use std::convert::{AsRef, TryFrom};
-use std::fmt;
-use std::iter::FromIterator;
-use std::str;
 
 /// A 3 to 6 letter set code, like 'war' for 'War of the Spark'.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
@@ -17,11 +16,11 @@ pub struct SetCode(ArrayVec<[u8; 6]>);
 impl SetCode {
     /// Creates a set code from a str.
     ///
-    /// Valid set codes are ascii between 3 and 6 letters long. If any of these conditions
-    /// fails, the conversion fails.
+    /// Valid set codes are ascii between 3 and 6 letters long. If any of these
+    /// conditions fails, the conversion fails.
     ///
-    /// The error value is None if the `str` was not ascii, otherwise it holds the size
-    /// of the `str`.
+    /// The error value is None if the `str` was not ascii, otherwise it holds
+    /// the size of the `str`.
     ///
     /// ```rust
     /// use scryfall::set::SetCode;
@@ -42,7 +41,9 @@ impl SetCode {
 
 impl TryFrom<&str> for SetCode {
     type Error = Option<usize>;
-    /// See [`new`](#method.new) for documentation on why this might return an `Err`.
+
+    /// See [`new`](#method.new) for documentation on why this might return an
+    /// `Err`.
     fn try_from(code: &str) -> Result<Self, Option<usize>> {
         if !code.is_ascii() {
             return Err(None);

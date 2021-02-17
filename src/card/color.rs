@@ -25,7 +25,8 @@ pub enum Color {
 pub struct Colors(u8);
 
 impl Colors {
-    /// Creates an instance representing a multicolored card without specifying it's colors.
+    /// Creates an instance representing a multicolored card without specifying
+    /// its colors.
     pub fn multicolored() -> Self {
         Colors(1 << 7)
     }

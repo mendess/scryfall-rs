@@ -12,8 +12,8 @@
 //! can be set on the builder.
 //!
 //!
-//! Finally the [`Search`] trait, defines what is a valid search for `scryfall`
-//! it's implemented for `String` in case it's easier for the user to directly
+//! Finally the [`Search`] trait, defines what is a valid search for `scryfall`.
+//! It's implemented for `String` in case it's easier for the user to directly
 //! use a text representation.
 //!
 //! [`SortMethod`]: enum.SortMethod.html
@@ -21,25 +21,22 @@
 //! [`UniqueStrategy`]: enum.UniqueStrategy.html
 //! [`SearchBuilder`]: struct.SearchBuilder.html
 //! [`Search`]: trait.Search.html
-use crate::card::{
-    BorderColor, Colors, Frame, FrameEffect,
-    Game, Rarity, Card,
-};
-use crate::format::Format;
-use crate::set::SetCode;
-use crate::util::uri::PaginatedURI;
-
 use std::fmt::Write;
 use std::str;
 
 use percent_encoding::{percent_encode, CONTROLS};
 use serde::{Deserialize, Serialize};
 
+use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
+use crate::format::Format;
+use crate::set::SetCode;
+use crate::util::uri::PaginatedURI;
+
 /// Search expresses that the implementing type can be turned into a query to
 /// `scryfall`. This means that is should be
 /// [properly encoded](https://en.wikipedia.org/wiki/Percent-encoding).
 pub trait Search {
-    /// Turns a searchable into it's string representation.
+    /// Turns a searchable into its string representation.
     fn to_query(&self) -> String;
 }
 
@@ -62,11 +59,11 @@ where
 }
 
 impl Search for &str {
-    /// This guarantees that the query is properly encoded. Be wary that you need
-    /// to follow `scryfall` syntax.
+    /// This guarantees that the query is properly encoded. Be wary that you
+    /// need to follow `scryfall` syntax.
     ///
-    /// The use case of this implementation is usually this. (See [`Card::search`]
-    /// for details)
+    /// The use case of this implementation is usually this. (See
+    /// [`Card::search`] for details)
     ///
     /// ```rust,no_run
     /// use scryfall::card::Card;
@@ -86,7 +83,7 @@ impl Search for &str {
 /// in a scryfall search parameters. The valid parameters can be seen
 /// [here](https://scryfall.com/docs/syntax).
 pub trait Param {
-    /// Turns a parameter into it's string version.
+    /// Turns a parameter into its string version.
     fn to_param(&self) -> String;
 }
 
@@ -112,16 +109,21 @@ where
 /// ## Settings
 /// The in depth documentation for the settings can be found
 /// [here](https://scryfall.com/docs/api/cards/search)
-/// - [`with_unique_strategy`]: The strategy used to reduce duplicates. (default: See [`UniqueStrategy`])
-/// - [`sorting_by`]: The order in which results appear. (default: See [`SortMethod`])
-/// - [`with_sort_direction`]: The sorting direction. (default: See [`SortDirection`])
+/// - [`with_unique_strategy`]: The strategy used to reduce duplicates.
+///   (default: See [`UniqueStrategy`])
+/// - [`sorting_by`]: The order in which results appear. (default: See
+///   [`SortMethod`])
+/// - [`with_sort_direction`]: The sorting direction. (default: See
+///   [`SortDirection`])
 /// - [`on_page`]: The page to start at. (default: 1)
 /// - [`including_extras`]: Whether to include extras. (default: false)
-/// - [`including_multilingual`]: Whether to include multilingual cards. (default: false)
+/// - [`including_multilingual`]: Whether to include multilingual cards.
+///   (default: false)
 /// - [`including_variations`]: Whether to include variations. (default: false)
 ///
 /// ## Parameters
-/// Parameters are filters to provide to the search to reduce the cards returned.
+/// Parameters are filters to provide to the search to reduce the cards
+/// returned.
 ///
 /// The official documentation for the parameters can be found
 /// [here](https://scryfall.com/docs/syntax)
@@ -223,12 +225,13 @@ impl SearchBuilder {
     ///
     /// # Examples
     /// ```rust
-    /// use scryfall::card::Card;
-    /// use scryfall::card_searcher::{
-    ///     NumericParam::CollectorNumber, Search, SearchBuilder, StringParam::Set,
-    /// };
-    /// use scryfall::set::SetCode;
     /// use std::convert::TryFrom;
+    ///
+    /// use scryfall::card::Card;
+    /// use scryfall::card_searcher::NumericParam::CollectorNumber;
+    /// use scryfall::card_searcher::StringParam::Set;
+    /// use scryfall::card_searcher::{Search, SearchBuilder};
+    /// use scryfall::set::SetCode;
     ///
     /// assert_eq!(
     ///     Card::search(
@@ -292,20 +295,23 @@ impl Search for SearchBuilder {
     }
 }
 
-/// The unique parameter specifies if Scryfall should remove “duplicate” results in your query.
+/// The unique parameter specifies if Scryfall should remove “duplicate” results
+/// in your query.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum UniqueStrategy {
-    /// Removes duplicate gameplay objects (cards that share a name and have the same
-    /// functionality). For example, if your search matches more than one print of Pacifism, only one
-    /// copy of Pacifism will be returned.
+    /// Removes duplicate gameplay objects (cards that share a name and have the
+    /// same functionality). For example, if your search matches more than
+    /// one print of Pacifism, only one copy of Pacifism will be returned.
     Cards,
-    /// Returns only one copy of each unique artwork for matching cards. For example, if
-    /// your search matches more than one print of Pacifism, one card with each different illustration
-    /// for Pacifism will be returned, but any cards that duplicate artwork already in the results will
+    /// Returns only one copy of each unique artwork for matching cards. For
+    /// example, if your search matches more than one print of Pacifism, one
+    /// card with each different illustration for Pacifism will be returned,
+    /// but any cards that duplicate artwork already in the results will
     /// be omitted.
     Arts,
-    /// Returns all prints for all cards matched (disables rollup). For example, if your
-    /// search matches more than one print of Pacifism, all matching prints will be returned.
+    /// Returns all prints for all cards matched (disables rollup). For example,
+    /// if your search matches more than one print of Pacifism, all matching
+    /// prints will be returned.
     Prints,
 }
 
@@ -338,9 +344,11 @@ pub enum SortMethod {
     Released,
     /// Sort cards by their rarity: Common → Mythic
     Rarity,
-    /// Sort cards by their color and color identity: WUBRG → multicolor → colorless
+    /// Sort cards by their color and color identity: WUBRG → multicolor →
+    /// colorless
     Color,
-    /// Sort cards by their lowest known U.S. Dollar price: 0.01 → highest, null last
+    /// Sort cards by their lowest known U.S. Dollar price: 0.01 → highest, null
+    /// last
     Usd,
     /// Sort cards by their lowest known TIX price: 0.01 → highest, null last
     Tix,
@@ -434,7 +442,8 @@ pub enum BooleanParam {
     NewArt,
     /// Find cards being illustrated by a particular artist for the first time.
     NewArtist,
-    /// Find cards being printed with brand-new flavor text using for the first time.
+    /// Find cards being printed with brand-new flavor text using for the first
+    /// time.
     NewFlavor,
     /// Find cards printed in a specific frame for the first time.
     NewFrame,
@@ -572,9 +581,11 @@ impl Param for BooleanParam {
 /// ```rust
 /// use scryfall::card_searcher::{ComparisonExpr, NumericParam, Param};
 ///
-/// assert_eq!(NumericParam::CMC(ComparisonExpr::AtLeast, 3).to_param(), "cmc>3")
+/// assert_eq!(
+///     NumericParam::CMC(ComparisonExpr::AtLeast, 3).to_param(),
+///     "cmc>3"
+/// )
 /// ```
-///
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum ComparisonExpr {
     /// `>`
@@ -621,36 +632,43 @@ impl std::fmt::Display for ComparisonExpr {
 /// A parameter that takes a string as its value.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum StringParam {
-    /// The mana cost of the cards. This uses the official text version of mana costs set forth in the
-    /// [Comprehensive Rules](http://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules)
+    /// The mana cost of the cards. This uses the official text version of mana
+    /// costs set forth in the [Comprehensive Rules](http://magic.wizards.com/en/game-info/gameplay/rules-and-formats/rules)
     ManaCost(String),
-    /// Search for any supertype, card type, or subtype. Using only partial words is allowed.
+    /// Search for any supertype, card type, or subtype. Using only partial
+    /// words is allowed.
     Type(String),
     /// Keywords to find cards that have specific phrases in their text box
     /// `~` Can be used as a placeholder for the card's name.
     ///
-    /// **Note:** This keyword usually checks the current Oracle text for cards, so it uses the
-    /// most up-to-date phrasing available. For example, “dies” instead of “is put into a
-    /// graveyard”.
+    /// **Note:** This keyword usually checks the current Oracle text for cards,
+    /// so it uses the most up-to-date phrasing available. For example,
+    /// “dies” instead of “is put into a graveyard”.
     Oracle(String),
     /// Search full Oracle text only, which includes reminder text
     OracleFull(String),
-    /// The power of the cards. The parameter can be a number, a `*`, an `X`, etc.
+    /// The power of the cards. The parameter can be a number, a `*`, an `X`,
+    /// etc.
     ///
-    /// It can also be `tou`/`toughness` to search, for example, for creatures with more
-    /// power then toughness: `StringParam::Power("tow", ComparisonExpr::AtLeast)`
+    /// It can also be `tou`/`toughness` to search, for example, for creatures
+    /// with more power then toughness: `StringParam::Power("tow",
+    /// ComparisonExpr::AtLeast)`
     Power(ComparisonExpr, String),
-    /// The toughness of the cards. The parameter can be a number, a `*`, an `X`, etc.
+    /// The toughness of the cards. The parameter can be a number, a `*`, an
+    /// `X`, etc.
     ///
-    /// It can also be `pow`/`power` to search, for example, for creatures with more
-    /// toughness then power: `StringParam::Toughness("pow", ComparisonExpr::AtLeast)`
+    /// It can also be `pow`/`power` to search, for example, for creatures with
+    /// more toughness then power: `StringParam::Toughness("pow",
+    /// ComparisonExpr::AtLeast)`
     Toughness(ComparisonExpr, String),
-    /// The starting loyalty of the card. The parameter can be a number, a `*`, an `X`, etc.
+    /// The starting loyalty of the card. The parameter can be a number, a `*`,
+    /// an `X`, etc.
     Loyalty(ComparisonExpr, String),
-    /// Which set the cards are from using their three or four-letter Magic set code.
+    /// Which set the cards are from using their three or four-letter Magic set
+    /// code.
     Set(SetCode),
-    /// Which block the cards are from using any of the codes of the sets that make up the
-    /// block.
+    /// Which block the cards are from using any of the codes of the sets that
+    /// make up the block.
     Block(SetCode),
     /// Find cards that once “passed through” the given set code.
     WasInSet(SetCode),
@@ -701,8 +719,8 @@ impl Param for StringParam {
 pub enum NumericParam {
     /// Find cards of a specific converted mana cost
     CMC(ComparisonExpr, usize),
-    /// Find cards by collector number within a set. Combine this with [`StringParam::Set`] to find
-    /// specific card editions.
+    /// Find cards by collector number within a set. Combine this with
+    /// [`StringParam::Set`] to find specific card editions.
     ///
     /// [`StringParam::Set`]: enum.StringParam.html#variant.Set
     CollectorNumber(usize),
@@ -866,7 +884,7 @@ impl Param for TimeParam {
 /// The negative version of a param, for example, "is:spell" becomes "-is:spell"
 ///
 /// ```rust
-/// use scryfall::card_searcher::{BooleanParam, not, Param};
+/// use scryfall::card_searcher::{not, BooleanParam, Param};
 ///
 /// assert_eq!(not(BooleanParam::IsSpell).to_param(), "-is:spell")
 /// ```

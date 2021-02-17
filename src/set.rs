@@ -1,24 +1,23 @@
-//! A Set object represents a group of related Magic cards. All Card objects on Scryfall belong to
-//! exactly one set.
+//! A Set object represents a group of related Magic cards. All Card objects on
+//! Scryfall belong to exactly one set.
 //!
-//! Due to Magic’s long and complicated history, Scryfall includes many un-official sets as a way
-//! to group promotional or outlier cards together. Such sets will likely have a code that begins
-//! with `p` or `t`, such as `pcel` or `tori`.
+//! Due to Magic’s long and complicated history, Scryfall includes many
+//! un-official sets as a way to group promotional or outlier cards together.
+//! Such sets will likely have a code that begins with `p` or `t`, such as
+//! `pcel` or `tori`.
 //!
 //! Official sets always have a three-letter set code, such as `zen`.
 mod set_code;
 mod set_type;
 
-use crate::card::Card;
-use crate::util::uri::{url_fetch, PaginatedURI, URI};
-use crate::util::Uuid;
-use crate::util::{API, API_SETS};
+use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
 
 pub use self::set_code::SetCode;
 pub use self::set_type::SetType;
-
-use chrono::NaiveDate;
-use serde::{Deserialize, Serialize};
+use crate::card::Card;
+use crate::util::uri::{url_fetch, PaginatedURI, URI};
+use crate::util::{Uuid, API, API_SETS};
 
 /// A Set object containing all fields that `scryfall` provides.
 ///
@@ -54,7 +53,7 @@ impl Set {
     /// use scryfall::set::Set;
     /// match Set::all().next().unwrap() {
     ///     Ok(sets) => assert_ne!(sets.len(), 0),
-    ///     Err(e) => eprintln!("{:?}", e)
+    ///     Err(e) => eprintln!("{:?}", e),
     /// }
     /// ```
     ///
@@ -97,8 +96,11 @@ impl Set {
     /// ```rust
     /// use scryfall::set::Set;
     /// assert_eq!(
-    ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".to_string()).unwrap().name,
-    ///     "Ultimate Masters")
+    ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".to_string())
+    ///         .unwrap()
+    ///         .name,
+    ///     "Ultimate Masters"
+    /// )
     /// ```
     pub fn uuid(uuid: Uuid) -> crate::Result<Set> {
         url_fetch(&format!("{}/{}/{}", API, API_SETS, uuid))
