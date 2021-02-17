@@ -8,6 +8,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::util::uri::{url_fetch, Uri};
+use crate::util::CATALOG_URL;
 
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(missing_docs)]
@@ -27,7 +28,7 @@ impl Catalog {
     /// assert!(Catalog::card_names().unwrap().data.len() > 0)
     /// ```
     pub fn card_names() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/card-names")
+        url_fetch(CATALOG_URL.join("card-names")?)
     }
 
     /// Returns a list of all canonical artist names in Scryfall’s database.
@@ -41,7 +42,7 @@ impl Catalog {
     /// assert!(Catalog::artist_names().unwrap().data.len() > 0)
     /// ```
     pub fn artist_names() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/artist-names")
+        url_fetch(CATALOG_URL.join("artist-names")?)
     }
 
     /// Returns a Catalog of all English words, of length 2 or more, that could
@@ -55,7 +56,7 @@ impl Catalog {
     /// assert!(Catalog::word_bank().unwrap().data.len() > 0)
     /// ```
     pub fn word_bank() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/word-bank")
+        url_fetch(CATALOG_URL.join("word-bank")?)
     }
 
     /// Returns a Catalog of all creature types in Scryfall’s database. Values
@@ -67,7 +68,7 @@ impl Catalog {
     /// assert!(Catalog::creature_types().unwrap().data.len() > 0)
     /// ```
     pub fn creature_types() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/creature-types")
+        url_fetch(CATALOG_URL.join("creature-types")?)
     }
 
     /// Returns a Catalog of all Planeswalker types in Scryfall’s database.
@@ -80,7 +81,7 @@ impl Catalog {
     /// assert!(Catalog::planeswalker_types().unwrap().data.len() > 0)
     /// ```
     pub fn planeswalker_types() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/planeswalker-types")
+        url_fetch(CATALOG_URL.join("planeswalker-types")?)
     }
 
     /// Returns a Catalog of all Land types in Scryfall’s database. Values are
@@ -92,7 +93,7 @@ impl Catalog {
     /// assert!(Catalog::land_types().unwrap().data.len() > 0)
     /// ```
     pub fn land_types() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/land-types")
+        url_fetch(CATALOG_URL.join("land-types")?)
     }
 
     /// Returns a Catalog of all artifact types in Scryfall’s database. Values
@@ -104,7 +105,7 @@ impl Catalog {
     /// assert!(Catalog::artifact_types().unwrap().data.len() > 0)
     /// ```
     pub fn artifact_types() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/artifact-types")
+        url_fetch(CATALOG_URL.join("artifact-types")?)
     }
 
     /// Returns a Catalog of all enchantment types in Scryfall’s database.
@@ -117,7 +118,7 @@ impl Catalog {
     /// assert!(Catalog::enchantment_types().unwrap().data.len() > 0)
     /// ```
     pub fn enchantment_types() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/enchantment-types")
+        url_fetch(CATALOG_URL.join("enchantment-types")?)
     }
 
     /// Returns a Catalog of all spell types in Scryfall’s database. Values are
@@ -129,7 +130,7 @@ impl Catalog {
     /// assert!(Catalog::spell_types().unwrap().data.len() > 0)
     /// ```
     pub fn spell_types() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/spell-types")
+        url_fetch(CATALOG_URL.join("spell-types")?)
     }
 
     /// Returns a Catalog of all possible values for a creature or vehicle’s
@@ -142,7 +143,7 @@ impl Catalog {
     /// assert!(Catalog::powers().unwrap().data.len() > 0)
     /// ```
     pub fn powers() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/powers")
+        url_fetch(CATALOG_URL.join("powers")?)
     }
 
     /// Returns a Catalog of all possible values for a creature or vehicle’s
@@ -155,7 +156,7 @@ impl Catalog {
     /// assert!(Catalog::toughnesses().unwrap().data.len() > 0)
     /// ```
     pub fn toughnesses() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/toughnesses")
+        url_fetch(CATALOG_URL.join("toughnesses")?)
     }
 
     /// Returns a Catalog of all possible values for a Planeswalker’s loyalty in
@@ -168,7 +169,7 @@ impl Catalog {
     /// assert!(Catalog::loyalties().unwrap().data.len() > 0)
     /// ```
     pub fn loyalties() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/loyalties")
+        url_fetch(CATALOG_URL.join("loyalties")?)
     }
 
     /// Returns a Catalog of all card watermarks in Scryfall’s database. Values
@@ -180,6 +181,6 @@ impl Catalog {
     /// assert!(Catalog::watermarks().unwrap().data.len() > 0)
     /// ```
     pub fn watermarks() -> crate::Result<Self> {
-        url_fetch("https://api.scryfall.com/catalog/watermarks")
+        url_fetch(CATALOG_URL.join("watermarks")?)
     }
 }

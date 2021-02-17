@@ -12,7 +12,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 use crate::util::uri::{PaginatedUri, Uri};
-use crate::util::{Uuid, API, API_CARDS, API_RULING};
+use crate::util::{Uuid, API_RULING, CARDS_URL};
 
 /// A ruling object.
 ///
@@ -57,10 +57,16 @@ impl Ruling {
     /// }
     /// ```
     pub fn multiverse_id(id: usize) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(format!(
-            "{}/{}/multiverse/{}/{}",
-            API, API_CARDS, id, API_RULING
-        )))
+        PaginatedUri::new(Uri::from(
+            CARDS_URL
+                .join("multiverse/")
+                .unwrap()
+                .join(&format!("{}/", id))
+                .unwrap()
+                .join(API_RULING)
+                .unwrap()
+                .into_string(),
+        ))
     }
 
     /// Returns rulings for a card with the given MTGO ID (also known as the
@@ -83,10 +89,16 @@ impl Ruling {
     /// }
     /// ```
     pub fn mtgo_id(id: usize) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(format!(
-            "{}/{}/mtgo/{}/{}",
-            API, API_CARDS, id, API_RULING
-        )))
+        PaginatedUri::new(Uri::from(
+            CARDS_URL
+                .join("mtgo/")
+                .unwrap()
+                .join(&format!("{}/", id))
+                .unwrap()
+                .join(API_RULING)
+                .unwrap()
+                .into_string(),
+        ))
     }
 
     /// Returns rulings for a card with the given Magic: The Gathering Arena ID.
@@ -106,10 +118,16 @@ impl Ruling {
     /// }
     /// ```
     pub fn arena_id(id: usize) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(format!(
-            "{}/{}/arena/{}/{}",
-            API, API_CARDS, id, API_RULING
-        )))
+        PaginatedUri::new(Uri::from(
+            CARDS_URL
+                .join("arena/")
+                .unwrap()
+                .join(&format!("{}/", id))
+                .unwrap()
+                .join(API_RULING)
+                .unwrap()
+                .into_string(),
+        ))
     }
 
     /// Returns a List of rulings for the card with the given set code and
@@ -131,10 +149,14 @@ impl Ruling {
     /// }
     /// ```
     pub fn set_and_number(set: &str, number: u32) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(format!(
-            "{}/{}/{}/{}/{}",
-            API, API_CARDS, set, number, API_RULING
-        )))
+        PaginatedUri::new(Uri::from(
+            CARDS_URL
+                .join(&format!("{}/{}/", set, number))
+                .unwrap()
+                .join(API_RULING)
+                .unwrap()
+                .into_string(),
+        ))
     }
 
     /// Returns a List of rulings for a card with the given Scryfall ID.
@@ -142,7 +164,7 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// match Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".to_string()).next() {
+    /// match Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap()).next() {
     ///     Some(rulings) => assert_eq!(
     ///         rulings
     ///             .unwrap()
@@ -155,9 +177,13 @@ impl Ruling {
     /// }
     /// ```
     pub fn uuid(id: Uuid) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(format!(
-            "{}/{}/{}/{}",
-            API, API_CARDS, id, API_RULING
-        )))
+        PaginatedUri::new(Uri::from(
+            CARDS_URL
+                .join(&format!("{}/", id))
+                .unwrap()
+                .join(API_RULING)
+                .unwrap()
+                .into_string(),
+        ))
     }
 }

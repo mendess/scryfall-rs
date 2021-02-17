@@ -37,7 +37,7 @@ use crate::card_searcher::Search;
 use crate::ruling::Ruling;
 use crate::set::Set;
 use crate::util::uri::{url_fetch, PaginatedUri, Uri};
-use crate::util::{Uuid, API, API_CARDS};
+use crate::util::{Uuid, CARDS_URL};
 
 /// A Card object containing all fields that `scryfall` provides,
 ///
@@ -139,8 +139,9 @@ impl Card {
         note = "Scryfall is deprecating this endpoint on the 30/May/2020 in favour of the bulk endpoints"
     )]
     pub fn all() -> PaginatedUri<Card> {
-        let cards = format!("{}/{}?page=1", API, API_CARDS);
-        PaginatedUri::new(Uri::from(cards))
+        let mut url = CARDS_URL.clone();
+        url.query_pairs_mut().append_pair("page", "1");
+        PaginatedUri::new(Uri::from(url.as_str()))
     }
 
     /// Fetches a random card.
@@ -154,7 +155,7 @@ impl Card {
     /// }
     /// ```
     pub fn random() -> crate::Result<Card> {
-        url_fetch("https://api.scryfall.com/cards/random")
+        url_fetch(CARDS_URL.join("random/")?)
     }
 
     /// Returns a [`PaginatedURI`] of the cards that match the search terms.
@@ -208,9 +209,9 @@ impl Card {
     /// ```
     /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
     pub fn search<S: Search>(query: S) -> PaginatedUri<Card> {
-        let query = query.to_query().replace(" ", "+");
-        let search = format!("{}/{}/search?{}", API, API_CARDS, query);
-        PaginatedUri::new(Uri::from(search))
+        let mut url = CARDS_URL.join("search/").unwrap();
+        url.set_query(Some(&query.to_query()));
+        PaginatedUri::new(Uri::from(url.as_str()))
     }
 
     /// Return a card with the exact name.
@@ -220,7 +221,7 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::named("Lightning Bolt") {
     ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
-    ///     Err(e) => panic!(format!("{:?}", e)),
+    ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
     ///
@@ -229,10 +230,10 @@ impl Card {
     /// use scryfall::error::Error;
     /// assert!(Card::named("Name that doesn't exist").is_err())
     /// ```
-    pub fn named(query: &str) -> crate::Result<Card> {
-        let query = query.replace(" ", "+");
-        let named = format!("{}/{}/named?exact={}", API, API_CARDS, query);
-        url_fetch(&named)
+    pub fn named(name: &str) -> crate::Result<Card> {
+        let mut url = CARDS_URL.join("named")?;
+        url.query_pairs_mut().append_pair("exact", name);
+        url_fetch(url)
     }
 
     /// Return a card using the scryfall fuzzy finder.
@@ -242,13 +243,27 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::named_fuzzy("Light Bolt") {
     ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
-    ///     Err(e) => panic!(format!("{:?}", e)),
+    ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
     pub fn named_fuzzy(query: &str) -> crate::Result<Card> {
-        let query = query.replace(" ", "+");
-        let named = format!("{}/{}/named?fuzzy={}", API, API_CARDS, query);
-        url_fetch(&named)
+        let mut url = CARDS_URL.join("named")?;
+        url.query_pairs_mut().append_pair("fuzzy", query);
+        url_fetch(url)
+    }
+
+    /// Fetch a card by its set and number.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// match Card::set_and_number("vma", 4) {
+    ///     Ok(card) => assert_eq!(card.name, "Black Lotus"),
+    ///     Err(e) => panic!("{:?}", e),
+    /// }
+    /// ```
+    pub fn set_and_number(set_code: &str, number: usize) -> crate::Result<Card> {
+        url_fetch(CARDS_URL.join(&format!("{}/{}", set_code, number))?)
     }
 
     /// Fetch a card by its multiverse id.
@@ -258,11 +273,15 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::multiverse(409574) {
     ///     Ok(card) => assert_eq!(card.name, "Strip Mine"),
-    ///     Err(e) => panic!(format!("{:?}", e)),
+    ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn multiverse(query: usize) -> crate::Result<Card> {
-        url_fetch(&format!("{}/{}/multiverse/{}", API, API_CARDS, query))
+    pub fn multiverse(multiverse_id: usize) -> crate::Result<Card> {
+        url_fetch(
+            CARDS_URL
+                .join("multiverse/")?
+                .join(&multiverse_id.to_string())?,
+        )
     }
 
     /// Fetch a card by its mtgo id.
@@ -272,11 +291,11 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::mtgo(54957) {
     ///     Ok(card) => assert_eq!(card.name, "Ghost Quarter"),
-    ///     Err(e) => panic!(format!("{:?}", e)),
+    ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn mtgo(query: usize) -> crate::Result<Card> {
-        url_fetch(&format!("{}/{}/mtgo/{}", API, API_CARDS, query))
+    pub fn mtgo(mtgo_id: usize) -> crate::Result<Card> {
+        url_fetch(CARDS_URL.join("mtgo/")?.join(&mtgo_id.to_string())?)
     }
 
     /// Fetch a card by its arena id.
@@ -286,11 +305,11 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::arena(67330) {
     ///     Ok(card) => assert_eq!(card.name, "Yargle, Glutton of Urborg"),
-    ///     Err(e) => panic!(format!("{:?}", e)),
+    ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn arena(query: usize) -> crate::Result<Card> {
-        url_fetch(&format!("{}/{}/arena/{}", API, API_CARDS, query))
+    pub fn arena(arena_id: usize) -> crate::Result<Card> {
+        url_fetch(CARDS_URL.join("arena/")?.join(&arena_id.to_string())?)
     }
 
     /// Fetch a card by its tcgplayer id.
@@ -300,11 +319,15 @@ impl Card {
     /// use scryfall::card::Card;
     /// match Card::tcgplayer(67330) {
     ///     Ok(card) => assert_eq!(card.name, "Fathom Mage"),
-    ///     Err(e) => panic!(format!("{:?}", e)),
+    ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn tcgplayer(query: usize) -> crate::Result<Card> {
-        url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_CARDS, query))
+    pub fn tcgplayer(tcgplayer_id: usize) -> crate::Result<Card> {
+        url_fetch(
+            CARDS_URL
+                .join("tcgplayer/")?
+                .join(&tcgplayer_id.to_string())?,
+        )
     }
 
     /// Fetch a card by its Uuid.
@@ -312,12 +335,12 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".to_string()) {
+    /// match Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".parse().unwrap()) {
     ///     Ok(card) => assert_eq!(card.name, "Cowed by Wisdom"),
-    ///     Err(e) => panic!(format!("{:?}", e)),
+    ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn card(query: Uuid) -> crate::Result<Card> {
-        url_fetch(&format!("{}/{}/{}", API, API_CARDS, query))
+    pub fn card(scryfall_id: Uuid) -> crate::Result<Card> {
+        url_fetch(CARDS_URL.join(&scryfall_id.to_string())?)
     }
 }

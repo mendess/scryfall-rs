@@ -11,13 +11,14 @@ mod set_code;
 mod set_type;
 
 use chrono::NaiveDate;
+use percent_encoding::{percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
 
 pub use self::set_code::SetCode;
 pub use self::set_type::SetType;
 use crate::card::Card;
 use crate::util::uri::{url_fetch, PaginatedUri, Uri};
-use crate::util::{Uuid, API, API_SETS};
+use crate::util::{Uuid, SETS_URL};
 
 /// A Set object containing all fields that `scryfall` provides.
 ///
@@ -59,8 +60,9 @@ impl Set {
     ///
     /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
     pub fn all() -> PaginatedUri<Set> {
-        let sets = format!("{}/{}?page=1", API, API_SETS);
-        PaginatedUri::new(Uri::from(sets))
+        let mut url = SETS_URL.clone();
+        url.query_pairs_mut().append_pair("page", "1");
+        PaginatedUri::new(Uri::from(url.as_str()))
     }
 
     /// Returns a `Set` with the given set code.
@@ -73,7 +75,7 @@ impl Set {
     /// assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
     /// ```
     pub fn code(code: &str) -> crate::Result<Set> {
-        url_fetch(&format!("{}/{}/{}", API, API_SETS, code))
+        url_fetch(SETS_URL.join(&percent_encode(code.as_bytes(), NON_ALPHANUMERIC).to_string())?)
     }
 
     /// Returns a `Set` with the given `tcgplayer_id`.
@@ -87,7 +89,11 @@ impl Set {
     /// assert_eq!(Set::tcgplayer(1909).unwrap().name, "Amonkhet Invocations")
     /// ```
     pub fn tcgplayer<T: std::fmt::Display>(code: T) -> crate::Result<Set> {
-        url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_SETS, code))
+        url_fetch(
+            SETS_URL
+                .join("tcgplayer/")?
+                .join(&percent_encode(code.to_string().as_bytes(), NON_ALPHANUMERIC).to_string())?,
+        )
     }
 
     /// Returns a Set with the given Scryfall `uuid`.
@@ -96,14 +102,14 @@ impl Set {
     /// ```rust
     /// use scryfall::set::Set;
     /// assert_eq!(
-    ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".to_string())
+    ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".parse().unwrap())
     ///         .unwrap()
     ///         .name,
     ///     "Ultimate Masters"
     /// )
     /// ```
     pub fn uuid(uuid: Uuid) -> crate::Result<Set> {
-        url_fetch(&format!("{}/{}/{}", API, API_SETS, uuid))
+        url_fetch(SETS_URL.join(&uuid.to_string())?)
     }
 
     /// Returns an iterator over the cards of the set.

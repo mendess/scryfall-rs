@@ -6,6 +6,7 @@ use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 use ureq::Error as UreqError;
+use url::ParseError as UrlParseError;
 
 /// The errors that may occur when interacting with the scryfall API.
 #[derive(Debug, thiserror::Error)]
@@ -16,6 +17,10 @@ pub enum Error {
     /// [open an issue](https://github.com/Mendess2526/scryfall-rs/issues).
     #[error("Error deserializing json: {0}")]
     JsonError(#[from] SerdeError),
+
+    /// A URL could not be parsed.
+    #[error("Error parsing URL: {0}")]
+    UrlParseError(#[from] UrlParseError),
 
     /// Something went wrong when making the HTTP request.
     #[error("Error making request: {0}")]

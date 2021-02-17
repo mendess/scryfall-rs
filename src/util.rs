@@ -1,16 +1,21 @@
 //! Module containing utility functions and structs.
+use once_cell::sync::Lazy;
+use url::Url;
+pub use uuid::Uuid;
+
 pub mod uri;
 
 /// The [scryfall](https://scryfall.com/docs/api) endpoint.
-pub const API: &str = "https://api.scryfall.com";
+pub static ROOT_URL: Lazy<Url> = Lazy::new(|| Url::parse("https://api.scryfall.com/").unwrap());
 /// The [cards](https://scryfall.com/docs/api/cards) endpoint.
-pub const API_CARDS: &str = "/cards";
+pub static CARDS_URL: Lazy<Url> = Lazy::new(|| ROOT_URL.join("cards/").unwrap());
 /// The [sets](https://scryfall.com/docs/api/sets) endpoint.
-pub const API_SETS: &str = "/sets";
-/// The [rulings](https://scryfall.com/docs/api/sets) endpoint.
-pub const API_RULING: &str = "/rulings";
+pub static SETS_URL: Lazy<Url> = Lazy::new(|| ROOT_URL.join("sets/").unwrap());
 /// The [bulk-data](https://scryfall.com/docs/api/bulk-data) endpoint.
-pub const API_BULK_DATA: &str = "/bulk-data";
+pub static BULK_DATA_URL: Lazy<Url> = Lazy::new(|| ROOT_URL.join("bulk-data/").unwrap());
+/// The [catalog](https://scryfall.com/docs/api/catalogs) endpoint.
+pub static CATALOG_URL: Lazy<Url> = Lazy::new(|| ROOT_URL.join("catalog/").unwrap());
 
-/// A type alias for a Uuid.
-pub type Uuid = String;
+/// The [rulings](https://scryfall.com/docs/api/rulings) path segment, which goes on the end of a
+/// card URL.
+pub const API_RULING: &str = "rulings/";

@@ -13,8 +13,8 @@ use serde::Deserialize;
 
 use crate::card::Card;
 use crate::ruling::Ruling;
-use crate::util;
 use crate::util::uri::{Uri, UriIter};
+use crate::util::BULK_DATA_URL;
 
 #[derive(Deserialize, Debug, Clone)]
 struct BulkObject {
@@ -22,7 +22,7 @@ struct BulkObject {
 }
 
 fn fetch_bulk_uri(url: &str) -> crate::Result<String> {
-    Uri::<BulkObject>::from(format!("{}{}{}", util::API, util::API_BULK_DATA, url))
+    Uri::<BulkObject>::from(BULK_DATA_URL.join(url)?.into_string())
         .fetch()
         .map(|b| b.download_uri)
 }
