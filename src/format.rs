@@ -15,10 +15,14 @@ pub enum Format {
     Commander,
     Future,
     Pauper,
-    Frontier,
+    Pioneer,
     Penny,
     Duel,
     OldSchool,
+    Historic,
+    Gladiator,
+    Brawl,
+    Premodern,
 }
 
 impl fmt::Display for Format {
@@ -35,10 +39,14 @@ impl fmt::Display for Format {
                 Commander => "commander",
                 Future => "future",
                 Pauper => "pauper",
-                Frontier => "frontier",
+                Pioneer => "pioneer",
                 Penny => "penny",
                 Duel => "duel",
                 OldSchool => "oldschool",
+                Historic => "historic",
+                Gladiator => "gladiator",
+                Brawl => "brawl",
+                Premodern => "premodern",
             }
         )
     }

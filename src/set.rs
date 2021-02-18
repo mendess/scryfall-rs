@@ -11,13 +11,15 @@ mod set_code;
 mod set_type;
 
 use chrono::NaiveDate;
+use percent_encoding::{percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
 
 pub use self::set_code::SetCode;
 pub use self::set_type::SetType;
 use crate::card::Card;
-use crate::util::uri::{url_fetch, PaginatedURI, URI};
-use crate::util::{Uuid, API, API_SETS};
+use crate::list::{List, ListIter};
+use crate::uri::Uri;
+use crate::util::{Uuid, SETS_URL};
 
 /// A Set object containing all fields that `scryfall` provides.
 ///
@@ -40,27 +42,24 @@ pub struct Set {
     pub digital: bool,
     pub foil_only: bool,
     pub scryfall_uri: String,
-    pub uri: URI<Set>,
+    pub uri: Uri<Set>,
     pub icon_svg_uri: String,
-    pub search_uri: PaginatedURI<Card>,
+    pub search_uri: Uri<List<Card>>,
 }
 
 impl Set {
-    /// Returns a [`PaginatedURI`] of all the sets in the `scryfall` database.
+    /// Returns a [`ListIter`] of all the sets in the `scryfall` database.
     ///
     /// # Examples
     /// ```rust
     /// use scryfall::set::Set;
-    /// match Set::all().next().unwrap() {
-    ///     Ok(sets) => assert_ne!(sets.len(), 0),
-    ///     Err(e) => eprintln!("{:?}", e),
-    /// }
+    /// let sets = Set::all().unwrap().into_inner().collect::<Vec<_>>();
+    /// assert!(sets.len() > 0);
     /// ```
-    ///
-    /// [`PaginatedURI`]: ../util/uri/struct.PaginatedURI.html
-    pub fn all() -> PaginatedURI<Set> {
-        let sets = format!("{}/{}?page=1", API, API_SETS);
-        PaginatedURI::new(URI::from(sets))
+    pub fn all() -> crate::Result<ListIter<Set>> {
+        let mut url = SETS_URL.clone();
+        url.query_pairs_mut().append_pair("page", "1");
+        Uri::from(url).fetch_iter()
     }
 
     /// Returns a `Set` with the given set code.
@@ -73,7 +72,8 @@ impl Set {
     /// assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
     /// ```
     pub fn code(code: &str) -> crate::Result<Set> {
-        url_fetch(&format!("{}/{}/{}", API, API_SETS, code))
+        Uri::from(SETS_URL.join(&percent_encode(code.as_bytes(), NON_ALPHANUMERIC).to_string())?)
+            .fetch()
     }
 
     /// Returns a `Set` with the given `tcgplayer_id`.
@@ -87,7 +87,12 @@ impl Set {
     /// assert_eq!(Set::tcgplayer(1909).unwrap().name, "Amonkhet Invocations")
     /// ```
     pub fn tcgplayer<T: std::fmt::Display>(code: T) -> crate::Result<Set> {
-        url_fetch(&format!("{}/{}/tcgplayer/{}", API, API_SETS, code))
+        Uri::from(
+            SETS_URL
+                .join("tcgplayer/")?
+                .join(&percent_encode(code.to_string().as_bytes(), NON_ALPHANUMERIC).to_string())?,
+        )
+        .fetch()
     }
 
     /// Returns a Set with the given Scryfall `uuid`.
@@ -96,18 +101,18 @@ impl Set {
     /// ```rust
     /// use scryfall::set::Set;
     /// assert_eq!(
-    ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".to_string())
+    ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".parse().unwrap())
     ///         .unwrap()
     ///         .name,
     ///     "Ultimate Masters"
     /// )
     /// ```
     pub fn uuid(uuid: Uuid) -> crate::Result<Set> {
-        url_fetch(&format!("{}/{}/{}", API, API_SETS, uuid))
+        Uri::from(SETS_URL.join(&uuid.to_string())?).fetch()
     }
 
     /// Returns an iterator over the cards of the set.
-    pub fn cards(&self) -> &PaginatedURI<Card> {
-        &self.search_uri
+    pub fn cards(&self) -> crate::Result<ListIter<Card>> {
+        self.search_uri.fetch_iter()
     }
 }

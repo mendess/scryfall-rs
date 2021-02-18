@@ -41,18 +41,17 @@
 //! One of the main features of `scryfall` is its advanced search.
 //! For this the [`card_searcher`] module provides a type safe api
 //! to interact and query the search engine.
-//!
-//! [`Card`]: card/struct.Card.html
-//! [`Set`]: set/struct.Set.html
-//! [`card_searcher`]: card_searcher/index.html
+
 pub mod bulk;
 pub mod card;
 pub mod card_searcher;
 pub mod catalog;
 pub mod error;
 pub mod format;
+pub mod list;
 pub mod ruling;
 pub mod set;
+pub mod uri;
 mod util;
 
 /// The result type used to describe all fallible operations of the scryfall
@@ -88,33 +87,21 @@ mod tests {
     #[test]
     #[ignore]
     fn all_sets() {
-        let mut page = 1;
-        for sets in Set::all() {
-            if let Err(e) = sets {
-                panic!("Couldn't parse sets at page {}. Error: {}", page, e);
-            }
-            page += 1;
+        for set in Set::all().unwrap() {
+            assert!(set.code.get().len() >= 3);
         }
     }
 
     #[test]
     #[ignore]
     fn latest_cards() {
-        Set::all()
-            .map(Result::unwrap)
-            .flatten()
-            .take(30)
-            .par_bridge()
-            .for_each(|set| {
-                SearchBuilder::new()
-                    .param(StringParam::Set(set.code))
-                    .search()
-                    .enumerate()
-                    .for_each(|(i, c)| {
-                        if let Err(e) = c {
-                            panic!("Card {} in set {} couldn't be parsed: {}", i, set.name, e)
-                        }
-                    });
-            })
+        Set::all().unwrap().take(30).par_bridge().for_each(|set| {
+            let set_cards = SearchBuilder::new()
+                .param(StringParam::Set(set.code))
+                .search();
+            if let Err(e) = set_cards {
+                panic!("Could not search for cards in '{}' - {}", set.name, e);
+            }
+        })
     }
 }

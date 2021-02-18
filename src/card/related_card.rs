@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::card::Card;
-use crate::util::uri::URI;
+use crate::uri::Uri;
 use crate::util::Uuid;
 
 /// Related card object. Refer to the official [docs](https://scryfall.com/docs/api/cards)
@@ -18,7 +18,7 @@ pub struct RelatedCard {
     pub component: Component,
     pub name: String,
     pub type_line: String,
-    pub uri: URI<Card>,
+    pub uri: Uri<Card>,
 }
 
 /// The kind of related card.
