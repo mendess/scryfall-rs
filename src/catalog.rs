@@ -216,7 +216,7 @@ impl Catalog {
     ///         .iter()
     ///         .find(|a| a.as_str() == "Scry")
     ///         .is_some()
-    /// )
+    /// );
     /// ```
     pub fn keyword_actions() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("keyword-actions")?).fetch()
@@ -235,7 +235,7 @@ impl Catalog {
     ///         .iter()
     ///         .find(|a| a.as_str() == "Landfall")
     ///         .is_some()
-    /// )
+    /// );
     /// ```
     pub fn ability_words() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("ability-words")?).fetch()
