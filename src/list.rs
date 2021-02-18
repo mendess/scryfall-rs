@@ -27,6 +27,13 @@ pub struct List<T> {
     pub warnings: Option<Vec<String>>,
 }
 
+impl<T: DeserializeOwned> List<T> {
+    /// Creates an iterator over all the pages of this list.
+    pub fn into_page_iter(self) -> PageIter<T> {
+        PageIter { curr: Some(self) }
+    }
+}
+
 impl<T: DeserializeOwned> IntoIterator for List<T> {
     type IntoIter = ListIter<T>;
     type Item = crate::Result<T>;
@@ -148,6 +155,30 @@ impl<T: DeserializeOwned> Iterator for ListIter<T> {
                     Some(len)
                 },
             )
+        }
+    }
+}
+
+/// An iterator over the pages of a list. Before returning each page, the next page is requested.
+pub struct PageIter<T> {
+    curr: Option<List<T>>,
+}
+
+impl<T: DeserializeOwned> Iterator for PageIter<T> {
+    type Item = crate::Result<List<T>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if let Some(curr) = self.curr.take() {
+            self.curr = match &curr.next_page {
+                Some(uri) => match uri.fetch() {
+                    Ok(page) => Some(page),
+                    Err(e) => return Some(Err(e)),
+                },
+                None => None,
+            };
+            Some(Ok(curr))
+        } else {
+            None
         }
     }
 }
