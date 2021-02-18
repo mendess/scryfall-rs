@@ -18,9 +18,7 @@ pub enum Color {
 }
 
 /// Definition of a cards colors. This can be used to in conjunction with
-/// the search builder as a [`ColorParam`].
-///
-/// [`ColorParam`]: ../../card_searcher/enum.ColorParam.html
+/// the search builder as a [`ColorParam`][crate::card_searcher::ColorParam].
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Colors(u8);
 

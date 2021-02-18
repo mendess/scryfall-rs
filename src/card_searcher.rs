@@ -15,12 +15,6 @@
 //! Finally the [`Search`] trait, defines what is a valid search for `scryfall`.
 //! It's implemented for `String` in case it's easier for the user to directly
 //! use a text representation.
-//!
-//! [`SortMethod`]: enum.SortMethod.html
-//! [`SortDirection`]: enum.SortDirection.html
-//! [`UniqueStrategy`]: enum.UniqueStrategy.html
-//! [`SearchBuilder`]: struct.SearchBuilder.html
-//! [`Search`]: trait.Search.html
 use std::fmt::Write;
 use std::str;
 
@@ -29,8 +23,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
+use crate::list::ListIter;
 use crate::set::SetCode;
-use crate::util::uri::PaginatedUri;
 
 /// Search expresses that the implementing type can be turned into a query to
 /// `scryfall`. This means that is should be
@@ -68,8 +62,8 @@ impl Search for &str {
     /// ```rust,no_run
     /// use scryfall::card::Card;
     /// assert!(Card::search("lightning")
+    ///     .unwrap()
     ///     .filter_map(|x| x.ok())
-    ///     .flatten()
     ///     .all(|x| x.name.to_lowercase().contains("lightning")))
     /// ```
     ///
@@ -239,17 +233,19 @@ impl SearchBuilder {
     ///             .param(CollectorNumber(123))
     ///             .param(Set(SetCode::try_from("war").unwrap()))
     ///     )
-    ///     .flatten()
+    ///     .unwrap()
+    ///     .into_inner()
     ///     .collect::<Vec<_>>(),
     ///     SearchBuilder::new()
     ///         .param(CollectorNumber(123))
     ///         .param(Set(SetCode::try_from("war").unwrap()))
     ///         .search()
-    ///         .flatten()
+    ///         .unwrap()
+    ///         .into_inner()
     ///         .collect::<Vec<_>>()
     /// );
     /// ```
-    pub fn search(&mut self) -> PaginatedUri<Card> {
+    pub fn search(&mut self) -> crate::Result<ListIter<Card>> {
         Card::search(self)
     }
 }

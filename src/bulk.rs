@@ -9,55 +9,60 @@
 //!
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
+use serde::de::DeserializeOwned;
 use serde::Deserialize;
 
 use crate::card::Card;
 use crate::ruling::Ruling;
-use crate::util::uri::{Uri, UriIter};
+use crate::util::uri::Uri;
 use crate::util::BULK_DATA_URL;
 
 #[derive(Deserialize, Debug, Clone)]
-struct BulkObject {
-    download_uri: String,
+struct BulkObject<T> {
+    download_uri: Uri<Vec<T>>,
 }
 
-fn fetch_bulk_uri(url: &str) -> crate::Result<String> {
-    Uri::<BulkObject>::from(BULK_DATA_URL.join(url)?.into_string())
-        .fetch()
-        .map(|b| b.download_uri)
+impl<T: DeserializeOwned> BulkObject<T> {
+    fn of_type(bulk_type: &str) -> crate::Result<Self> {
+        Uri::from(BULK_DATA_URL.join(bulk_type)?).fetch()
+    }
+
+    fn download(&self) -> crate::Result<Vec<T>> {
+        self.download_uri.fetch()
+    }
 }
 
 /// An iterator containing one Scryfall card object for each Oracle ID on
 /// Scryfall. The chosen sets for the cards are an attempt to return the most
 /// up-to-date recognizable version of the card.
-pub fn oracle_cards() -> crate::Result<UriIter<Card>> {
-    Uri::<Vec<_>>::from(fetch_bulk_uri("/oracle_cards")?).iter()
+pub fn oracle_cards() -> crate::Result<Vec<Card>> {
+    BulkObject::of_type("oracle_cards")?.download()
 }
 
 /// An iterator of Scryfall card objects that together contain all unique
 /// artworks. The chosen cards promote the best image scans.
-pub fn unique_artwork() -> crate::Result<UriIter<Card>> {
-    Uri::<Vec<_>>::from(fetch_bulk_uri("/unique_artwork")?).iter()
+pub fn unique_artwork() -> crate::Result<Vec<Card>> {
+    BulkObject::of_type("unique_artwork")?.download()
 }
 
 /// An iterator containing every card object on Scryfall in English or the
 /// printed language if the card is only available in one language.
-pub fn default_cards() -> crate::Result<UriIter<Card>> {
-    Uri::<Vec<_>>::from(fetch_bulk_uri("/default_cards")?).iter()
+pub fn default_cards() -> crate::Result<Vec<Card>> {
+    BulkObject::of_type("default_cards")?.download()
 }
 
 /// An iterator of every card object on Scryfall in every language.
 ///
 /// # Note
 /// This currently takes about 2GB of RAM before returning 👀.
-pub fn all_cards() -> crate::Result<UriIter<Card>> {
-    Uri::<Vec<_>>::from(fetch_bulk_uri("/all_cards")?).iter()
+pub fn all_cards() -> crate::Result<Vec<Card>> {
+    BulkObject::of_type("all_cards")?.download()
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
-pub fn rulings() -> crate::Result<UriIter<Ruling>> {
-    Uri::<Vec<_>>::from(fetch_bulk_uri("/rulings")?).iter()
+pub fn rulings() -> crate::Result<Vec<Ruling>> {
+    BulkObject::of_type("rulings")?.download()
 }
 
 #[cfg(test)]
@@ -65,66 +70,31 @@ mod tests {
     #[test]
     #[ignore]
     fn oracle_cards() {
-        super::oracle_cards()
-            .expect("Couldn't get the bulk object")
-            .enumerate()
-            .for_each(|(i, c)| {
-                if let Err(e) = c {
-                    panic!("Card {} couldn't be parsed: {}", i, e)
-                }
-            })
+        super::oracle_cards().expect("Couldn't get the bulk object");
     }
 
     #[test]
     #[ignore]
     fn unique_artwork() {
-        super::unique_artwork()
-            .expect("Couldn't get the bulk object")
-            .enumerate()
-            .for_each(|(i, c)| {
-                if let Err(e) = c {
-                    panic!("Card {} couldn't be parsed: {}", i, e)
-                }
-            })
+        super::unique_artwork().expect("Couldn't get the bulk object");
     }
 
     #[test]
     #[ignore]
     fn default_cards() {
-        super::default_cards()
-            .expect("Couldn't get the bulk object")
-            .enumerate()
-            .for_each(|(i, c)| {
-                if let Err(e) = c {
-                    panic!("Card {} couldn't be parsed: {}", i, e)
-                }
-            })
+        super::default_cards().expect("Couldn't get the bulk object");
     }
 
     #[test]
     #[ignore]
     fn all_cards() {
-        super::all_cards()
-            .expect("Couldn't get the bulk object")
-            .enumerate()
-            .for_each(|(i, c)| {
-                if let Err(e) = c {
-                    panic!("Card {} couldn't be parsed: {}", i, e)
-                }
-            })
+        super::all_cards().expect("Couldn't get the bulk object");
     }
 
     #[test]
     #[ignore]
     fn rulings() {
-        super::rulings()
-            .expect("Couldn't get the bulk object")
-            .enumerate()
-            .for_each(|(i, c)| {
-                if let Err(e) = c {
-                    panic!("Ruling {} couldn't be parsed: {}", i, e)
-                }
-            })
+        super::rulings().expect("Couldn't get the bulk object");
     }
 
     #[test]

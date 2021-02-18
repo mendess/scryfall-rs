@@ -11,7 +11,8 @@
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
-use crate::util::uri::{PaginatedUri, Uri};
+use crate::list::ListIter;
+use crate::util::uri::Uri;
 use crate::util::{Uuid, API_RULING, CARDS_URL};
 
 /// A ruling object.
@@ -44,29 +45,17 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// match Ruling::multiverse_id(3255).next() {
-    ///     Some(rulings) => assert_eq!(
-    ///         rulings
-    ///             .unwrap()
-    ///             .iter()
-    ///             .filter(|r| r.comment == "The ability is a mana ability, so it is activated and resolves as a mana ability, but it can only be activated at times when you can cast an instant. Yes, this is a bit weird.")
-    ///             .count(),
-    ///         1
-    ///     ),
-    ///     None => panic!("Nothing")
-    /// }
+    /// assert!(Ruling::multiverse_id(3255).unwrap()
+    /// .filter_map(Result::ok).any(|r| r.comment == "The ability is a mana ability, so it is activated and resolves as a mana ability, but it can only be activated at times when you can cast an instant. Yes, this is a bit weird."));
     /// ```
-    pub fn multiverse_id(id: usize) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(
+    pub fn multiverse_id(id: usize) -> crate::Result<ListIter<Self>> {
+        Uri::from(
             CARDS_URL
-                .join("multiverse/")
-                .unwrap()
-                .join(&format!("{}/", id))
-                .unwrap()
-                .join(API_RULING)
-                .unwrap()
-                .into_string(),
-        ))
+                .join("multiverse/")?
+                .join(&format!("{}/", id))?
+                .join(API_RULING)?,
+        )
+        .fetch_iter()
     }
 
     /// Returns rulings for a card with the given MTGO ID (also known as the
@@ -76,58 +65,32 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// match Ruling::mtgo_id(57934).next() {
-    ///     Some(rulings) => assert_eq!(
-    ///         rulings
-    ///             .unwrap()
-    ///             .iter()
-    ///             .filter(|r| r.comment == "Yes, if the fourth mode is the only one remaining, you must choose it. You read the whole contract, right?")
-    ///             .count(),
-    ///         1
-    ///     ),
-    ///     None => panic!(),
-    /// }
+    /// assert!(Ruling::mtgo_id(57934).unwrap().filter_map(Result::ok).any(|r| r.comment == "Yes, if the fourth mode is the only one remaining, you must choose it. You read the whole contract, right?"));
     /// ```
-    pub fn mtgo_id(id: usize) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(
+    pub fn mtgo_id(id: usize) -> crate::Result<ListIter<Self>> {
+        Uri::from(
             CARDS_URL
-                .join("mtgo/")
-                .unwrap()
-                .join(&format!("{}/", id))
-                .unwrap()
-                .join(API_RULING)
-                .unwrap()
-                .into_string(),
-        ))
+                .join("mtgo/")?
+                .join(&format!("{}/", id))?
+                .join(API_RULING)?,
+        )
+        .fetch_iter()
     }
 
     /// Returns rulings for a card with the given Magic: The Gathering Arena ID.
     ///
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// match Ruling::arena_id(67462).next() {
-    ///     Some(rulings) => assert_eq!(
-    ///         rulings
-    ///             .unwrap()
-    ///             .iter()
-    ///             .filter(|r| r.comment == "Once a chapter ability has triggered, the ability on the stack won’t be affected if the Saga gains or loses counters, or if it leaves the battlefield.")
-    ///             .count(),
-    ///         1
-    ///     ),
-    ///     None => panic!(),
-    /// }
+    /// assert!(Ruling::arena_id(67462).unwrap().filter_map(Result::ok).any(|r| r.comment == "Once a chapter ability has triggered, the ability on the stack won’t be affected if the Saga gains or loses counters, or if it leaves the battlefield."));
     /// ```
-    pub fn arena_id(id: usize) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(
+    pub fn arena_id(id: usize) -> crate::Result<ListIter<Self>> {
+        Uri::from(
             CARDS_URL
-                .join("arena/")
-                .unwrap()
-                .join(&format!("{}/", id))
-                .unwrap()
-                .join(API_RULING)
-                .unwrap()
-                .into_string(),
-        ))
+                .join("arena/")?
+                .join(&format!("{}/", id))?
+                .join(API_RULING)?,
+        )
+        .fetch_iter()
     }
 
     /// Returns a List of rulings for the card with the given set code and
@@ -136,27 +99,20 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// match Ruling::set_and_number("bfz", 17).next() {
-    ///     Some(rulings) => assert_eq!(
-    ///         rulings
-    ///             .unwrap()
-    ///             .iter()
-    ///             .filter(|r| r.comment == "Yes, your opponent can’t even. We know.")
-    ///             .count(),
-    ///         1
-    ///     ),
-    ///     None => panic!(),
-    /// }
+    /// assert!(
+    ///     Ruling::set_and_number("bfz", 17)
+    ///         .unwrap()
+    ///         .filter_map(Result::ok)
+    ///         .any(|r| r.comment == "Yes, your opponent can’t even. We know.")
+    /// );
     /// ```
-    pub fn set_and_number(set: &str, number: u32) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(
+    pub fn set_and_number(set: &str, number: u32) -> crate::Result<ListIter<Self>> {
+        Uri::from(
             CARDS_URL
-                .join(&format!("{}/{}/", set, number))
-                .unwrap()
-                .join(API_RULING)
-                .unwrap()
-                .into_string(),
-        ))
+                .join(&format!("{}/{}/", set, number))?
+                .join(API_RULING)?,
+        )
+        .fetch_iter()
     }
 
     /// Returns a List of rulings for a card with the given Scryfall ID.
@@ -164,26 +120,14 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// match Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap()).next() {
-    ///     Some(rulings) => assert_eq!(
-    ///         rulings
-    ///             .unwrap()
-    ///             .iter()
-    ///             .filter(|r| r.comment == "It must flip like a coin and not like a Frisbee.")
-    ///             .count(),
-    ///         1
-    ///     ),
-    ///     None => panic!(),
-    /// }
+    /// assert!(
+    ///     Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap())
+    ///         .unwrap()
+    ///         .filter_map(Result::ok)
+    ///         .any(|r| r.comment == "It must flip like a coin and not like a Frisbee.")
+    /// );
     /// ```
-    pub fn uuid(id: Uuid) -> PaginatedUri<Self> {
-        PaginatedUri::new(Uri::from(
-            CARDS_URL
-                .join(&format!("{}/", id))
-                .unwrap()
-                .join(API_RULING)
-                .unwrap()
-                .into_string(),
-        ))
+    pub fn uuid(id: Uuid) -> crate::Result<ListIter<Self>> {
+        Uri::from(CARDS_URL.join(&format!("{}/", id))?.join(API_RULING)?).fetch_iter()
     }
 }

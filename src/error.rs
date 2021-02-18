@@ -24,7 +24,7 @@ pub enum Error {
 
     /// Something went wrong when making the HTTP request.
     #[error("Error making request: {0}")]
-    UreqError(#[from] UreqError),
+    UreqError(UreqError, String),
 
     /// Scryfall error. Please refer to the [official docs](https://scryfall.com/docs/api/errors).
     #[error("Scryfall error: {0}")]
