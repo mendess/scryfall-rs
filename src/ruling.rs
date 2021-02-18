@@ -45,8 +45,12 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// assert!(Ruling::multiverse_id(3255).unwrap()
-    /// .filter_map(Result::ok).any(|r| r.comment == "The ability is a mana ability, so it is activated and resolves as a mana ability, but it can only be activated at times when you can cast an instant. Yes, this is a bit weird."));
+    /// assert!(
+    ///     Ruling::multiverse_id(3255)
+    ///         .unwrap()
+    ///         .filter_map(Result::ok)
+    ///         .any(|r| r.comment.ends_with("Yes, this is a bit weird."))
+    /// );
     /// ```
     pub fn multiverse_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
@@ -65,7 +69,12 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// assert!(Ruling::mtgo_id(57934).unwrap().filter_map(Result::ok).any(|r| r.comment == "Yes, if the fourth mode is the only one remaining, you must choose it. You read the whole contract, right?"));
+    /// assert!(
+    ///     Ruling::mtgo_id(57934)
+    ///         .unwrap()
+    ///         .filter_map(Result::ok)
+    ///         .any(|r| r.comment.ends_with("You read the whole contract, right?"))
+    /// );
     /// ```
     pub fn mtgo_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
@@ -81,7 +90,14 @@ impl Ruling {
     ///
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// assert!(Ruling::arena_id(67462).unwrap().filter_map(Result::ok).any(|r| r.comment == "Once a chapter ability has triggered, the ability on the stack won’t be affected if the Saga gains or loses counters, or if it leaves the battlefield."));
+    /// assert!(
+    ///     Ruling::arena_id(67462)
+    ///         .unwrap()
+    ///         .filter_map(Result::ok)
+    ///         .any(|r| r
+    ///             .comment
+    ///             .starts_with("Once a chapter ability has triggered,"))
+    /// );
     /// ```
     pub fn arena_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
