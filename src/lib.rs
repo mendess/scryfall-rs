@@ -87,34 +87,21 @@ mod tests {
     #[test]
     #[ignore]
     fn all_sets() {
-        let mut page = 1;
-        for sets in Set::all().unwrap() {
-            if let Err(e) = sets {
-                panic!("Couldn't parse sets at page {}. Error: {}", page, e);
-            }
-            page += 1;
+        for set in Set::all().unwrap() {
+            assert!(set.code.get().len() >= 3);
         }
     }
 
     #[test]
     #[ignore]
     fn latest_cards() {
-        Set::all()
-            .unwrap()
-            .map(Result::unwrap)
-            .take(30)
-            .par_bridge()
-            .for_each(|set| {
-                SearchBuilder::new()
-                    .param(StringParam::Set(set.code))
-                    .search()
-                    .unwrap()
-                    .enumerate()
-                    .for_each(|(i, c)| {
-                        if let Err(e) = c {
-                            panic!("Card {} in set {} couldn't be parsed: {}", i, set.name, e)
-                        }
-                    });
-            })
+        Set::all().unwrap().take(30).par_bridge().for_each(|set| {
+            let set_cards = SearchBuilder::new()
+                .param(StringParam::Set(set.code))
+                .search();
+            if let Err(e) = set_cards {
+                panic!("Could not search for cards in '{}' - {}", set.name, e);
+            }
+        })
     }
 }

@@ -30,13 +30,16 @@ pub struct List<T> {
 impl<T: DeserializeOwned> List<T> {
     /// Creates an iterator over all the pages of this list.
     pub fn into_page_iter(self) -> PageIter<T> {
-        PageIter { curr: Some(self) }
+        PageIter {
+            curr: Some(self),
+            page_num: 1,
+        }
     }
 }
 
 impl<T: DeserializeOwned> IntoIterator for List<T> {
     type IntoIter = ListIter<T>;
-    type Item = crate::Result<T>;
+    type Item = T;
 
     fn into_iter(self) -> Self::IntoIter {
         // `has_more` is assumed to be redundant.
@@ -45,6 +48,7 @@ impl<T: DeserializeOwned> IntoIterator for List<T> {
         ListIter {
             inner: self.data.into_iter(),
             next_uri: self.next_page,
+            page_num: 1,
             total: self.total_cards,
             remaining: self.total_cards,
         }
@@ -63,6 +67,7 @@ impl<T: DeserializeOwned> IntoIterator for List<T> {
 pub struct ListIter<T> {
     inner: vec::IntoIter<T>,
     next_uri: Option<Uri<List<T>>>,
+    page_num: usize,
     total: Option<usize>,
     remaining: Option<usize>,
 }
@@ -100,7 +105,6 @@ impl<T: DeserializeOwned> ListIter<T> {
     ///     page_2
     ///         .next()
     ///         .unwrap()
-    ///         .unwrap()
     ///         .collector_number
     ///         .parse::<usize>()
     ///         .unwrap(),
@@ -111,9 +115,10 @@ impl<T: DeserializeOwned> ListIter<T> {
         if let Some(uri) = self.next_uri.as_ref() {
             let mut new_iter = uri.fetch_iter()?;
             new_iter.remaining = self.remaining.map(|r| r - self.inner.len());
+            new_iter.page_num = self.page_num + 1;
 
             // The new total should be the same as the old total.
-            assert_eq!(self.total, new_iter.total);
+            debug_assert_eq!(self.total, new_iter.total);
 
             Ok(Some(new_iter))
         } else {
@@ -123,13 +128,13 @@ impl<T: DeserializeOwned> ListIter<T> {
 }
 
 impl<T: DeserializeOwned> Iterator for ListIter<T> {
-    type Item = crate::Result<T>;
+    type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
             Some(next) => {
                 self.remaining = self.remaining.map(|r| r - 1);
-                Some(Ok(next))
+                Some(next)
             },
             None => match self.next_page() {
                 Ok(Some(new_iter)) => {
@@ -137,7 +142,12 @@ impl<T: DeserializeOwned> Iterator for ListIter<T> {
                     self.next()
                 },
                 Ok(None) => None,
-                Err(e) => Some(Err(e)),
+                Err(e) => {
+                    eprintln!("Error retrieving page {} - {}", self.page_num + 1, e);
+                    self.next_uri = None;
+                    self.remaining = Some(0);
+                    None
+                },
             },
         }
     }
@@ -163,21 +173,28 @@ impl<T: DeserializeOwned> Iterator for ListIter<T> {
 /// page is requested.
 pub struct PageIter<T> {
     curr: Option<List<T>>,
+    page_num: usize,
 }
 
 impl<T: DeserializeOwned> Iterator for PageIter<T> {
-    type Item = crate::Result<List<T>>;
+    type Item = List<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(curr) = self.curr.take() {
             self.curr = match &curr.next_page {
                 Some(uri) => match uri.fetch() {
-                    Ok(page) => Some(page),
-                    Err(e) => return Some(Err(e)),
+                    Ok(page) => {
+                        self.page_num += 1;
+                        Some(page)
+                    },
+                    Err(e) => {
+                        eprintln!("Error fetching page {} - {}", self.page_num + 1, e);
+                        None
+                    },
                 },
                 None => None,
             };
-            Some(Ok(curr))
+            Some(curr)
         } else {
             None
         }

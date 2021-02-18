@@ -63,8 +63,7 @@ impl Search for &str {
     /// use scryfall::card::Card;
     /// assert!(Card::search("lightning")
     ///     .unwrap()
-    ///     .filter_map(|x| x.ok())
-    ///     .all(|x| x.name.to_lowercase().contains("lightning")))
+    ///     .all(|card| card.name.to_lowercase().contains("lightning")))
     /// ```
     ///
     /// [`Card::search`]: ../card/struct.Card.html#method.search
