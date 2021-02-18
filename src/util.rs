@@ -3,8 +3,6 @@ use once_cell::sync::Lazy;
 use url::Url;
 pub use uuid::Uuid;
 
-pub mod uri;
-
 /// The [scryfall](https://scryfall.com/docs/api) endpoint.
 pub static ROOT_URL: Lazy<Url> = Lazy::new(|| Url::parse("https://api.scryfall.com/").unwrap());
 /// The [cards](https://scryfall.com/docs/api/cards) endpoint.

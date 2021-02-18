@@ -11,7 +11,7 @@ use std::vec;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-use crate::util::uri::Uri;
+use crate::uri::Uri;
 
 /// A list object.
 ///
@@ -159,7 +159,8 @@ impl<T: DeserializeOwned> Iterator for ListIter<T> {
     }
 }
 
-/// An iterator over the pages of a list. Before returning each page, the next page is requested.
+/// An iterator over the pages of a list. Before returning each page, the next
+/// page is requested.
 pub struct PageIter<T> {
     curr: Option<List<T>>,
 }

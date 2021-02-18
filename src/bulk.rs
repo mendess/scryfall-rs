@@ -14,7 +14,7 @@ use serde::Deserialize;
 
 use crate::card::Card;
 use crate::ruling::Ruling;
-use crate::util::uri::Uri;
+use crate::uri::Uri;
 use crate::util::BULK_DATA_URL;
 
 #[derive(Deserialize, Debug, Clone)]

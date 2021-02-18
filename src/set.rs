@@ -18,7 +18,7 @@ pub use self::set_code::SetCode;
 pub use self::set_type::SetType;
 use crate::card::Card;
 use crate::list::{List, ListIter};
-use crate::util::uri::Uri;
+use crate::uri::Uri;
 use crate::util::{Uuid, SETS_URL};
 
 /// A Set object containing all fields that `scryfall` provides.

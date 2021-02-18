@@ -37,7 +37,7 @@ use crate::card_searcher::Search;
 use crate::list::{List, ListIter};
 use crate::ruling::Ruling;
 use crate::set::Set;
-use crate::util::uri::Uri;
+use crate::uri::Uri;
 use crate::util::{Uuid, CARDS_URL};
 
 /// A Card object containing all fields that `scryfall` provides,

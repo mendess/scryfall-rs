@@ -51,6 +51,7 @@ pub mod format;
 pub mod list;
 pub mod ruling;
 pub mod set;
+pub mod uri;
 mod util;
 
 /// The result type used to describe all fallible operations of the scryfall

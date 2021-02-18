@@ -7,7 +7,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::util::uri::Uri;
+use crate::uri::Uri;
 use crate::util::CATALOG_URL;
 
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]

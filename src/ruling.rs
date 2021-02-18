@@ -12,7 +12,7 @@ use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
 
 use crate::list::ListIter;
-use crate::util::uri::Uri;
+use crate::uri::Uri;
 use crate::util::{Uuid, API_RULING, CARDS_URL};
 
 /// A ruling object.
