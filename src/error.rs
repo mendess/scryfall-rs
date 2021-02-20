@@ -45,11 +45,26 @@ pub enum Error {
 /// [Official docs](https://scryfall.com/docs/api/errors)
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct ScryfallError {
+    /// An integer HTTP status code for this error.
+    pub status: u16,
+
+    /// A computer-friendly string representing the appropriate HTTP status
+    /// code.
+    pub code: String,
+
     /// A human-readable string explaining the error.
     pub details: String,
+
+    /// A computer-friendly string that provides additional context for the main
+    /// error. For example, an endpoint many generate HTTP 404 errors for
+    /// different kinds of input. This field will provide a label for the
+    /// specific kind of 404 failure, such as ambiguous.
+    #[serde(rename = "type")]
+    pub error_type: Option<String>,
+
     /// If your input also generated non-failure warnings, they will be provided
     /// as human-readable strings in this array.
-    #[serde(default = "Default::default")]
+    #[serde(default)]
     pub warnings: Vec<String>,
 }
 
