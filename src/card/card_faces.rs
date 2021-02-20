@@ -5,9 +5,9 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::card::Color;
-use uuid::Uuid;
 
 /// Sub card object used when a magic card has more then one card face.
 ///

@@ -13,6 +13,7 @@ mod set_type;
 use chrono::NaiveDate;
 use percent_encoding::{percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 pub use self::set_code::SetCode;
 pub use self::set_type::SetType;
@@ -20,7 +21,6 @@ use crate::card::Card;
 use crate::list::{List, ListIter};
 use crate::uri::Uri;
 use crate::util::SETS_URL;
-use uuid::Uuid;
 
 /// A Set object containing all fields that `scryfall` provides.
 ///

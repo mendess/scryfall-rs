@@ -9,15 +9,15 @@
 //!
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
+use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use uuid::Uuid;
 
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
 use crate::util::BULK_DATA_URL;
-use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 #[derive(Deserialize, Debug, Clone)]
 #[allow(missing_docs)]

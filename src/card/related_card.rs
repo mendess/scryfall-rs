@@ -4,10 +4,10 @@
 //! name, or generate a token, or meld, etc) have a all_parts property that
 //! contains `RelatedCard` objects.
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::card::Card;
 use crate::uri::Uri;
-use uuid::Uuid;
 
 /// Related card object. Refer to the official [docs](https://scryfall.com/docs/api/cards)
 /// for information on the fields.

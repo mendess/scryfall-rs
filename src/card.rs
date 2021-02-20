@@ -20,6 +20,7 @@ use std::collections::hash_map::HashMap;
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 pub use self::border_color::BorderColor;
 pub use self::card_faces::CardFace;
@@ -39,7 +40,6 @@ use crate::ruling::Ruling;
 use crate::set::Set;
 use crate::uri::Uri;
 use crate::util::CARDS_URL;
-use uuid::Uuid;
 
 /// A Card object containing all fields that `scryfall` provides,
 ///

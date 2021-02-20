@@ -10,11 +10,11 @@
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 use crate::list::ListIter;
 use crate::uri::Uri;
 use crate::util::{API_RULING, CARDS_URL};
-use uuid::Uuid;
 
 /// A ruling object.
 ///
