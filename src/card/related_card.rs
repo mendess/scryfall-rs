@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::card::Card;
 use crate::uri::Uri;
-use crate::util::Uuid;
+use uuid::Uuid;
 
 /// Related card object. Refer to the official [docs](https://scryfall.com/docs/api/cards)
 /// for information on the fields.

@@ -13,7 +13,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::list::ListIter;
 use crate::uri::Uri;
-use crate::util::{Uuid, API_RULING, CARDS_URL};
+use crate::util::{API_RULING, CARDS_URL};
+use uuid::Uuid;
 
 /// A ruling object.
 ///

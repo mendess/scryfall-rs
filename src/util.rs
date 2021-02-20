@@ -1,7 +1,6 @@
 //! Module containing utility functions and structs.
 use once_cell::sync::Lazy;
 use url::Url;
-pub use uuid::Uuid;
 
 /// The [scryfall](https://scryfall.com/docs/api) endpoint.
 pub static ROOT_URL: Lazy<Url> = Lazy::new(|| Url::parse("https://api.scryfall.com/").unwrap());

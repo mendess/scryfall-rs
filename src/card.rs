@@ -38,7 +38,8 @@ use crate::list::{List, ListIter};
 use crate::ruling::Ruling;
 use crate::set::Set;
 use crate::uri::Uri;
-use crate::util::{Uuid, CARDS_URL};
+use crate::util::CARDS_URL;
+use uuid::Uuid;
 
 /// A Card object containing all fields that `scryfall` provides,
 ///
@@ -47,7 +48,9 @@ use crate::util::{Uuid, CARDS_URL};
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
 #[allow(missing_docs)]
 pub struct Card {
+    // -------------------------------------
     // Core card fields
+    // --------------------------------------
     pub arena_id: Option<usize>,
     pub id: Uuid,
     pub lang: String,
