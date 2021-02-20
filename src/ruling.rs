@@ -16,16 +16,33 @@ use crate::list::ListIter;
 use crate::uri::Uri;
 use crate::util::{API_RULING, CARDS_URL};
 
-/// A ruling object.
+/// Rulings represent Oracle rulings, Wizards of the Coast set release notes, or
+/// Scryfall notes for a particular card.
+// If two cards have the same name, they will have the same set of rulings objects. If a card has
+// rulings, it usually has more than one.
+//
+// Rulings with a scryfall source have been added by the Scryfall team, either to provide additional
+// context for the card, or explain how the card works in an unofficial format (such as Duel
+// Commander).
+/// ---
 ///
-/// For documentation on its fields refer to the
-/// [ruling object](https://scryfall.com/docs/api/rulings) on the official site.
+/// For more information, refer to the [official docs](https://scryfall.com/docs/api/rulings).
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
-#[allow(missing_docs)]
 pub struct Ruling {
+    /// A unique ID for the oracle identity of the card this ruling is about.
+    /// This value is consistent across reprinted card editions, and unique
+    /// among different cards with the same name (tokens, Unstable variants,
+    /// etc).
     pub oracle_id: Uuid,
+
+    /// A computer-readable string indicating which company produced this
+    /// ruling, either wotc or scryfall.
     pub source: Source,
+
+    /// The date when the ruling or note was published.
     pub published_at: NaiveDate,
+
+    /// The text of the ruling.
     pub comment: String,
 }
 
