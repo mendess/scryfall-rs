@@ -125,25 +125,6 @@ pub struct Card {
 }
 
 impl Card {
-    /// Returns a [`ListIter`] of all the cards in the `scryfall` database.
-    ///
-    /// # Examples
-    /// ```rust,no_run
-    /// use scryfall::card::Card;
-    /// # #[allow(deprecated)]
-    /// let cards = Card::all().unwrap().into_inner().collect::<Vec<_>>();
-    /// assert!(cards.len() > 0);
-    /// ```
-    #[deprecated(
-        since = "0.6.0",
-        note = "Scryfall is deprecating this endpoint on the 30/May/2020 in favour of the bulk endpoints"
-    )]
-    pub fn all() -> crate::Result<ListIter<Card>> {
-        let mut url = CARDS_URL.clone();
-        url.query_pairs_mut().append_pair("page", "1");
-        Uri::from(url).fetch_iter()
-    }
-
     /// Fetches a random card.
     ///
     /// # Examples
