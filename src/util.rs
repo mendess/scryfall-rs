@@ -1,5 +1,6 @@
 //! Module containing utility functions and structs.
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Deserializer};
 use url::Url;
 
 /// The [scryfall](https://scryfall.com/docs/api) endpoint.
@@ -16,3 +17,12 @@ pub static CATALOG_URL: Lazy<Url> = Lazy::new(|| ROOT_URL.join("catalog/").unwra
 /// The [rulings](https://scryfall.com/docs/api/rulings) path segment, which goes on the end of a
 /// card URL.
 pub const API_RULING: &str = "rulings/";
+
+/// Function for use with `#[serde(deserialize_with)]` and a field that's
+/// Option<T>. If deserialization fails, use `None` as the field's value and
+/// don't cause an error.
+pub fn deserialize_or_none<'de, D: Deserializer<'de>, T: Deserialize<'de>>(
+    deserializer: D,
+) -> Result<Option<T>, D::Error> {
+    T::deserialize(deserializer).map(Some).or(Ok(None))
+}

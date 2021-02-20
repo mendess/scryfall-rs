@@ -10,6 +10,11 @@ pub struct Preview {
     pub previewed_at: Option<NaiveDate>,
 
     /// A link to the preview for this card.
+    ///
+    /// NOTE: Sometimes this is an empty string, causing the `Url`
+    /// deserialization to fail. If this happens, a `None` variant is used
+    /// instead.
+    #[serde(deserialize_with = "crate::util::deserialize_or_none")]
     pub source_uri: Option<Url>,
 
     /// The name of the source that previewed this card.

@@ -353,11 +353,12 @@ impl Card {
     ///
     /// # Examples
     /// ```rust
-    /// use scryfall::card::Card;
-    /// match Card::random() {
-    ///     Ok(card) => println!("{}", card.name),
-    ///     Err(e) => panic!("{:?}", e),
-    /// }
+    /// # use scryfall::card::Card;
+    /// # fn main() -> scryfall::Result<()> {
+    /// let card = Card::random()?;
+    /// println!("{}", &card.name);
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn random() -> crate::Result<Card> {
         Uri::from(CARDS_URL.join("random/")?).fetch()
@@ -413,10 +414,27 @@ impl Card {
     ///     other => panic!("Wrong error type: {0} {0:?}", other),
     /// };
     /// ```
-    pub fn search<S: Search>(query: S) -> crate::Result<ListIter<Card>> {
-        let mut url = CARDS_URL.join("search/").unwrap();
+    pub fn search(query: impl Search) -> crate::Result<ListIter<Card>> {
+        let mut url = CARDS_URL.join("search/")?;
         url.set_query(Some(&query.to_query()));
         Uri::from(url).fetch_iter()
+    }
+
+    /// Fetches a random card matching a search query.
+    ///
+    /// # Examples
+    /// ```rust
+    /// # use scryfall::Card;
+    /// # fn main() -> scryfall::Result<()> {
+    /// let card = Card::search_random("t:Merfolk")?;
+    /// assert!(card.type_line.contains("Merfolk"));
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn search_random(query: impl Search) -> crate::Result<Card> {
+        let mut url = CARDS_URL.join("random/")?;
+        url.set_query(Some(&query.to_query()));
+        Uri::from(url).fetch()
     }
 
     /// Return a card with the exact name.

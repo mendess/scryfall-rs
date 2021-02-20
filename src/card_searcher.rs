@@ -15,11 +15,10 @@
 //! Finally the [`Search`] trait, defines what is a valid search for `scryfall`.
 //! It's implemented for `String` in case it's easier for the user to directly
 //! use a text representation.
-use std::fmt::Write;
-use std::str;
+use std::{fmt, str};
 
 use percent_encoding::{percent_encode, CONTROLS};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize, Serializer};
 
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
@@ -34,19 +33,13 @@ pub trait Search {
     fn to_query(&self) -> String;
 }
 
-impl<T> Search for &T
-where
-    T: Search,
-{
+impl<T: Search> Search for &T {
     fn to_query(&self) -> String {
         Search::to_query(*self)
     }
 }
 
-impl<T> Search for &mut T
-where
-    T: Search,
-{
+impl<T: Search> Search for &mut T {
     fn to_query(&self) -> String {
         Search::to_query(*self)
     }
@@ -65,8 +58,6 @@ impl Search for &str {
     ///     .unwrap()
     ///     .all(|card| card.name.to_lowercase().contains("lightning")))
     /// ```
-    ///
-    /// [`Card::search`]: ../card/struct.Card.html#method.search
     fn to_query(&self) -> String {
         format!("q={}", percent_encode(self.as_bytes(), CONTROLS))
     }
@@ -75,7 +66,7 @@ impl Search for &str {
 /// Param expresses that the implementing type can be turned into a parameter
 /// in a scryfall search parameters. The valid parameters can be seen
 /// [here](https://scryfall.com/docs/syntax).
-pub trait Param {
+pub trait Param: fmt::Debug {
     /// Turns a parameter into its string version.
     fn to_param(&self) -> String;
 }
@@ -131,15 +122,41 @@ where
 /// [`UniqueStrategy`]: enum.UniqueStrategy.html
 /// [`SortMethod`]: enum.SortMethod.html
 /// [`SortDirection`]: enum.SortDirection.html
+#[derive(Serialize, Debug)]
 pub struct SearchBuilder {
+    #[serde(skip_serializing_if = "is_default")]
     unique: UniqueStrategy,
+    #[serde(skip_serializing_if = "is_default")]
     sort_by: SortMethod,
+    #[serde(skip_serializing_if = "is_default")]
     dir: SortDirection,
     page: usize,
+    #[serde(skip_serializing_if = "is_default")]
     include_extras: bool,
+    #[serde(skip_serializing_if = "is_default")]
     include_multilingual: bool,
+    #[serde(skip_serializing_if = "is_default")]
     include_variations: bool,
+    #[serde(rename = "q", serialize_with = "serialize_params")]
     params: Vec<Box<dyn Param>>,
+}
+
+fn is_default<T: Default + PartialEq>(value: &T) -> bool {
+    value == &Default::default()
+}
+
+fn serialize_params<S: Serializer>(
+    params: &[Box<dyn Param>],
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    let mut query = String::new();
+    for param in params.iter() {
+        query += &param.to_param();
+        query.push(' ');
+    }
+    percent_encoding::percent_encode(query.trim_end().as_bytes(), CONTROLS)
+        .to_string()
+        .serialize(serializer)
 }
 
 impl Default for SearchBuilder {
@@ -244,52 +261,21 @@ impl SearchBuilder {
     ///         .collect::<Vec<_>>()
     /// );
     /// ```
-    pub fn search(&mut self) -> crate::Result<ListIter<Card>> {
+    pub fn search(&self) -> crate::Result<ListIter<Card>> {
         Card::search(self)
     }
 }
 
 impl Search for SearchBuilder {
     fn to_query(&self) -> String {
-        use itertools::Itertools;
-        let mut query = format!(
-            "{}&{}&{}&",
-            self.unique.to_param(),
-            self.sort_by.to_param(),
-            self.dir.to_param()
-        );
-        if self.include_extras {
-            query += "include_extras=true";
-        }
-        if self.include_multilingual {
-            query += "include_variations=true";
-        }
-        if self.include_variations {
-            query += "include_multilingual=true";
-        }
-        if self.page > 1 {
-            query += &format!("page={}", self.page + 1);
-        }
-        query += "q=";
-        let _ = write!(
-            query,
-            "{}",
-            percent_encode(
-                self.params
-                    .iter()
-                    .map(|x| { x.to_param() })
-                    .join("+")
-                    .as_bytes(),
-                CONTROLS,
-            )
-        );
-        query
+        serde_urlencoded::to_string(self).unwrap()
     }
 }
 
 /// The unique parameter specifies if Scryfall should remove “duplicate” results
 /// in your query.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum UniqueStrategy {
     /// Removes duplicate gameplay objects (cards that share a name and have the
     /// same functionality). For example, if your search matches more than
@@ -300,7 +286,7 @@ pub enum UniqueStrategy {
     /// card with each different illustration for Pacifism will be returned,
     /// but any cards that duplicate artwork already in the results will
     /// be omitted.
-    Arts,
+    Art,
     /// Returns all prints for all cards matched (disables rollup). For example,
     /// if your search matches more than one print of Pacifism, all matching
     /// prints will be returned.
@@ -313,20 +299,9 @@ impl Default for UniqueStrategy {
     }
 }
 
-impl Param for UniqueStrategy {
-    fn to_param(&self) -> String {
-        use UniqueStrategy::*;
-        String::from("unique=")
-            + match self {
-                Cards => "cards",
-                Arts => "art",
-                Prints => "prints",
-            }
-    }
-}
-
 /// The order parameter determines how Scryfall should sort the returned cards.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum SortMethod {
     /// Sort cards by name, A → Z
     Name,
@@ -364,60 +339,27 @@ impl Default for SortMethod {
     }
 }
 
-impl Param for SortMethod {
-    fn to_param(&self) -> String {
-        use SortMethod::*;
-        String::from("sort_by=")
-            + match self {
-                Name => "name",
-                Set => "set",
-                Released => "released",
-                Rarity => "rarity",
-                Color => "color",
-                Usd => "usd",
-                Tix => "tix",
-                Eur => "eur",
-                Cmc => "cmc",
-                Power => "power",
-                Toughness => "toughness",
-                Edhrec => "edhrec",
-                Artist => "artist",
-            }
-    }
-}
-
 /// Which direction the sorting should occur:
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[serde(rename_all = "lowercase")]
 pub enum SortDirection {
     /// Scryfall will automatically choose the most intuitive direction to sort
     Auto,
     /// Sort ascending (flip the direction of the arrows in [`SortMethod`])
     ///
     /// [`SortMethod`]: enum.SortMethod.html
+    #[serde(rename = "asc")]
     Ascending,
     /// Sort descending (flip the direction of the arrows in [`SortMethod`])
     ///
     /// [`SortMethod`]: enum.SortMethod.html
+    #[serde(rename = "desc")]
     Descending,
 }
 
 impl Default for SortDirection {
     fn default() -> Self {
         SortDirection::Auto
-    }
-}
-
-impl Param for SortDirection {
-    fn to_param(&self) -> String {
-        use SortDirection::*;
-        format!(
-            "dir={}",
-            match self {
-                Auto => "auto",
-                Ascending => "asc",
-                Descending => "desc",
-            }
-        )
     }
 }
 
