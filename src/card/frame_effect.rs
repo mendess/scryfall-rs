@@ -29,6 +29,7 @@ pub enum FrameEffect {
     Nyxborn,
     FullArt,
     Etched,
+    Snow,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -58,6 +59,7 @@ impl std::fmt::Display for FrameEffect {
                 Nyxborn => "nyxborn",
                 FullArt => "fullart",
                 Etched => "etched",
+                Snow => "snow",
             }
         )
     }
