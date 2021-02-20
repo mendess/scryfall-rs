@@ -24,20 +24,23 @@ use crate::util::BULK_DATA_URL;
 /// change their timestamp each day, and can be fetched programmatically.
 ///
 /// ## Please note:
-//
-// * Card objects in bulk data include price information, but prices should be considered
-//   dangerously stale after 24 hours. Only use bulk price information to track trends or provide a
-//   general estimate of card value. Prices are not updated frequently enough to power a storefront
-//   or sales system. You consume price information at your own risk.
-// * Updates to gameplay data (such as card names, Oracle text, mana costs, etc) are much less
-//   frequent. If you only need gameplay information, downloading card data once per week or right
-//   after set releases would most likely be sufficient.
-// * Every card type in every product is included, including planar cards, schemes, Vanguard cards,
-//   tokens, emblems, and funny cards. Make sure you’ve reviewed documentation for the Card type.
-//
-//
-// Bulk data is only collected once every 12 hours. You can use the card API methods to retrieve
-// fresh objects instead.
+///
+/// * Card objects in bulk data include price information, but prices should be
+///   considered dangerously stale after 24 hours. Only use bulk price
+///   information to track trends or provide a general estimate of card value.
+///   Prices are not updated frequently enough to power a storefront or sales
+///   system. You consume price information at your own risk.
+/// * Updates to gameplay data (such as card names, Oracle text, mana costs,
+///   etc) are much less frequent. If you only need gameplay information,
+///   downloading card data once per week or right after set releases would most
+///   likely be sufficient.
+/// * Every card type in every product is included, including planar cards,
+///   schemes, Vanguard cards, tokens, emblems, and funny cards. Make sure
+///   you’ve reviewed documentation for the Card type.
+///
+///
+/// Bulk data is only collected once every 12 hours. You can use the card API
+/// methods to retrieve fresh objects instead.
 #[derive(Deserialize, Debug, Clone)]
 pub struct BulkDataFile<T> {
     /// A unique ID for this bulk item.
