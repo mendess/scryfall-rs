@@ -60,9 +60,9 @@ impl<T: DeserializeOwned> IntoIterator for List<T> {
 /// This struct is created by the `into_iter` method on `List`.
 ///
 /// Upon reaching the end of a page, further pages will be requested and the
-/// iterator will continue yielding items from those pages. Therefore the
-/// associated `Item` type must be a [`crate::Result`]`<T>` as this request can
-/// fail.
+/// iterator will continue yielding items from those pages. If one of the 
+/// subsequent requests fails (which it shouldn't), the error is logged to the
+/// console and the iterator stops yielding items. 
 #[derive(Debug, Clone)]
 pub struct ListIter<T> {
     inner: vec::IntoIter<T>,
@@ -73,9 +73,8 @@ pub struct ListIter<T> {
 }
 
 impl<T> ListIter<T> {
-    /// Extracts the inner [`vec::IntoIter`] that holds this page of data. The
-    /// resulting iterator has items of type `T` instead of
-    /// `crate::Result<T>`.
+    /// Extracts the inner [`vec::IntoIter`] that holds this page of data. Further pages will not
+    /// be fetched when it gets to the end.
     ///
     /// # Examples
     /// ```rust
