@@ -77,7 +77,8 @@ pub struct BulkDataFile<T> {
 }
 
 impl<T: DeserializeOwned> BulkDataFile<T> {
-    fn of_type(bulk_type: &str) -> crate::Result<Self> {
+    /// Gets a BulkDataFile of the specified type.
+    pub fn of_type(bulk_type: &str) -> crate::Result<Self> {
         Uri::from(BULK_DATA_URL.join(bulk_type)?).fetch()
     }
 
