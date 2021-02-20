@@ -39,6 +39,18 @@ pub enum Error {
     Other(String),
 }
 
+impl From<SerdeError> for Box<Error> {
+    fn from(err: SerdeError) -> Self {
+        Box::new(err.into())
+    }
+}
+
+impl From<UrlParseError> for Box<Error> {
+    fn from(err: UrlParseError) -> Self {
+        Box::new(err.into())
+    }
+}
+
 /// An Error object represents a failure to find information or understand the
 /// input you provided to the API.
 ///

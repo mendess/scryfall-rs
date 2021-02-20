@@ -67,12 +67,12 @@ impl<T: DeserializeOwned> Uri<T> {
         match response {
             Ok(response) => match response.status() {
                 200..=299 => Ok(serde_json::from_reader(response.into_reader())?),
-                status => Err(Error::HttpError(status, response.status_text().to_string())),
+                status => Err(Error::HttpError(status, response.status_text().to_string()).into()),
             },
-            Err(ureq::Error::Status(400..=499, response)) => Err(Error::ScryfallError(
-                serde_json::from_reader(response.into_reader())?,
-            )),
-            Err(error) => Err(Error::UreqError(error, self.url.to_string())),
+            Err(ureq::Error::Status(400..=499, response)) => {
+                Err(Error::ScryfallError(serde_json::from_reader(response.into_reader())?).into())
+            },
+            Err(error) => Err(Error::UreqError(error, self.url.to_string()).into()),
         }
     }
 }
