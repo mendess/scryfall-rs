@@ -17,7 +17,6 @@
 //! use a text representation.
 use std::{fmt, str};
 
-use percent_encoding::{percent_encode, CONTROLS};
 use serde::{Deserialize, Serialize, Serializer};
 
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
@@ -59,7 +58,11 @@ impl Search for &str {
     ///     .all(|card| card.name.to_lowercase().contains("lightning")))
     /// ```
     fn to_query(&self) -> String {
-        format!("q={}", percent_encode(self.as_bytes(), CONTROLS))
+        #[derive(Serialize)]
+        struct StrQuery<'a> {
+            q: &'a str,
+        }
+        serde_urlencoded::to_string(StrQuery { q: self }).unwrap()
     }
 }
 
@@ -154,9 +157,7 @@ fn serialize_params<S: Serializer>(
         query += &param.to_param();
         query.push(' ');
     }
-    percent_encoding::percent_encode(query.trim_end().as_bytes(), CONTROLS)
-        .to_string()
-        .serialize(serializer)
+    query.trim_end().serialize(serializer)
 }
 
 impl Default for SearchBuilder {
