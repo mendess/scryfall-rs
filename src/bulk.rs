@@ -16,13 +16,26 @@ use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
 use crate::util::BULK_DATA_URL;
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
 
 #[derive(Deserialize, Debug, Clone)]
-struct BulkObject<T> {
-    download_uri: Uri<Vec<T>>,
+#[allow(missing_docs)]
+pub struct BulkDataFile<T> {
+    pub id: Uuid,
+    pub uri: Uri<BulkDataFile<T>>,
+    #[serde(rename = "type")]
+    pub bulk_type: String,
+    pub name: String,
+    pub description: String,
+    pub download_uri: Uri<Vec<T>>,
+    pub updated_at: DateTime<Utc>,
+    pub compressed_size: usize,
+    pub content_type: String,
+    pub content_encoding: String,
 }
 
-impl<T: DeserializeOwned> BulkObject<T> {
+impl<T: DeserializeOwned> BulkDataFile<T> {
     fn of_type(bulk_type: &str) -> crate::Result<Self> {
         Uri::from(BULK_DATA_URL.join(bulk_type)?).fetch()
     }
@@ -36,19 +49,19 @@ impl<T: DeserializeOwned> BulkObject<T> {
 /// Scryfall. The chosen sets for the cards are an attempt to return the most
 /// up-to-date recognizable version of the card.
 pub fn oracle_cards() -> crate::Result<Vec<Card>> {
-    BulkObject::of_type("oracle_cards")?.download()
+    BulkDataFile::of_type("oracle_cards")?.download()
 }
 
 /// An iterator of Scryfall card objects that together contain all unique
 /// artworks. The chosen cards promote the best image scans.
 pub fn unique_artwork() -> crate::Result<Vec<Card>> {
-    BulkObject::of_type("unique_artwork")?.download()
+    BulkDataFile::of_type("unique_artwork")?.download()
 }
 
 /// An iterator containing every card object on Scryfall in English or the
 /// printed language if the card is only available in one language.
 pub fn default_cards() -> crate::Result<Vec<Card>> {
-    BulkObject::of_type("default_cards")?.download()
+    BulkDataFile::of_type("default_cards")?.download()
 }
 
 /// An iterator of every card object on Scryfall in every language.
@@ -56,13 +69,13 @@ pub fn default_cards() -> crate::Result<Vec<Card>> {
 /// # Note
 /// This currently takes about 2GB of RAM before returning 👀.
 pub fn all_cards() -> crate::Result<Vec<Card>> {
-    BulkObject::of_type("all_cards")?.download()
+    BulkDataFile::of_type("all_cards")?.download()
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
 pub fn rulings() -> crate::Result<Vec<Ruling>> {
-    BulkObject::of_type("rulings")?.download()
+    BulkDataFile::of_type("rulings")?.download()
 }
 
 #[cfg(test)]
