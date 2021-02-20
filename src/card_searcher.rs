@@ -235,31 +235,28 @@ impl SearchBuilder {
     ///
     /// # Examples
     /// ```rust
-    /// use std::convert::TryFrom;
-    ///
+    /// # use std::convert::TryFrom;
+    /// #
     /// use scryfall::card::Card;
-    /// use scryfall::card_searcher::NumericParam::CollectorNumber;
-    /// use scryfall::card_searcher::StringParam::Set;
-    /// use scryfall::card_searcher::{Search, SearchBuilder};
+    /// use scryfall::card_searcher::{NumericParam, Search, SearchBuilder, StringParam};
     /// use scryfall::set::SetCode;
     ///
+    /// # fn main() -> scryfall::Result<()> {
     /// assert_eq!(
     ///     Card::search(
     ///         SearchBuilder::new()
-    ///             .param(CollectorNumber(123))
-    ///             .param(Set(SetCode::try_from("war").unwrap()))
-    ///     )
-    ///     .unwrap()
-    ///     .into_inner()
+    ///             .param(NumericParam::CollectorNumber(123))
+    ///             .param(StringParam::Set(SetCode::try_from("war").unwrap()))
+    ///     )?
     ///     .collect::<Vec<_>>(),
     ///     SearchBuilder::new()
-    ///         .param(CollectorNumber(123))
-    ///         .param(Set(SetCode::try_from("war").unwrap()))
-    ///         .search()
-    ///         .unwrap()
-    ///         .into_inner()
+    ///         .param(NumericParam::CollectorNumber(123))
+    ///         .param(StringParam::Set(SetCode::try_from("war").unwrap()))
+    ///         .search()?
     ///         .collect::<Vec<_>>()
     /// );
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn search(&self) -> crate::Result<ListIter<Card>> {
         Card::search(self)
