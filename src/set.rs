@@ -24,27 +24,71 @@ use crate::util::SETS_URL;
 
 /// A Set object containing all fields that `scryfall` provides.
 ///
-/// For documentation on each field please refer to their
-/// [documentation](https://scryfall.com/docs/api/sets)
+/// For more details visit the [official docs](https://scryfall.com/docs/api/sets).
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
-#[allow(missing_docs)]
 pub struct Set {
+    /// A unique ID for this set on Scryfall that will not change.
     pub id: Uuid,
+
+    /// The unique three to five-letter code for this set.
     pub code: SetCode,
+
+    /// The unique code for this set on MTGO, which may differ from the regular
+    /// code.
     pub mtgo_code: Option<String>,
+
+    /// This set’s ID on TCGplayer’s API, also known as the groupId.
     pub tcgplayer_id: Option<u64>,
+
+    /// The English name of the set.
     pub name: String,
+
+    /// A computer-readable classification for this set.
     pub set_type: SetType,
+
+    /// The date the set was released or the first card was printed in the set
+    /// (in GMT-8 Pacific time).
     pub released_at: Option<NaiveDate>,
+
+    /// The block code for this set, if any.
     pub block_code: Option<String>,
+
+    /// The block or group name code for this set, if any.
     pub block: Option<String>,
+
+    /// The set code for the parent set, if any. promo and token sets often have
+    /// a parent set.
     pub parent_set_code: Option<String>,
+
+    /// The number of cards in this set.
     pub card_count: usize,
+
+    /// The denominator for the set’s printed collector numbers.
+    pub printed_size: Option<usize>,
+
+    /// True if this set was only released in a video game.
     pub digital: bool,
+
+    /// True if this set contains only foil cards.
     pub foil_only: bool,
+
+    /// True if this set contains only nonfoil cards.
+    pub nonfoil_only: bool,
+
+    /// A link to this set’s permapage on Scryfall’s website.
     pub scryfall_uri: String,
+
+    /// A link to this set object on Scryfall’s API.
     pub uri: Uri<Set>,
+
+    /// A URI to an SVG file for this set’s icon on Scryfall’s CDN. Hotlinking
+    /// this image isn’t recommended, because it may change slightly over time.
+    /// You should download it and use it locally for your particular user
+    /// interface needs.
     pub icon_svg_uri: String,
+
+    /// A Scryfall API URI that you can request to begin paginating over the
+    /// cards in this set.
     pub search_uri: Uri<List<Card>>,
 }
 
