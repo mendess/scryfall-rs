@@ -406,7 +406,7 @@ impl Card {
     ///     .search()
     ///     .unwrap_err();
     ///
-    /// match *error {
+    /// match error {
     ///     Error::ScryfallError(e) => {
     ///         assert!(e.details.contains("All of your terms were ignored"));
     ///         assert!(e.warnings.len() > 0);

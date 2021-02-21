@@ -56,7 +56,7 @@ mod util;
 
 /// The result type used to describe all fallible operations of the scryfall
 /// crate.
-pub type Result<T> = std::result::Result<T, Box<error::Error>>;
+pub type Result<T> = std::result::Result<T, error::Error>;
 
 pub use card::Card;
 pub use catalog::Catalog;
