@@ -2,6 +2,7 @@
 //! with them.
 use std::fmt;
 
+use httpstatus::StatusCode;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
@@ -30,9 +31,9 @@ pub enum Error {
     #[error("Scryfall error: {0}")]
     ScryfallError(ScryfallError),
 
-    /// HTTP error with status code and message.
-    #[error("HTTP error: {0} {1}")]
-    HttpError(u16, String),
+    /// HTTP error with status code.
+    #[error("HTTP error: {0}")]
+    HttpError(StatusCode),
 
     /// Other.
     #[error("{0}")]

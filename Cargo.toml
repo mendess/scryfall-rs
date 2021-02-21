@@ -12,6 +12,7 @@ categories = ["api-bindings", "games"]
 
 [dependencies]
 chrono = { version = "0.4.19", features = ["serde"] }
+httpstatus = "0.1.2"
 itertools = "0.10.0"
 once_cell = "1.5.2"
 percent-encoding = "2.1.0"

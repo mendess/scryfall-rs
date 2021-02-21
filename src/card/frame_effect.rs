@@ -50,7 +50,8 @@ pub enum FrameEffect {
     FullArt,
     /// A nyxborn card frame. Undocumented and unsupported for search.
     Nyxborn,
-    /// The waxing and waning moon transform marks. Undocumented and unsupported for search.
+    /// The waxing and waning moon transform marks. Undocumented and unsupported
+    /// for search.
     WaxingAndWaningMoonDfc,
 }
 
