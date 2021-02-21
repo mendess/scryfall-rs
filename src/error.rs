@@ -2,6 +2,7 @@
 //! with them.
 use std::fmt;
 
+use httpstatus::StatusCode;
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
@@ -10,7 +11,6 @@ use url::ParseError as UrlParseError;
 
 /// The errors that may occur when interacting with the scryfall API.
 #[derive(Debug, thiserror::Error)]
-#[allow(clippy::large_enum_variant)]
 pub enum Error {
     /// Couldn't parse the json returned from scryfall. This error should never
     /// occur. If it does, please
@@ -24,19 +24,31 @@ pub enum Error {
 
     /// Something went wrong when making the HTTP request.
     #[error("Error making request: {0}")]
-    UreqError(UreqError, String),
+    UreqError(Box<UreqError>, String),
 
     /// Scryfall error. Please refer to the [official docs](https://scryfall.com/docs/api/errors).
     #[error("Scryfall error: {0}")]
     ScryfallError(ScryfallError),
 
-    /// HTTP error with status code and message.
-    #[error("HTTP error: {0} {1}")]
-    HttpError(u16, String),
+    /// HTTP error with status code.
+    #[error("HTTP error: {0}")]
+    HttpError(StatusCode),
 
     /// Other.
     #[error("{0}")]
     Other(String),
+}
+
+impl From<SerdeError> for Box<Error> {
+    fn from(err: SerdeError) -> Self {
+        Box::new(err.into())
+    }
+}
+
+impl From<UrlParseError> for Box<Error> {
+    fn from(err: UrlParseError) -> Self {
+        Box::new(err.into())
+    }
 }
 
 /// An Error object represents a failure to find information or understand the
@@ -45,11 +57,26 @@ pub enum Error {
 /// [Official docs](https://scryfall.com/docs/api/errors)
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct ScryfallError {
+    /// An integer HTTP status code for this error.
+    pub status: u16,
+
+    /// A computer-friendly string representing the appropriate HTTP status
+    /// code.
+    pub code: String,
+
     /// A human-readable string explaining the error.
     pub details: String,
+
+    /// A computer-friendly string that provides additional context for the main
+    /// error. For example, an endpoint many generate HTTP 404 errors for
+    /// different kinds of input. This field will provide a label for the
+    /// specific kind of 404 failure, such as ambiguous.
+    #[serde(rename = "type")]
+    pub error_type: Option<String>,
+
     /// If your input also generated non-failure warnings, they will be provided
     /// as human-readable strings in this array.
-    #[serde(default = "Default::default")]
+    #[serde(default)]
     pub warnings: Vec<String>,
 }
 

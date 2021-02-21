@@ -13,17 +13,36 @@ use serde::{Deserialize, Serialize};
 
 use crate::uri::Uri;
 
-/// A list object.
+/// A List object represents a requested sequence of other objects (Cards, Sets,
+/// etc). List objects may be paginated, and also include information about
+/// issues raised when generating the list.
 ///
-/// For documentation on its fields refer to the [list object](https://scryfall.com/docs/api/lists)
-/// on the official site.
+/// ---
+///
+/// For more information, visit the [official docs](https://scryfall.com/docs/api/lists).
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
-#[allow(missing_docs)]
 pub struct List<T> {
+    /// An array of the requested objects, in a specific order.
     pub data: Vec<T>,
+
+    /// True if this List is paginated and there is a page beyond the current
+    /// page.
     pub has_more: bool,
+
+    /// If there is a page beyond the current page, this field will contain a
+    /// full API URI to that page. You may submit a HTTP GET request to that URI
+    /// to continue paginating forward on this List.
     pub next_page: Option<Uri<List<T>>>,
+
+    /// If this is a list of Card objects, this field will contain the total
+    /// number of cards found across all pages.
     pub total_cards: Option<usize>,
+
+    /// An array of human-readable warnings issued when generating this list, as
+    /// strings. Warnings are non-fatal issues that the API discovered with your
+    /// input. In general, they indicate that the List will not contain the all
+    /// of the information you requested. You should fix the warnings and
+    /// re-submit your request.
     pub warnings: Option<Vec<String>>,
 }
 
@@ -60,9 +79,9 @@ impl<T: DeserializeOwned> IntoIterator for List<T> {
 /// This struct is created by the `into_iter` method on `List`.
 ///
 /// Upon reaching the end of a page, further pages will be requested and the
-/// iterator will continue yielding items from those pages. Therefore the
-/// associated `Item` type must be a [`crate::Result`]`<T>` as this request can
-/// fail.
+/// iterator will continue yielding items from those pages. If one of the
+/// subsequent requests fails (which it shouldn't), the error is logged to the
+/// console and the iterator stops yielding items.
 #[derive(Debug, Clone)]
 pub struct ListIter<T> {
     inner: vec::IntoIter<T>,
@@ -73,9 +92,8 @@ pub struct ListIter<T> {
 }
 
 impl<T> ListIter<T> {
-    /// Extracts the inner [`vec::IntoIter`] that holds this page of data. The
-    /// resulting iterator has items of type `T` instead of
-    /// `crate::Result<T>`.
+    /// Extracts the inner [`vec::IntoIter`] that holds this page of data.
+    /// Further pages will not be fetched when it gets to the end.
     ///
     /// # Examples
     /// ```rust
@@ -143,6 +161,7 @@ impl<T: DeserializeOwned> Iterator for ListIter<T> {
                 },
                 Ok(None) => None,
                 Err(e) => {
+                    // TODO(msmorgan): Errors should be handleable.
                     eprintln!("Error retrieving page {} - {}", self.page_num + 1, e);
                     self.next_uri = None;
                     self.remaining = Some(0);

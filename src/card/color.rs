@@ -1,20 +1,22 @@
-//! Enum defining the 5 colors of magic
 use serde::{Deserialize, Serialize};
 
-/// Enum defining the 5 colors of magic
+/// Enum defining the 5 colors of magic, plus colorless.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(missing_docs)]
+#[repr(u8)]
 pub enum Color {
+    #[serde(rename = "C")]
+    Colorless = 0,
     #[serde(rename = "W")]
-    White = 0,
+    White = 1 << 0,
     #[serde(rename = "U")]
-    Blue = 1,
+    Blue = 1 << 1,
     #[serde(rename = "B")]
-    Black = 2,
+    Black = 1 << 2,
     #[serde(rename = "R")]
-    Red = 3,
+    Red = 1 << 3,
     #[serde(rename = "G")]
-    Green = 4,
+    Green = 1 << 4,
 }
 
 /// Definition of a cards colors. This can be used to in conjunction with
@@ -31,14 +33,14 @@ impl Colors {
 
     /// Creates an instance representing a colorless card.
     pub fn colorless() -> Self {
-        Colors(0)
+        Colors(Color::Colorless as u8)
     }
 
     /// Checks to see if a card is a certain color.
     ///
     /// Note: Multicolored cards are may not be any particular color.
     pub fn is(self, color: Color) -> bool {
-        self.0 & (1 << (color as u8)) != 0
+        self.0 & color as u8 != 0
     }
 
     /// Checks if a card is multicolored. This only works for instances
@@ -57,11 +59,7 @@ impl Colors {
 
 impl From<&[Color]> for Colors {
     fn from(colors: &[Color]) -> Self {
-        let mut s: u8 = 0;
-        for c in colors {
-            s ^= 1 << *c as u8;
-        }
-        Colors(s)
+        Colors(colors.iter().fold(0, |acc, c| acc | *c as u8))
     }
 }
 
