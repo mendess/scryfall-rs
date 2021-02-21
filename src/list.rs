@@ -161,6 +161,7 @@ impl<T: DeserializeOwned> Iterator for ListIter<T> {
                 },
                 Ok(None) => None,
                 Err(e) => {
+                    // TODO(msmorgan): Errors should be handleable.
                     eprintln!("Error retrieving page {} - {}", self.page_num + 1, e);
                     self.next_uri = None;
                     self.remaining = Some(0);
