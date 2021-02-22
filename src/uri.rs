@@ -96,6 +96,7 @@ impl<T: DeserializeOwned> Uri<List<T>> {
     /// assert!(
     ///     uri.fetch_iter()
     ///         .unwrap()
+    ///         .map(Result::unwrap)
     ///         .find(|c| c.name.contains("Bellstriker"))
     ///         .is_some()
     /// );

@@ -58,7 +58,7 @@ impl<T: DeserializeOwned> List<T> {
 
 impl<T: DeserializeOwned> IntoIterator for List<T> {
     type IntoIter = ListIter<T>;
-    type Item = T;
+    type Item = crate::Result<T>;
 
     fn into_iter(self) -> Self::IntoIter {
         // `has_more` is assumed to be redundant.
@@ -123,6 +123,7 @@ impl<T: DeserializeOwned> ListIter<T> {
     ///     page_2
     ///         .next()
     ///         .unwrap()
+    ///         .unwrap()
     ///         .collector_number
     ///         .parse::<usize>()
     ///         .unwrap(),
@@ -146,13 +147,13 @@ impl<T: DeserializeOwned> ListIter<T> {
 }
 
 impl<T: DeserializeOwned> Iterator for ListIter<T> {
-    type Item = T;
+    type Item = crate::Result<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.inner.next() {
             Some(next) => {
                 self.remaining = self.remaining.map(|r| r - 1);
-                Some(next)
+                Some(Ok(next))
             },
             None => match self.next_page() {
                 Ok(Some(new_iter)) => {
@@ -161,11 +162,9 @@ impl<T: DeserializeOwned> Iterator for ListIter<T> {
                 },
                 Ok(None) => None,
                 Err(e) => {
-                    // TODO(msmorgan): Errors should be handleable.
-                    eprintln!("Error retrieving page {} - {}", self.page_num + 1, e);
                     self.next_uri = None;
                     self.remaining = Some(0);
-                    None
+                    Some(Err(e))
                 },
             },
         }

@@ -372,6 +372,7 @@ impl Card {
     /// assert!(
     ///     Card::search("lightning")
     ///         .unwrap()
+    ///         .map(Result::unwrap)
     ///         .all(|x| x.name.to_lowercase().contains("lightning"))
     /// )
     /// ```
@@ -390,6 +391,7 @@ impl Card {
     ///         .param(Set(SetCode::try_from("war").expect("Not a valid set code")))
     ///         .search()
     ///         .unwrap()
+    ///         .map(Result::unwrap)
     ///         .all(|card| card.name == "Demolish")
     /// )
     /// ```
