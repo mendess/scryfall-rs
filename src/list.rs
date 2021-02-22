@@ -79,9 +79,8 @@ impl<T: DeserializeOwned> IntoIterator for List<T> {
 /// This struct is created by the `into_iter` method on `List`.
 ///
 /// Upon reaching the end of a page, further pages will be requested and the
-/// iterator will continue yielding items from those pages. If one of the
-/// subsequent requests fails (which it shouldn't), the error is logged to the
-/// console and the iterator stops yielding items.
+/// iterator will continue yielding items from those pages. As a consequence,
+/// the `Item` type of this iterator is a `Result` in case those calls fail.
 #[derive(Debug, Clone)]
 pub struct ListIter<T> {
     inner: vec::IntoIter<T>,
