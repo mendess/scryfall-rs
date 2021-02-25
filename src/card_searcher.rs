@@ -72,8 +72,15 @@ impl Search for &str {
 /// in a scryfall search parameters. The valid parameters can be seen
 /// [here](https://scryfall.com/docs/syntax).
 pub trait Param: fmt::Debug {
-    /// Turns a parameter into its string version.
+    /// Adds a parameter's string version to the passed string
     fn to_param(&self, f: &mut String);
+
+    /// Turns a parameter into its string version.
+    fn to_param_string(&self) -> String {
+        let mut s = String::new();
+        self.to_param(&mut s);
+        s
+    }
 }
 
 impl Param for String {
@@ -519,7 +526,7 @@ impl Param for BooleanParam {
 /// use scryfall::card_searcher::{ComparisonExpr, NumericParam, Param};
 ///
 /// assert_eq!(
-///     NumericParam::Cmc(ComparisonExpr::AtLeast, 3).to_param(),
+///     NumericParam::Cmc(ComparisonExpr::AtLeast, 3).to_param_string(),
 ///     "cmc>3"
 /// )
 /// ```
@@ -824,7 +831,7 @@ impl Param for TimeParam {
 /// ```rust
 /// use scryfall::card_searcher::{not, BooleanParam, Param};
 ///
-/// assert_eq!(not(BooleanParam::IsSpell).to_param(), "-is:spell")
+/// assert_eq!(not(BooleanParam::IsSpell).to_param_string(), "-is:spell")
 /// ```
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct NotParam<T: Param>(T);
