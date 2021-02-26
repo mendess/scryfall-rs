@@ -55,6 +55,7 @@ impl Search for &str {
     /// use scryfall::card::Card;
     /// assert!(Card::search("lightning")
     ///     .unwrap()
+    ///     .map(Result::unwrap)
     ///     .all(|card| card.name.to_lowercase().contains("lightning")))
     /// ```
     fn to_query(&self) -> String {
@@ -249,11 +250,13 @@ impl SearchBuilder {
     ///             .param(NumericParam::CollectorNumber(123))
     ///             .param(StringParam::Set(SetCode::try_from("war").unwrap()))
     ///     )?
+    ///     .map(Result::unwrap)
     ///     .collect::<Vec<_>>(),
     ///     SearchBuilder::new()
     ///         .param(NumericParam::CollectorNumber(123))
     ///         .param(StringParam::Set(SetCode::try_from("war").unwrap()))
     ///         .search()?
+    ///         .map(Result::unwrap)
     ///         .collect::<Vec<_>>()
     /// );
     /// # Ok(())

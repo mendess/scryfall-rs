@@ -66,6 +66,7 @@ impl Ruling {
     /// assert!(
     ///     Ruling::multiverse_id(3255)
     ///         .unwrap()
+    ///         .map(Result::unwrap)
     ///         .any(|r| r.comment.ends_with("Yes, this is a bit weird."))
     /// );
     /// ```
@@ -89,6 +90,7 @@ impl Ruling {
     /// assert!(
     ///     Ruling::mtgo_id(57934)
     ///         .unwrap()
+    ///         .map(Result::unwrap)
     ///         .any(|r| r.comment.ends_with("You read the whole contract, right?"))
     /// );
     /// ```
@@ -106,10 +108,15 @@ impl Ruling {
     ///
     /// ```rust
     /// use scryfall::ruling::Ruling;
-    /// assert!(Ruling::arena_id(67462).unwrap().any(|r| {
-    ///     r.comment
-    ///         .starts_with("Once a chapter ability has triggered,")
-    /// }));
+    /// assert!(
+    ///     Ruling::arena_id(67462)
+    ///         .unwrap()
+    ///         .map(Result::unwrap)
+    ///         .any(|r| {
+    ///             r.comment
+    ///                 .starts_with("Once a chapter ability has triggered,")
+    ///         })
+    /// );
     /// ```
     pub fn arena_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
@@ -130,6 +137,7 @@ impl Ruling {
     /// assert!(
     ///     Ruling::set_and_number("bfz", 17)
     ///         .unwrap()
+    ///         .map(Result::unwrap)
     ///         .any(|r| r.comment == "Yes, your opponent can’t even. We know.")
     /// );
     /// ```
@@ -150,6 +158,7 @@ impl Ruling {
     /// assert!(
     ///     Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap())
     ///         .unwrap()
+    ///         .map(Result::unwrap)
     ///         .any(|r| r.comment == "It must flip like a coin and not like a Frisbee.")
     /// );
     /// ```

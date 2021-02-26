@@ -87,7 +87,7 @@ mod tests {
     #[test]
     #[ignore]
     fn all_sets() {
-        for set in Set::all().unwrap() {
+        for set in Set::all().unwrap().map(Result::unwrap) {
             assert!(set.code.get().len() >= 3);
         }
     }
@@ -95,13 +95,18 @@ mod tests {
     #[test]
     #[ignore]
     fn latest_cards() {
-        Set::all().unwrap().take(30).par_bridge().for_each(|set| {
-            let set_cards = SearchBuilder::new()
-                .param(StringParam::Set(set.code))
-                .search();
-            if let Err(e) = set_cards {
-                panic!("Could not search for cards in '{}' - {}", set.name, e);
-            }
-        })
+        Set::all()
+            .unwrap()
+            .map(Result::unwrap)
+            .take(30)
+            .par_bridge()
+            .for_each(|set| {
+                let set_cards = SearchBuilder::new()
+                    .param(StringParam::Set(set.code))
+                    .search();
+                if let Err(e) = set_cards {
+                    panic!("Could not search for cards in '{}' - {}", set.name, e);
+                }
+            })
     }
 }
