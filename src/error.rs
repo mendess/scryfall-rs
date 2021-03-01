@@ -1,6 +1,6 @@
 //! This module exposes the possible errors this crate has, and ways to interact
 //! with them.
-use std::fmt;
+use std::{fmt, io};
 
 use httpstatus::StatusCode;
 use itertools::Itertools;
@@ -33,6 +33,10 @@ pub enum Error {
     /// HTTP error with status code.
     #[error("HTTP error: {0}")]
     HttpError(StatusCode),
+
+    /// IO error.
+    #[error("IO error: {0}")]
+    IoError(#[from] io::Error),
 
     /// Other.
     #[error("{0}")]

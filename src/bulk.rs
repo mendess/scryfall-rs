@@ -9,7 +9,13 @@
 //!
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
+use std::fs::File;
+use std::io::BufReader;
+use std::path::{Path, PathBuf};
+use std::{env, io};
+
 use chrono::{DateTime, Utc};
+use heck::KebabCase;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -82,8 +88,44 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
         Uri::from(BULK_DATA_URL.join(bulk_type)?).fetch()
     }
 
-    fn download(&self) -> crate::Result<Vec<T>> {
-        self.download_uri.fetch()
+    /// Gets a BulkDataFile with the specified unique ID.
+    pub fn id(id: Uuid) -> crate::Result<Self> {
+        Uri::from(BULK_DATA_URL.join(id.to_string().as_str())?).fetch()
+    }
+
+    /// The full temp path where this file will be downloaded with `load`. The
+    /// file name has the form "&lt;type&gt;-&lt;date&gt;.json".
+    fn cache_path(&self) -> PathBuf {
+        env::temp_dir().join(format!(
+            "{}-{}.json",
+            self.bulk_type.to_kebab_case(),
+            self.updated_at.format("%Y%m%d%H%M%S"),
+        ))
+    }
+
+    /// Loads the objects from this bulk data download into a `Vec`.
+    ///
+    /// Downloads and stores the file in the computer's temp folder if this
+    /// version hasn't been downloaded yet. Otherwise uses the stored copy.
+    pub fn load(&self) -> crate::Result<Vec<T>> {
+        Ok(serde_json::from_reader(self.get_reader()?)?)
+    }
+
+    /// Downloads this file, saving it to `path`. Overwrites the file if it
+    /// already exists.
+    pub fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
+        let path = path.as_ref();
+        let response = self.download_uri.fetch_raw()?;
+        io::copy(&mut response.into_reader(), &mut File::create(path)?)?;
+        Ok(())
+    }
+
+    fn get_reader(&self) -> crate::Result<BufReader<File>> {
+        let cache_path = self.cache_path();
+        if !cache_path.exists() {
+            self.download(&cache_path)?;
+        }
+        Ok(BufReader::new(File::open(cache_path)?))
     }
 }
 
@@ -91,19 +133,19 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
 /// Scryfall. The chosen sets for the cards are an attempt to return the most
 /// up-to-date recognizable version of the card.
 pub fn oracle_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("oracle_cards")?.download()
+    BulkDataFile::of_type("oracle_cards")?.load()
 }
 
 /// An iterator of Scryfall card objects that together contain all unique
 /// artworks. The chosen cards promote the best image scans.
 pub fn unique_artwork() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("unique_artwork")?.download()
+    BulkDataFile::of_type("unique_artwork")?.load()
 }
 
 /// An iterator containing every card object on Scryfall in English or the
 /// printed language if the card is only available in one language.
 pub fn default_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("default_cards")?.download()
+    BulkDataFile::of_type("default_cards")?.load()
 }
 
 /// An iterator of every card object on Scryfall in every language.
@@ -111,13 +153,13 @@ pub fn default_cards() -> crate::Result<Vec<Card>> {
 /// # Note
 /// This currently takes about 2GB of RAM before returning 👀.
 pub fn all_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("all_cards")?.download()
+    BulkDataFile::of_type("all_cards")?.load()
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
 pub fn rulings() -> crate::Result<Vec<Ruling>> {
-    BulkDataFile::of_type("rulings")?.download()
+    BulkDataFile::of_type("rulings")?.load()
 }
 
 #[cfg(test)]
