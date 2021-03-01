@@ -23,6 +23,7 @@ use uuid::Uuid;
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
+use crate::util::array_stream_reader::ArrayStreamReader;
 use crate::util::BULK_DATA_URL;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
@@ -111,6 +112,17 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
         Ok(serde_json::from_reader(self.get_reader()?)?)
     }
 
+    /// Returns an iterator over the objects from this bulk data download.
+    ///
+    /// Downloads and stores the file in the computer's temp folder if this
+    /// version hasn't been downloaded yet. Otherwise uses the stored copy.
+    pub fn load_iter(&self) -> crate::Result<impl Iterator<Item = crate::Result<T>>> {
+        let de = serde_json::Deserializer::from_reader(ArrayStreamReader::new_buffered(
+            self.get_reader()?,
+        ));
+        Ok(de.into_iter().map(|item| item.map_err(|e| e.into())))
+    }
+
     /// Downloads this file, saving it to `path`. Overwrites the file if it
     /// already exists.
     pub fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
@@ -195,8 +207,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
-    #[should_panic]
     fn test_parse_list() {
         use serde_json::Deserializer;
 
@@ -217,7 +227,7 @@ mod tests {
                         "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
                       }
                    ]"#;
-        Deserializer::from_str(s)
+        Deserializer::from_reader(super::ArrayStreamReader::new_buffered(s.as_bytes()))
             .into_iter()
             .map(|r: serde_json::Result<Ruling>| r.unwrap())
             .for_each(drop);
