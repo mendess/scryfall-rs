@@ -72,9 +72,9 @@ impl<T: io::Read> io::Read for ArrayStreamReader<T> {
 
                 if self.inside_string {
                     match b {
+                        _ if self.escape_next => self.escape_next = false,
                         b'\\' => self.escape_next = true,
                         b'"' if !self.escape_next => self.inside_string = false,
-                        _ if self.escape_next => self.escape_next = false,
                         _ => {},
                     }
                     continue;
