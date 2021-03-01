@@ -144,34 +144,34 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
 /// An iterator containing one Scryfall card object for each Oracle ID on
 /// Scryfall. The chosen sets for the cards are an attempt to return the most
 /// up-to-date recognizable version of the card.
-pub fn oracle_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("oracle_cards")?.load()
+pub fn oracle_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("oracle_cards")?.load_iter()
 }
 
 /// An iterator of Scryfall card objects that together contain all unique
 /// artworks. The chosen cards promote the best image scans.
-pub fn unique_artwork() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("unique_artwork")?.load()
+pub fn unique_artwork() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("unique_artwork")?.load_iter()
 }
 
 /// An iterator containing every card object on Scryfall in English or the
 /// printed language if the card is only available in one language.
-pub fn default_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("default_cards")?.load()
+pub fn default_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("default_cards")?.load_iter()
 }
 
 /// An iterator of every card object on Scryfall in every language.
 ///
 /// # Note
 /// This currently takes about 2GB of RAM before returning 👀.
-pub fn all_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("all_cards")?.load()
+pub fn all_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("all_cards")?.load_iter()
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
-pub fn rulings() -> crate::Result<Vec<Ruling>> {
-    BulkDataFile::of_type("rulings")?.load()
+pub fn rulings() -> crate::Result<impl Iterator<Item = crate::Result<Ruling>>> {
+    BulkDataFile::of_type("rulings")?.load_iter()
 }
 
 #[cfg(test)]
@@ -179,31 +179,41 @@ mod tests {
     #[test]
     #[ignore]
     fn oracle_cards() {
-        super::oracle_cards().expect("Couldn't get the bulk object");
+        for card in super::oracle_cards().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn unique_artwork() {
-        super::unique_artwork().expect("Couldn't get the bulk object");
+        for card in super::unique_artwork().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn default_cards() {
-        super::default_cards().expect("Couldn't get the bulk object");
+        for card in super::default_cards().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn all_cards() {
-        super::all_cards().expect("Couldn't get the bulk object");
+        for card in super::all_cards().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn rulings() {
-        super::rulings().expect("Couldn't get the bulk object");
+        for ruling in super::rulings().expect("Couldn't get the bulk object") {
+            ruling.unwrap();
+        }
     }
 
     #[test]
