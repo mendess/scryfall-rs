@@ -60,8 +60,8 @@ impl<T: io::Read> io::Read for ArrayStreamReader<T> {
                 if self.depth.is_none() {
                     match b {
                         b'[' => {
-                            self.depth = Some(0);
                             tmp_pos = i + 1;
+                            self.depth = Some(0);
                         },
                         b if b.is_ascii_whitespace() => {},
                         b'\0' => break,
@@ -91,9 +91,14 @@ impl<T: io::Read> io::Read for ArrayStreamReader<T> {
                         do_copy(&mut buf[buf_pos..], &tmp[tmp_pos..], len);
                         tmp_pos = i + 1;
                         buf_pos += len;
+
+                        // Then write a space to separate items.
+                        buf[buf_pos] = b' ';
+                        buf_pos += 1;
+
                         if b == b']' {
-                            // Reached the end of outer array. If another array follows, the stream
-                            // will continue.
+                            // Reached the end of outer array. If another array
+                            // follows, the stream will continue.
                             self.depth = None;
                         }
                     },
@@ -113,5 +118,45 @@ impl<T: io::Read> io::Read for ArrayStreamReader<T> {
                 return Ok(buf_pos);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Read;
+
+    fn _read_bytes(src: &[u8]) -> io::Result<Vec<u8>> {
+        let mut dst = Vec::with_capacity(src.len());
+        ArrayStreamReader::new_buffered(src).read_to_end(&mut dst)?;
+        Ok(dst)
+    }
+
+    #[test]
+    fn missing_outer_array() {
+        assert!(_read_bytes(b"garbage").is_err());
+        assert!(_read_bytes(br#" "string_value" "#).is_err());
+        assert!(_read_bytes(b"{} ").is_err());
+        assert!(_read_bytes(b"").is_ok());
+        assert!(_read_bytes(b"  \n   ").is_ok());
+    }
+
+    #[test]
+    fn empty_arrays() {
+        assert_eq!(_read_bytes(b"[]").unwrap(), b" ");
+        assert_eq!(_read_bytes(b"[][]").unwrap(), b"  ");
+        assert_eq!(_read_bytes(b" [\t] \n []").unwrap(), b"\t  ");
+    }
+
+    #[test]
+    fn arrays_with_items() {
+        assert_eq!(_read_bytes(br#"[{}, "hello"]"#).unwrap(), br#"{}  "hello" "#);
+        assert_eq!(_read_bytes(b"[[[]]]").unwrap(), b"[[]] ");
+        assert_eq!(_read_bytes(b"[true, null]\n[false]").unwrap(), b"true  null false ");
+    }
+
+    #[test]
+    fn string_escapes() {
+        assert_eq!(_read_bytes(br#"["\n\"\\{{{"]"#).unwrap(), br#""\n\"\\{{{" "#);
     }
 }
