@@ -19,6 +19,7 @@ use std::fmt::{self, Write};
 use std::str;
 
 use serde::{Deserialize, Serialize, Serializer};
+use static_assertions::assert_impl_all;
 
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
@@ -76,12 +77,27 @@ pub trait Param: fmt::Debug {
     fn to_param(&self, f: &mut String);
 
     /// Turns a parameter into its string version.
+    #[inline(always)]
     fn to_param_string(&self) -> String {
         let mut s = String::new();
         self.to_param(&mut s);
         s
     }
 }
+
+assert_impl_all!(String: Param);
+assert_impl_all!(BooleanParam: Param);
+assert_impl_all!(StringParam: Param);
+assert_impl_all!(NumericParam: Param);
+assert_impl_all!(RarityParam: Param);
+assert_impl_all!(ColorParam: Param);
+assert_impl_all!(FormatParam: Param);
+assert_impl_all!(BorderColor: Param);
+assert_impl_all!(Frame: Param);
+assert_impl_all!(FrameEffect: Param);
+assert_impl_all!(GameParam: Param);
+assert_impl_all!(TimeParam: Param);
+assert_impl_all!(NotParam<String>: Param);
 
 impl Param for String {
     fn to_param(&self, f: &mut String) {
