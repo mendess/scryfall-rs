@@ -26,4 +26,5 @@ url = { version = "2.2.0", features = ["serde"] }
 uuid = { version = "0.8.2", features = ["serde"] }
 
 [dev-dependencies]
+clap = "3.0.0-beta.2"
 rayon = "1.5.0"
