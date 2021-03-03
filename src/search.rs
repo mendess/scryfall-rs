@@ -169,7 +169,10 @@ impl Query {
 }
 
 #[derive(Clone, Debug)]
-pub enum Param {
+pub struct Param(ParamImpl);
+
+#[derive(Clone, Debug)]
+enum ParamImpl {
     Property(Property),
     Value(ValueKind, Rc<Compare<Box<dyn ParamValue>>>),
 }
@@ -181,12 +184,12 @@ impl PartialEq for Param {
 }
 
 impl fmt::Display for Param {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Param::Property(kind) => fmt::Display::fmt(kind, f),
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match &self.0 {
+            ParamImpl::Property(kind) => fmt::Display::fmt(kind, f),
             // TODO(msmorgan): Quote the value. How?
-            Param::Value(ValueKind::Exact, value) => write!(f, "!{}", value.value),
-            Param::Value(kind, value) => {
+            ParamImpl::Value(ValueKind::Exact, value) => write!(f, "!{}", value.value),
+            ParamImpl::Value(kind, value) => {
                 write!(f, "{}{}", kind, value)
             },
         }
@@ -195,7 +198,7 @@ impl fmt::Display for Param {
 
 impl From<Property> for Param {
     fn from(prop: Property) -> Self {
-        Param::Property(prop)
+        Param(ParamImpl::Property(prop))
     }
 }
 
@@ -206,7 +209,7 @@ mod param_fns {
         ($($meth:ident => $Kind:ident : $Constraint:ident,)*) => {
             $(
                 pub fn $meth(value: impl $Constraint) -> Param {
-                    Param::Value(ValueKind::$Kind, Rc::new(value.into_compare()))
+                    Param(ParamImpl::Value(ValueKind::$Kind, Rc::new(value.into_compare())))
                 }
             )*
         };
@@ -421,7 +424,7 @@ impl fmt::Display for Property {
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
-pub enum ValueKind {
+enum ValueKind {
     Color,
     ColorIdentity,
     Type,
