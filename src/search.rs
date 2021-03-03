@@ -214,8 +214,11 @@ mod param_fns {
     macro_rules! param_fns {
         ($($meth:ident => $Kind:ident : $Constraint:ident,)*) => {
             $(
-                pub fn $meth(value: impl $Constraint) -> Param {
-                    Param(ParamImpl::Value(ValueKind::$Kind, Rc::new(value.into_compare())))
+                pub fn $meth(value: impl $Constraint) -> Query {
+                    Query::Param(Param(ParamImpl::Value(
+                        ValueKind::$Kind,
+                        Rc::new(value.into_compare()),
+                    )))
                 }
             )*
         };
@@ -684,6 +687,7 @@ pub trait TextOrRegexValue: ParamValue {}
 
 impl<T: 'static + TextOrRegexValue> TextOrRegexValue for Compare<T> {}
 
+// TODO(msmorgan): This is inelegant.
 macro_rules! impl_into_compare {
     () => {
         fn into_compare(self) -> Compare<Box<dyn ParamValue>> {
@@ -732,19 +736,10 @@ pub mod prelude {
 mod tests {
     use super::*;
 
-    // TODO(msmorgan): Maybe the param_fns should return Query objs.
-    fn q(param: Param) -> Query {
-        Query::Param(param)
-    }
-
     #[test]
     fn basic_search() {
         let cards = SearchOptions::new()
-            .query(
-                q(named("lightning"))
-                    .and(q(named("helix")))
-                    .and(q(cmc(eq(2)))),
-            )
+            .query(named("lightning").and(named("helix")).and(cmc(eq(2))))
             .unique(UniqueStrategy::Prints)
             .search()
             .unwrap()
