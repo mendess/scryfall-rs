@@ -711,6 +711,7 @@ impl Param for RarityParam {
                 Rarity::Uncommon => "u",
                 Rarity::Rare => "r",
                 Rarity::Mythic => "m",
+                Rarity::Bonus => "b",
             }
         )
     }
