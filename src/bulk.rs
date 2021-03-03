@@ -7,15 +7,21 @@
 //! These bulk dumps are not paginated, this means that they will be potentially
 //! stored in memory in its entirety while being iterated over.
 //!
+//! # Features
+//!
+//! With the `bulk_caching` feature enabled, bulk data files will be stored in
+//! the OS temp folder. This prevents duplicate downloads if the version has
+//! already been saved.
+//!
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
 use std::fs::File;
+use std::io;
 use std::io::BufReader;
-use std::path::{Path, PathBuf};
-use std::{env, io};
+use std::path::Path;
 
+use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
-use heck::KebabCase;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -84,6 +90,33 @@ pub struct BulkDataFile<T> {
 }
 
 impl<T: DeserializeOwned> BulkDataFile<T> {
+    cfg_if! {
+        if #[cfg(feature = "bulk_caching")] {
+            /// The full temp path where this file will be downloaded with `load`. The
+            /// file name has the form "&lt;type&gt;-&lt;date&gt;.json".
+            fn cache_path(&self) -> std::path::PathBuf {
+                use heck::KebabCase;
+                std::env::temp_dir().join(format!(
+                    "{}-{}.json",
+                    self.bulk_type.to_kebab_case(),
+                    self.updated_at.format("%Y%m%d%H%M%S"),
+                ))
+            }
+
+            fn get_reader(&self) -> crate::Result<BufReader<File>> {
+                let cache_path = self.cache_path();
+                if !cache_path.exists() {
+                    self.download(&cache_path)?;
+                }
+                Ok(BufReader::new(File::open(cache_path)?))
+            }
+        } else {
+            fn get_reader(&self) -> crate::Result<BufReader<impl io::Read + Send>> {
+                Ok(BufReader::new(self.download_uri.fetch_raw()?.into_reader()))
+            }
+        }
+    }
+
     /// Gets a BulkDataFile of the specified type.
     pub fn of_type(bulk_type: &str) -> crate::Result<Self> {
         Uri::from(BULK_DATA_URL.join(bulk_type)?).fetch()
@@ -92,16 +125,6 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     /// Gets a BulkDataFile with the specified unique ID.
     pub fn id(id: Uuid) -> crate::Result<Self> {
         Uri::from(BULK_DATA_URL.join(id.to_string().as_str())?).fetch()
-    }
-
-    /// The full temp path where this file will be downloaded with `load`. The
-    /// file name has the form "&lt;type&gt;-&lt;date&gt;.json".
-    fn cache_path(&self) -> PathBuf {
-        env::temp_dir().join(format!(
-            "{}-{}.json",
-            self.bulk_type.to_kebab_case(),
-            self.updated_at.format("%Y%m%d%H%M%S"),
-        ))
     }
 
     /// Loads the objects from this bulk data download into a `Vec`.
@@ -130,14 +153,6 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
         let response = self.download_uri.fetch_raw()?;
         io::copy(&mut response.into_reader(), &mut File::create(path)?)?;
         Ok(())
-    }
-
-    fn get_reader(&self) -> crate::Result<BufReader<File>> {
-        let cache_path = self.cache_path();
-        if !cache_path.exists() {
-            self.download(&cache_path)?;
-        }
-        Ok(BufReader::new(File::open(cache_path)?))
     }
 }
 

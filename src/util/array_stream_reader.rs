@@ -123,8 +123,9 @@ impl<T: io::Read> io::Read for ArrayStreamReader<T> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use std::io::Read;
+
+    use super::*;
 
     fn _read_bytes(src: &[u8]) -> io::Result<Vec<u8>> {
         let mut dst = Vec::with_capacity(src.len());
@@ -150,13 +151,22 @@ mod tests {
 
     #[test]
     fn arrays_with_items() {
-        assert_eq!(_read_bytes(br#"[{}, "hello"]"#).unwrap(), br#"{}  "hello" "#);
+        assert_eq!(
+            _read_bytes(br#"[{}, "hello"]"#).unwrap(),
+            br#"{}  "hello" "#
+        );
         assert_eq!(_read_bytes(b"[[[]]]").unwrap(), b"[[]] ");
-        assert_eq!(_read_bytes(b"[true, null]\n[false]").unwrap(), b"true  null false ");
+        assert_eq!(
+            _read_bytes(b"[true, null]\n[false]").unwrap(),
+            b"true  null false "
+        );
     }
 
     #[test]
     fn string_escapes() {
-        assert_eq!(_read_bytes(br#"["\n\"\\{{{"]"#).unwrap(), br#""\n\"\\{{{" "#);
+        assert_eq!(
+            _read_bytes(br#"["\n\"\\{{{"]"#).unwrap(),
+            br#""\n\"\\{{{" "#
+        );
     }
 }
