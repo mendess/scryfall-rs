@@ -118,6 +118,12 @@ impl Default for Query {
     }
 }
 
+impl From<Param> for Query {
+    fn from(param: Param) -> Self {
+        Query::Param(param)
+    }
+}
+
 impl Query {
     pub fn and(self, other: Self) -> Self {
         match (self, other) {
@@ -218,6 +224,7 @@ mod param_fns {
     param_fns! {
         color => Color: ColorValue,
         artist => Artist: TextValue,
+        cmc => Cmc: NumericValue,
         named => Name: TextOrRegexValue,
     }
 }
@@ -648,11 +655,11 @@ use crate::card_searcher::{Search, SortDirection, SortMethod, UniqueStrategy};
 use crate::list::ListIter;
 use crate::Card;
 
-pub trait ParamValue: 'static + fmt::Debug + fmt::Display {
+pub trait ParamValue: fmt::Debug + fmt::Display {
     fn into_compare(self) -> Compare<Box<dyn ParamValue>>;
 }
 
-impl<T: ParamValue> ParamValue for Compare<T> {
+impl<T: 'static + ParamValue> ParamValue for Compare<T> {
     fn into_compare(self) -> Compare<Box<dyn ParamValue>> {
         Compare {
             op: self.op,
@@ -663,19 +670,19 @@ impl<T: ParamValue> ParamValue for Compare<T> {
 
 pub trait ColorValue: ParamValue {}
 
-impl<T: ColorValue> ColorValue for Compare<T> {}
+impl<T: 'static + ColorValue> ColorValue for Compare<T> {}
 
 pub trait NumericValue: ParamValue {}
 
-impl<T: NumericValue> NumericValue for Compare<T> {}
+impl<T: 'static + NumericValue> NumericValue for Compare<T> {}
 
 pub trait TextValue: ParamValue {}
 
-impl<T: TextValue> TextValue for Compare<T> {}
+impl<T: 'static + TextValue> TextValue for Compare<T> {}
 
 pub trait TextOrRegexValue: ParamValue {}
 
-impl<T: TextOrRegexValue> TextOrRegexValue for Compare<T> {}
+impl<T: 'static + TextOrRegexValue> TextOrRegexValue for Compare<T> {}
 
 macro_rules! impl_into_compare {
     () => {
@@ -696,6 +703,25 @@ impl TextValue for String {}
 
 impl TextOrRegexValue for String {}
 
+impl ParamValue for &'_ str {
+    fn into_compare(self) -> Compare<Box<dyn ParamValue>> {
+        Compare {
+            op: None,
+            value: Box::new(self.to_string()),
+        }
+    }
+}
+
+impl TextValue for &'_ str {}
+
+impl TextOrRegexValue for &'_ str {}
+
+impl ParamValue for u32 {
+    impl_into_compare!();
+}
+
+impl NumericValue for u32 {}
+
 pub mod prelude {
     pub use super::compare_fns::*;
     pub use super::param_fns::*;
@@ -714,7 +740,11 @@ mod tests {
     #[test]
     fn basic_search() {
         let cards = SearchOptions::new()
-            .query(q(named("lightning".to_string())).and(q(named("helix".to_string()))))
+            .query(
+                q(named("lightning"))
+                    .and(q(named("helix")))
+                    .and(q(cmc(eq(2)))),
+            )
             .unique(UniqueStrategy::Prints)
             .search()
             .unwrap()
