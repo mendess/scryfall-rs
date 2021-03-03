@@ -15,9 +15,11 @@
 //! Finally the [`Search`] trait, defines what is a valid search for `scryfall`.
 //! It's implemented for `String` in case it's easier for the user to directly
 //! use a text representation.
-use std::{fmt, str};
+use std::fmt::{self, Write};
+use std::str;
 
 use serde::{Deserialize, Serialize, Serializer};
+use static_assertions::assert_impl_all;
 
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
@@ -71,13 +73,35 @@ impl Search for &str {
 /// in a scryfall search parameters. The valid parameters can be seen
 /// [here](https://scryfall.com/docs/syntax).
 pub trait Param: fmt::Debug {
+    /// Adds a parameter's string version to the passed string
+    fn append_param(&self, f: &mut String);
+
     /// Turns a parameter into its string version.
-    fn to_param(&self) -> String;
+    #[inline(always)]
+    fn to_param_string(&self) -> String {
+        let mut s = String::new();
+        self.append_param(&mut s);
+        s
+    }
 }
 
+assert_impl_all!(String: Param);
+assert_impl_all!(BooleanParam: Param);
+assert_impl_all!(StringParam: Param);
+assert_impl_all!(NumericParam: Param);
+assert_impl_all!(RarityParam: Param);
+assert_impl_all!(ColorParam: Param);
+assert_impl_all!(FormatParam: Param);
+assert_impl_all!(BorderColor: Param);
+assert_impl_all!(Frame: Param);
+assert_impl_all!(FrameEffect: Param);
+assert_impl_all!(GameParam: Param);
+assert_impl_all!(TimeParam: Param);
+assert_impl_all!(NotParam<String>: Param);
+
 impl Param for String {
-    fn to_param(&self) -> String {
-        self.clone()
+    fn append_param(&self, f: &mut String) {
+        f.push_str(self)
     }
 }
 
@@ -155,7 +179,7 @@ fn serialize_params<S: Serializer>(
 ) -> Result<S::Ok, S::Error> {
     let mut query = String::new();
     for param in params.iter() {
-        query += &param.to_param();
+        param.append_param(&mut query);
         query.push(' ');
     }
     query.trim_end().serialize(serializer)
@@ -453,16 +477,17 @@ pub enum BooleanParam {
 }
 
 impl Param for BooleanParam {
-    fn to_param(&self) -> String {
+    fn append_param(&self, f: &mut String) {
         use BooleanParam::*;
-        format!(
-            "{}:{}",
-            match self {
+        let _ = write!(
+            f,
+            "{verb}:{name}",
+            verb = match self {
                 ColorIndicator | WaterMark => "has",
                 NewRarity | NewArt | NewFlavor | NewArtist | NewFrame | NewLanguage => "new",
                 _ => "is",
             },
-            match self {
+            name = match self {
                 ColorIndicator => "indicator",
                 WaterMark => "watermark",
                 NewRarity => "rarity",
@@ -505,7 +530,7 @@ impl Param for BooleanParam {
                 SoldInPreRelease => "prerelease",
                 SoldInRelease => "release",
             }
-        )
+        );
     }
 }
 
@@ -517,7 +542,7 @@ impl Param for BooleanParam {
 /// use scryfall::card_searcher::{ComparisonExpr, NumericParam, Param};
 ///
 /// assert_eq!(
-///     NumericParam::Cmc(ComparisonExpr::AtLeast, 3).to_param(),
+///     NumericParam::Cmc(ComparisonExpr::AtLeast, 3).to_param_string(),
 ///     "cmc>3"
 /// )
 /// ```
@@ -625,27 +650,27 @@ pub enum StringParam {
 }
 
 impl Param for StringParam {
-    fn to_param(&self) -> String {
+    fn append_param(&self, f: &mut String) {
         use StringParam::*;
-        match self {
-            ManaCost(s) => format!("m:{}", s),
-            Type(s) => format!("t:{}", s),
-            Oracle(s) => format!("o:\"{}\"", s),
-            OracleFull(s) => format!("fo:\"{}\"", s),
-            Power(c, s) => format!("pow{}{}", c, s),
-            Toughness(c, s) => format!("tou{}{}", c, s),
-            Loyalty(c, s) => format!("loy{}{}", c, s),
-            Set(s) => format!("s:{}", s),
-            Block(s) => format!("b:{}", s),
-            WasInSet(s) => format!("in:{}", s),
-            InCube(s) => format!("cube:{}", s),
-            Artist(s) => format!("a:{}", s),
-            Flavor(s) => format!("ft:{}", s),
-            WaterMark(s) => format!("wt:{}", s),
-            Lang(s) => format!("lang:{}", s),
-            LangAny => "lang:any".to_string(),
-            PrintedInLang(s) => format!("in:{}", s),
-        }
+        let _ = match self {
+            ManaCost(s) => write!(f, "m:{}", s),
+            Type(s) => write!(f, "t:{}", s),
+            Oracle(s) => write!(f, "o:\"{}\"", s),
+            OracleFull(s) => write!(f, "fo:\"{}\"", s),
+            Power(c, s) => write!(f, "pow{}{}", c, s),
+            Toughness(c, s) => write!(f, "tou{}{}", c, s),
+            Loyalty(c, s) => write!(f, "loy{}{}", c, s),
+            Set(s) => write!(f, "s:{}", s),
+            Block(s) => write!(f, "b:{}", s),
+            WasInSet(s) => write!(f, "in:{}", s),
+            InCube(s) => write!(f, "cube:{}", s),
+            Artist(s) => write!(f, "a:{}", s),
+            Flavor(s) => write!(f, "ft:{}", s),
+            WaterMark(s) => write!(f, "wt:{}", s),
+            Lang(s) => write!(f, "lang:{}", s),
+            LangAny => write!(f, "lang:any"),
+            PrintedInLang(s) => write!(f, "in:{}", s),
+        };
     }
 }
 
@@ -676,19 +701,19 @@ pub enum NumericParam {
 }
 
 impl Param for NumericParam {
-    fn to_param(&self) -> String {
+    fn append_param(&self, f: &mut String) {
         use NumericParam::*;
-        match self {
-            Cmc(c, p) => format!("cmc{}{}", c, p),
-            CollectorNumber(n) => format!("cn:{}", n),
-            TixPrice(c, n) => format!("tix{}{}", c, n),
-            EurPrice(c, n) => format!("eur{}{}", c, n),
-            UsdPrice(c, n) => format!("usd{}{}", c, n),
-            Prints(c, n) => format!("prints{}{}", c, n),
-            Sets(c, n) => format!("sets{}{}", c, n),
-            PaperPrints(c, n) => format!("paperprints{}{}", c, n),
-            PaperSets(c, n) => format!("papersets{}{}", c, n),
-        }
+        let _ = match self {
+            Cmc(c, p) => write!(f, "cmc{}{}", c, p),
+            CollectorNumber(n) => write!(f, "cn:{}", n),
+            TixPrice(c, n) => write!(f, "tix{}{}", c, n),
+            EurPrice(c, n) => write!(f, "eur{}{}", c, n),
+            UsdPrice(c, n) => write!(f, "usd{}{}", c, n),
+            Prints(c, n) => write!(f, "prints{}{}", c, n),
+            Sets(c, n) => write!(f, "sets{}{}", c, n),
+            PaperPrints(c, n) => write!(f, "paperprints{}{}", c, n),
+            PaperSets(c, n) => write!(f, "papersets{}{}", c, n),
+        };
     }
 }
 
@@ -702,8 +727,9 @@ pub struct RarityParam(
 );
 
 impl Param for RarityParam {
-    fn to_param(&self) -> String {
-        format!(
+    fn append_param(&self, f: &mut String) {
+        let _ = write!(
+            f,
             "r{}{}",
             self.0,
             match self.1 {
@@ -714,7 +740,7 @@ impl Param for RarityParam {
                 Rarity::Mythic => "m",
                 Rarity::Bonus => "b",
             }
-        )
+        );
     }
 }
 
@@ -728,12 +754,12 @@ pub enum ColorParam {
 }
 
 impl Param for ColorParam {
-    fn to_param(&self) -> String {
+    fn append_param(&self, f: &mut String) {
         use ColorParam::*;
-        match self {
-            Color(ce, cl) => format!("c{}{}", cl, ce),
-            ColorIdentity(ce, cl) => format!("id{}{}", cl, ce),
-        }
+        let _ = match self {
+            Color(ce, cl) => write!(f, "c{}{}", cl, ce),
+            ColorIdentity(ce, cl) => write!(f, "id{}{}", cl, ce),
+        };
     }
 }
 
@@ -749,31 +775,31 @@ pub enum FormatParam {
 }
 
 impl Param for FormatParam {
-    fn to_param(&self) -> String {
+    fn append_param(&self, b: &mut String) {
         use FormatParam::*;
-        match self {
-            Legal(f) => format!("legal:{}", f),
-            Banned(f) => format!("banned:{}", f),
-            Restricted(f) => format!("restricted:{}", f),
-        }
+        let _ = match self {
+            Legal(f) => write!(b, "legal:{}", f),
+            Banned(f) => write!(b, "banned:{}", f),
+            Restricted(f) => write!(b, "restricted:{}", f),
+        };
     }
 }
 
 impl Param for BorderColor {
-    fn to_param(&self) -> String {
-        format!("border:{}", self)
+    fn append_param(&self, f: &mut String) {
+        let _ = write!(f, "border:{}", self);
     }
 }
 
 impl Param for Frame {
-    fn to_param(&self) -> String {
-        format!("frame:{}", self)
+    fn append_param(&self, f: &mut String) {
+        let _ = write!(f, "frame:{}", self);
     }
 }
 
 impl Param for FrameEffect {
-    fn to_param(&self) -> String {
-        format!("frame:{}", self)
+    fn append_param(&self, f: &mut String) {
+        let _ = write!(f, "frame:{}", self);
     }
 }
 
@@ -787,12 +813,12 @@ pub enum GameParam {
 }
 
 impl Param for GameParam {
-    fn to_param(&self) -> String {
+    fn append_param(&self, f: &mut String) {
         use GameParam::*;
-        match self {
-            Game(s) => format!("game:{}", s),
-            InGame(s) => format!("in:{}", s),
-        }
+        let _ = match self {
+            Game(s) => write!(f, "game:{}", s),
+            InGame(s) => write!(f, "in:{}", s),
+        };
     }
 }
 
@@ -808,13 +834,13 @@ pub enum TimeParam {
 }
 
 impl Param for TimeParam {
-    fn to_param(&self) -> String {
+    fn append_param(&self, f: &mut String) {
         use TimeParam::*;
-        match self {
-            Year(c, y) => format!("year{}{}", c, y),
-            Date(c, d) => format!("date{}{}", c, d),
-            Set(c, s) => format!("date{}{}", c, s),
-        }
+        let _ = match self {
+            Year(c, y) => write!(f, "year{}{}", c, y),
+            Date(c, d) => write!(f, "date{}{}", c, d),
+            Set(c, s) => write!(f, "date{}{}", c, s),
+        };
     }
 }
 
@@ -823,7 +849,7 @@ impl Param for TimeParam {
 /// ```rust
 /// use scryfall::card_searcher::{not, BooleanParam, Param};
 ///
-/// assert_eq!(not(BooleanParam::IsSpell).to_param(), "-is:spell")
+/// assert_eq!(not(BooleanParam::IsSpell).to_param_string(), "-is:spell")
 /// ```
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct NotParam<T: Param>(T);
@@ -836,7 +862,8 @@ pub fn not<T: Param>(t: T) -> NotParam<T> {
 }
 
 impl<T: Param> Param for NotParam<T> {
-    fn to_param(&self) -> String {
-        format!("-{}", self.0.to_param())
+    fn append_param(&self, f: &mut String) {
+        f.push('-');
+        self.0.append_param(f);
     }
 }
