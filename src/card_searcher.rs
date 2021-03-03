@@ -74,13 +74,13 @@ impl Search for &str {
 /// [here](https://scryfall.com/docs/syntax).
 pub trait Param: fmt::Debug {
     /// Adds a parameter's string version to the passed string
-    fn to_param(&self, f: &mut String);
+    fn append_param(&self, f: &mut String);
 
     /// Turns a parameter into its string version.
     #[inline(always)]
     fn to_param_string(&self) -> String {
         let mut s = String::new();
-        self.to_param(&mut s);
+        self.append_param(&mut s);
         s
     }
 }
@@ -100,7 +100,7 @@ assert_impl_all!(TimeParam: Param);
 assert_impl_all!(NotParam<String>: Param);
 
 impl Param for String {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         f.push_str(self)
     }
 }
@@ -179,7 +179,7 @@ fn serialize_params<S: Serializer>(
 ) -> Result<S::Ok, S::Error> {
     let mut query = String::new();
     for param in params.iter() {
-        param.to_param(&mut query);
+        param.append_param(&mut query);
         query.push(' ');
     }
     query.trim_end().serialize(serializer)
@@ -477,7 +477,7 @@ pub enum BooleanParam {
 }
 
 impl Param for BooleanParam {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         use BooleanParam::*;
         let _ = write!(
             f,
@@ -650,7 +650,7 @@ pub enum StringParam {
 }
 
 impl Param for StringParam {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         use StringParam::*;
         let _ = match self {
             ManaCost(s) => write!(f, "m:{}", s),
@@ -701,7 +701,7 @@ pub enum NumericParam {
 }
 
 impl Param for NumericParam {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         use NumericParam::*;
         let _ = match self {
             Cmc(c, p) => write!(f, "cmc{}{}", c, p),
@@ -727,7 +727,7 @@ pub struct RarityParam(
 );
 
 impl Param for RarityParam {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         let _ = write!(
             f,
             "r{}{}",
@@ -753,7 +753,7 @@ pub enum ColorParam {
 }
 
 impl Param for ColorParam {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         use ColorParam::*;
         let _ = match self {
             Color(ce, cl) => write!(f, "c{}{}", cl, ce),
@@ -774,7 +774,7 @@ pub enum FormatParam {
 }
 
 impl Param for FormatParam {
-    fn to_param(&self, b: &mut String) {
+    fn append_param(&self, b: &mut String) {
         use FormatParam::*;
         let _ = match self {
             Legal(f) => write!(b, "legal:{}", f),
@@ -785,19 +785,19 @@ impl Param for FormatParam {
 }
 
 impl Param for BorderColor {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         let _ = write!(f, "border:{}", self);
     }
 }
 
 impl Param for Frame {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         let _ = write!(f, "frame:{}", self);
     }
 }
 
 impl Param for FrameEffect {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         let _ = write!(f, "frame:{}", self);
     }
 }
@@ -812,7 +812,7 @@ pub enum GameParam {
 }
 
 impl Param for GameParam {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         use GameParam::*;
         let _ = match self {
             Game(s) => write!(f, "game:{}", s),
@@ -833,7 +833,7 @@ pub enum TimeParam {
 }
 
 impl Param for TimeParam {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         use TimeParam::*;
         let _ = match self {
             Year(c, y) => write!(f, "year{}{}", c, y),
@@ -861,8 +861,8 @@ pub fn not<T: Param>(t: T) -> NotParam<T> {
 }
 
 impl<T: Param> Param for NotParam<T> {
-    fn to_param(&self, f: &mut String) {
+    fn append_param(&self, f: &mut String) {
         f.push('-');
-        self.0.to_param(f);
+        self.0.append_param(f);
     }
 }
