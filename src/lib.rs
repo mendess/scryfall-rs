@@ -50,6 +50,7 @@ pub mod error;
 pub mod format;
 pub mod list;
 pub mod ruling;
+pub mod search;
 pub mod set;
 pub mod uri;
 mod util;
