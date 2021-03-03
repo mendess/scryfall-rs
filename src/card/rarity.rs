@@ -11,4 +11,5 @@ pub enum Rarity {
     Rare,
     Mythic,
     Bonus,
+    Special,
 }
