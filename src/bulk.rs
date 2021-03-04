@@ -7,8 +7,20 @@
 //! These bulk dumps are not paginated, this means that they will be potentially
 //! stored in memory in its entirety while being iterated over.
 //!
+//! # Features
+//!
+//! With the `bulk_caching` feature enabled, bulk data files will be stored in
+//! the OS temp folder. This prevents duplicate downloads if the version has
+//! already been saved.
+//!
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
+use std::fs::File;
+use std::io;
+use std::io::BufReader;
+use std::path::Path;
+
+use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
@@ -17,6 +29,7 @@ use uuid::Uuid;
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
+use crate::util::array_stream_reader::ArrayStreamReader;
 use crate::util::BULK_DATA_URL;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
@@ -77,47 +90,103 @@ pub struct BulkDataFile<T> {
 }
 
 impl<T: DeserializeOwned> BulkDataFile<T> {
+    cfg_if! {
+        if #[cfg(feature = "bulk_caching")] {
+            /// The full temp path where this file will be downloaded with `load`. The
+            /// file name has the form "&lt;type&gt;-&lt;date&gt;.json".
+            fn cache_path(&self) -> std::path::PathBuf {
+                use heck::KebabCase;
+                std::env::temp_dir().join(format!(
+                    "{}-{}.json",
+                    self.bulk_type.to_kebab_case(),
+                    self.updated_at.format("%Y%m%d%H%M%S"),
+                ))
+            }
+
+            fn get_reader(&self) -> crate::Result<BufReader<File>> {
+                let cache_path = self.cache_path();
+                if !cache_path.exists() {
+                    self.download(&cache_path)?;
+                }
+                Ok(BufReader::new(File::open(cache_path)?))
+            }
+        } else {
+            fn get_reader(&self) -> crate::Result<BufReader<impl io::Read + Send>> {
+                Ok(BufReader::new(self.download_uri.fetch_raw()?.into_reader()))
+            }
+        }
+    }
+
     /// Gets a BulkDataFile of the specified type.
     pub fn of_type(bulk_type: &str) -> crate::Result<Self> {
         Uri::from(BULK_DATA_URL.join(bulk_type)?).fetch()
     }
 
-    fn download(&self) -> crate::Result<Vec<T>> {
-        self.download_uri.fetch()
+    /// Gets a BulkDataFile with the specified unique ID.
+    pub fn id(id: Uuid) -> crate::Result<Self> {
+        Uri::from(BULK_DATA_URL.join(id.to_string().as_str())?).fetch()
+    }
+
+    /// Loads the objects from this bulk data download into a `Vec`.
+    ///
+    /// Downloads and stores the file in the computer's temp folder if this
+    /// version hasn't been downloaded yet. Otherwise uses the stored copy.
+    pub fn load(&self) -> crate::Result<Vec<T>> {
+        Ok(serde_json::from_reader(self.get_reader()?)?)
+    }
+
+    /// Returns an iterator over the objects from this bulk data download.
+    ///
+    /// Downloads and stores the file in the computer's temp folder if this
+    /// version hasn't been downloaded yet. Otherwise uses the stored copy.
+    pub fn load_iter(&self) -> crate::Result<impl Iterator<Item = crate::Result<T>>> {
+        let de = serde_json::Deserializer::from_reader(ArrayStreamReader::new_buffered(
+            self.get_reader()?,
+        ));
+        Ok(de.into_iter().map(|item| item.map_err(|e| e.into())))
+    }
+
+    /// Downloads this file, saving it to `path`. Overwrites the file if it
+    /// already exists.
+    pub fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
+        let path = path.as_ref();
+        let response = self.download_uri.fetch_raw()?;
+        io::copy(&mut response.into_reader(), &mut File::create(path)?)?;
+        Ok(())
     }
 }
 
 /// An iterator containing one Scryfall card object for each Oracle ID on
 /// Scryfall. The chosen sets for the cards are an attempt to return the most
 /// up-to-date recognizable version of the card.
-pub fn oracle_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("oracle_cards")?.download()
+pub fn oracle_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("oracle_cards")?.load_iter()
 }
 
 /// An iterator of Scryfall card objects that together contain all unique
 /// artworks. The chosen cards promote the best image scans.
-pub fn unique_artwork() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("unique_artwork")?.download()
+pub fn unique_artwork() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("unique_artwork")?.load_iter()
 }
 
 /// An iterator containing every card object on Scryfall in English or the
 /// printed language if the card is only available in one language.
-pub fn default_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("default_cards")?.download()
+pub fn default_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("default_cards")?.load_iter()
 }
 
 /// An iterator of every card object on Scryfall in every language.
 ///
 /// # Note
 /// This currently takes about 2GB of RAM before returning 👀.
-pub fn all_cards() -> crate::Result<Vec<Card>> {
-    BulkDataFile::of_type("all_cards")?.download()
+pub fn all_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("all_cards")?.load_iter()
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
-pub fn rulings() -> crate::Result<Vec<Ruling>> {
-    BulkDataFile::of_type("rulings")?.download()
+pub fn rulings() -> crate::Result<impl Iterator<Item = crate::Result<Ruling>>> {
+    BulkDataFile::of_type("rulings")?.load_iter()
 }
 
 #[cfg(test)]
@@ -125,36 +194,44 @@ mod tests {
     #[test]
     #[ignore]
     fn oracle_cards() {
-        super::oracle_cards().expect("Couldn't get the bulk object");
+        for card in super::oracle_cards().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn unique_artwork() {
-        super::unique_artwork().expect("Couldn't get the bulk object");
+        for card in super::unique_artwork().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn default_cards() {
-        super::default_cards().expect("Couldn't get the bulk object");
+        for card in super::default_cards().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn all_cards() {
-        super::all_cards().expect("Couldn't get the bulk object");
+        for card in super::all_cards().expect("Couldn't get the bulk object") {
+            card.unwrap();
+        }
     }
 
     #[test]
     #[ignore]
     fn rulings() {
-        super::rulings().expect("Couldn't get the bulk object");
+        for ruling in super::rulings().expect("Couldn't get the bulk object") {
+            ruling.unwrap();
+        }
     }
 
     #[test]
-    #[ignore]
-    #[should_panic]
     fn test_parse_list() {
         use serde_json::Deserializer;
 
@@ -175,7 +252,7 @@ mod tests {
                         "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
                       }
                    ]"#;
-        Deserializer::from_str(s)
+        Deserializer::from_reader(super::ArrayStreamReader::new_buffered(s.as_bytes()))
             .into_iter()
             .map(|r: serde_json::Result<Ruling>| r.unwrap())
             .for_each(drop);

@@ -3,6 +3,8 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Deserializer};
 use url::Url;
 
+pub(crate) mod array_stream_reader;
+
 /// The [scryfall](https://scryfall.com/docs/api) endpoint.
 pub static ROOT_URL: Lazy<Url> = Lazy::new(|| Url::parse("https://api.scryfall.com/").unwrap());
 /// The [cards](https://scryfall.com/docs/api/cards) endpoint.

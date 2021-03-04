@@ -64,16 +64,22 @@ impl<T: DeserializeOwned> Uri<T> {
     /// assert_eq!(bolt.mana_cost, Some("{R}".to_string()));
     /// ```
     pub fn fetch(&self) -> crate::Result<T> {
-        let response = CLIENT.with(|client| client.request_url("GET", &self.url).call());
-        match response {
+        match self.fetch_raw() {
             Ok(response) => match response.status() {
                 200..=299 => Ok(serde_json::from_reader(response.into_reader())?),
                 status => Err(Error::HttpError(StatusCode::from(status))),
             },
+            Err(e) => Err(e),
+        }
+    }
+
+    pub(crate) fn fetch_raw(&self) -> crate::Result<ureq::Response> {
+        match CLIENT.with(|client| client.request_url("GET", &self.url).call()) {
+            Ok(response) => Ok(response),
             Err(ureq::Error::Status(400..=599, response)) => Err(Error::ScryfallError(
                 serde_json::from_reader(response.into_reader())?,
             )),
-            Err(error) => Err(Error::UreqError(error.into(), self.url.to_string())),
+            Err(err) => Err(Error::UreqError(err.into(), self.url.to_string())),
         }
     }
 }
