@@ -270,40 +270,18 @@ impl Param {
         Param(ParamImpl::Property(prop))
     }
 
-    fn value<T, P>(kind: ValueKind, op: Option<CompareOp>, value: P) -> Self
+    fn value<P>(kind: ValueKind, op: Option<CompareOp>, value: P) -> Self
     where
-        T: 'static + fmt::Debug + fmt::Display,
-        P: 'static + ParamValue<Data = T>,
+        P: 'static + ParamValue,
     {
-        Param(ParamImpl::Value(
-            kind,
-            op,
-            Box::new(ParamData {
-                inner: Rc::new(Box::new(value)),
-            }),
-        ))
-    }
-}
-
-#[derive(Debug, Clone)]
-struct ParamData<T> {
-    inner: Rc<Box<dyn ParamValue<Data = T>>>,
-}
-
-trait Data: Any + fmt::Debug + fmt::Display {}
-
-impl<T: 'static + fmt::Debug + fmt::Display> Data for ParamData<T> {}
-
-impl<T: 'static + fmt::Display> fmt::Display for ParamData<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.inner)
+        Param(ParamImpl::Value(kind, op, Rc::new(value)))
     }
 }
 
 #[derive(Debug)]
 enum ParamImpl {
     Property(Property),
-    Value(ValueKind, Option<CompareOp>, Box<dyn Data>),
+    Value(ValueKind, Option<CompareOp>, Rc<dyn ParamValue>),
 }
 
 impl PartialEq for Param {
@@ -791,14 +769,10 @@ mod compare_fns {
 }
 
 pub trait ParamValue: fmt::Debug + fmt::Display {
-    type Data: fmt::Display + fmt::Debug;
-
     fn into_param(self, kind: ValueKind) -> Param;
 }
 
 impl<T: 'static + ParamValue> ParamValue for Compare<T> {
-    type Data = T;
-
     fn into_param(self, kind: ValueKind) -> Param {
         Param::value(kind, self.op, self.value)
     }
@@ -830,16 +804,12 @@ pub trait TextOrRegexValue: ParamValue {}
 impl<T: 'static + TextOrRegexValue> TextOrRegexValue for Compare<T> {}
 
 impl ParamValue for String {
-    type Data = Quoted<String>;
-
     fn into_param(self, kind: ValueKind) -> Param {
         Quoted(self).into_param(kind)
     }
 }
 
 impl<T: 'static + ParamValue> ParamValue for Quoted<T> {
-    type Data = Quoted<T>;
-
     fn into_param(self, kind: ValueKind) -> Param {
         Param::value(kind, None, self)
     }
@@ -850,8 +820,6 @@ impl TextValue for String {}
 impl TextOrRegexValue for String {}
 
 impl ParamValue for &'_ str {
-    type Data = Quoted<String>;
-
     fn into_param(self, kind: ValueKind) -> Param {
         self.to_string().into_param(kind)
     }
@@ -862,8 +830,6 @@ impl TextValue for &'_ str {}
 impl TextOrRegexValue for &'_ str {}
 
 impl ParamValue for u32 {
-    type Data = u32;
-
     fn into_param(self, kind: ValueKind) -> Param {
         Param::value(kind, None, self)
     }
