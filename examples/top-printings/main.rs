@@ -30,8 +30,7 @@ fn main() -> scryfall::Result<()> {
         .search()?
         .filter_map(|card| card.ok())
         .filter(|card| {
-            card.prices.usd.is_some()
-                || (!card.nonfoil && card.prices.usd_foil.is_some())
+            card.prices.usd.is_some() || (!card.nonfoil && card.prices.usd_foil.is_some())
         });
 
     for card in cards {

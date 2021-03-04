@@ -10,6 +10,7 @@ use url::Url;
 
 pub use self::compare_fns::*;
 pub use self::param_fns::*;
+use crate::card::Rarity;
 pub use crate::card_searcher::{SortDirection, SortMethod, UniqueStrategy};
 use crate::list::ListIter;
 use crate::Card;
@@ -392,8 +393,6 @@ mod param_fns {
         paper_set_count => NumericComparable(PaperSetCount),
         year => NumericComparable(Year),
     }
-
-
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -918,6 +917,16 @@ impl NumericValue for u32 {}
 
 pub trait RarityValue: ParamValue {}
 
+impl ParamValue for Rarity {
+    fn into_param(self, kind: ValueKind) -> Param {
+        Param::value(kind, None, self)
+    }
+}
+
+impl RarityValue for Rarity {}
+
+impl RarityValue for Compare<Rarity> {}
+
 pub trait SetValue: ParamValue {}
 
 pub trait CubeValue: ParamValue {}
@@ -943,17 +952,30 @@ pub mod prelude {
     pub use super::param_fns::*;
     pub use super::query_fns::*;
     pub use super::{
+        BorderColorValue as _,
         Compare,
+        CubeValue as _,
+        CurrencyValue as _,
+        DateValue as _,
+        FormatValue as _,
+        FrameValue as _,
+        GameValue as _,
+        LanguageValue as _,
         ParamValue,
         Property,
+        RarityValue as _,
         Search,
         SearchOptions,
+        SetTypeValue as _,
+        SetValue as _,
         SortDirection,
         SortMethod,
         TextOrRegexValue,
         TextValue,
         UniqueStrategy,
     };
+    pub use crate::card::{BorderColor, Frame, FrameEffect, Game, Rarity};
+    pub use crate::set::{SetCode, SetType};
 }
 
 #[cfg(test)]
@@ -1036,6 +1058,18 @@ mod tests {
             "lea",
             "LEA lotus was not first with URL: {}",
             url,
+        );
+    }
+
+    #[test]
+    fn rarity_comparison() {
+        assert!(
+            SearchOptions::new()
+                .query(rarity(gt(Rarity::Rare)))
+                .random()
+                .unwrap()
+                .rarity
+                > Rarity::Rare
         );
     }
 }

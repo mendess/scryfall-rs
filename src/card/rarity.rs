@@ -1,4 +1,6 @@
 //! Enum defining the 4 different rarities a card can come in.
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 /// Enum defining the 4 different rarities a card can come in.
@@ -12,4 +14,21 @@ pub enum Rarity {
     Special,
     Mythic,
     Bonus,
+}
+
+impl fmt::Display for Rarity {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Rarity::Common => "common",
+                Rarity::Uncommon => "uncommon",
+                Rarity::Rare => "rare",
+                Rarity::Special => "special",
+                Rarity::Mythic => "mythic",
+                Rarity::Bonus => "bonus",
+            }
+        )
+    }
 }
