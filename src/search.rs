@@ -1,6 +1,5 @@
 #![allow(missing_docs)]
 
-use std::any::Any;
 use std::collections::VecDeque;
 use std::hash::Hash;
 use std::rc::Rc;
@@ -62,7 +61,7 @@ pub struct SearchOptions {
     #[serde(skip_serializing_if = "is_default")]
     unique: UniqueStrategy,
     #[serde(skip_serializing_if = "is_default")]
-    sort_by: SortMethod,
+    order: SortMethod,
     #[serde(skip_serializing_if = "is_default")]
     dir: SortDirection,
     #[serde(skip_serializing_if = "is_default")]
@@ -104,7 +103,7 @@ impl SearchOptions {
     }
 
     pub fn sorted(&mut self, sort_by: SortMethod, dir: SortDirection) -> &mut Self {
-        self.sort_by = sort_by;
+        self.order = sort_by;
         self.dir = dir;
         self
     }
@@ -270,10 +269,7 @@ impl Param {
         Param(ParamImpl::Property(prop))
     }
 
-    fn value<P>(kind: ValueKind, op: Option<CompareOp>, value: P) -> Self
-    where
-        P: 'static + ParamValue,
-    {
+    fn value(kind: ValueKind, op: Option<CompareOp>, value: impl 'static + ParamValue) -> Self {
         Param(ParamImpl::Value(kind, op, Rc::new(value)))
     }
 }
@@ -294,20 +290,9 @@ impl fmt::Display for Param {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.0 {
             ParamImpl::Property(kind) => fmt::Display::fmt(kind, f),
-            // TODO(msmorgan): Quote the value. How?
             ParamImpl::Value(ValueKind::Exact, None, value) => write!(f, "!{}", value),
             ParamImpl::Value(kind, op, value) => {
-                write!(
-                    f,
-                    "{}{}{}",
-                    kind,
-                    if let Some(op) = op {
-                        op.to_string()
-                    } else {
-                        ":".to_string()
-                    },
-                    value
-                )
+                write!(f, "{}{}{}", kind, compare_op_str(*op), value)
             },
         }
     }
@@ -342,6 +327,7 @@ mod param_fns {
         cmc => Cmc: NumericValue,
         named => Name: TextOrRegexValue,
         keyword => Keyword: TextValue,
+        exact => Exact: TextValue,
     }
 }
 
@@ -704,7 +690,7 @@ pub enum FourColor {
     Growth,
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum CompareOp {
     Lte,
     Lt,
@@ -714,16 +700,15 @@ pub enum CompareOp {
     Neq,
 }
 
-impl fmt::Display for CompareOp {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.write_str(match self {
-            CompareOp::Lte => "<=",
-            CompareOp::Lt => "<",
-            CompareOp::Gte => ">=",
-            CompareOp::Gt => ">",
-            CompareOp::Eq => "=",
-            CompareOp::Neq => "!=",
-        })
+const fn compare_op_str(op: Option<CompareOp>) -> &'static str {
+    match op {
+        None => ":",
+        Some(CompareOp::Lte) => "<=",
+        Some(CompareOp::Lt) => "<",
+        Some(CompareOp::Gte) => ">=",
+        Some(CompareOp::Gt) => ">",
+        Some(CompareOp::Eq) => "=",
+        Some(CompareOp::Neq) => "!=",
     }
 }
 
@@ -735,11 +720,7 @@ pub struct Compare<T> {
 
 impl<T: fmt::Display> fmt::Display for Compare<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if let Some(op) = &self.op {
-            write!(f, "{}{}", op, &self.value)
-        } else {
-            write!(f, ":{}", &self.value)
-        }
+        write!(f, "{}{}", compare_op_str(self.op), &self.value)
     }
 }
 
@@ -749,10 +730,10 @@ mod compare_fns {
     macro_rules! compare_fns {
         ($($meth:ident => $Variant:ident,)*) => {
             $(
-                pub fn $meth<T>(value: T) -> Compare<T> {
+                pub fn $meth<T>(x: T) -> Compare<T> {
                     Compare {
                         op: Some(CompareOp::$Variant),
-                        value,
+                        value: x,
                     }
                 }
             )*
@@ -855,8 +836,10 @@ pub mod prelude {
 #[cfg(test)]
 mod tests {
     use strum::IntoEnumIterator;
+    use url::Url;
 
     use super::prelude::*;
+    use crate::Card;
 
     #[test]
     fn basic_search() {
@@ -905,5 +888,31 @@ mod tests {
                 .random()
                 .unwrap_or_else(|_| panic!("Could not get a random card with {}", p));
         }
+    }
+
+    #[test]
+    fn finds_alpha_lotus() {
+        let mut url = Url::parse("http://api.scryfall.com/cards/search/").unwrap();
+        let mut search = SearchOptions::new();
+
+        search
+            .query(exact("Black Lotus"))
+            .unique(UniqueStrategy::Prints)
+            .sorted(SortMethod::Released, SortDirection::Ascending);
+
+        search.write_query(&mut url).unwrap();
+
+        assert_eq!(
+            Card::search_new(&search)
+                .unwrap()
+                .next()
+                .unwrap()
+                .unwrap()
+                .set
+                .to_string(),
+            "lea",
+            "LEA lotus was not first with URL: {}",
+            url,
+        );
     }
 }
