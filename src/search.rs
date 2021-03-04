@@ -2,7 +2,7 @@
 
 use std::collections::VecDeque;
 use std::hash::Hash;
-use std::rc::Rc;
+use std::rc::Rc as Lrc;
 use std::{fmt, ops};
 
 use serde::{Serialize, Serializer};
@@ -261,7 +261,7 @@ mod query_fns {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Param(ParamImpl);
 
 impl Param {
@@ -269,15 +269,20 @@ impl Param {
         Param(ParamImpl::Property(prop))
     }
 
+    fn exact(name: impl 'static + TextValue) -> Self {
+        Param(ParamImpl::Exact(Lrc::new(name)))
+    }
+
     fn value(kind: ValueKind, op: Option<CompareOp>, value: impl 'static + ParamValue) -> Self {
-        Param(ParamImpl::Value(kind, op, Rc::new(value)))
+        Param(ParamImpl::Value(kind, op, Lrc::new(value)))
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum ParamImpl {
     Property(Property),
-    Value(ValueKind, Option<CompareOp>, Rc<dyn ParamValue>),
+    Exact(Lrc<dyn ParamValue>),
+    Value(ValueKind, Option<CompareOp>, Lrc<dyn ParamValue>),
 }
 
 impl PartialEq for Param {
@@ -289,8 +294,8 @@ impl PartialEq for Param {
 impl fmt::Display for Param {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.0 {
-            ParamImpl::Property(kind) => fmt::Display::fmt(kind, f),
-            ParamImpl::Value(ValueKind::Exact, None, value) => write!(f, "!{}", value),
+            ParamImpl::Property(prop) => write!(f, "{}", prop),
+            ParamImpl::Exact(value) => write!(f, "!{}", value),
             ParamImpl::Value(kind, op, value) => {
                 write!(f, "{}{}{}", kind, compare_op_str(*op), value)
             },
@@ -308,27 +313,87 @@ mod param_fns {
     use super::*;
 
     macro_rules! param_fns {
-        ($($meth:ident => $Kind:ident : $Constraint:ident,)*) => {
-            $(
-                pub fn $meth(value: impl $Constraint) -> Query {
-                    Query::Param(value.into_param(ValueKind::$Kind))
-                }
-            )*
+        ($func:ident => $Kind:ident : $Constraint:ident, $($rest:tt)*) => {
+            pub fn $func(value: impl $Constraint) -> Query {
+                Query::Param(value.into_param(ValueKind(ValueKindImpl::$Kind)))
+            }
+
+            param_fns!($($rest)*);
         };
+
+        ($func:ident => NumericComparable($Kind:ident), $($rest:tt)*) => {
+            pub fn $func(value: impl NumericComparableValue) -> Query {
+                Query::Param(value.into_param(ValueKind(ValueKindImpl::NumericComparable(NumericProperty::$Kind))))
+            }
+
+            param_fns!($($rest)*);
+        };
+
+        () => {};
     }
 
     pub fn prop(prop: Property) -> Query {
         Query::Param(Param(ParamImpl::Property(prop)))
     }
 
+    pub fn exact(name: impl 'static + TextValue) -> Query {
+        Query::Param(Param::exact(name))
+    }
+
     param_fns! {
         color => Color: ColorValue,
-        artist => Artist: TextValue,
-        cmc => Cmc: NumericValue,
-        named => Name: TextOrRegexValue,
+        color_identity => ColorIdentity: ColorValue,
+        type_line => Type: TextOrRegexValue,
+        oracle_text => Oracle: TextOrRegexValue,
+        full_oracle_text => FullOracle: TextOrRegexValue,
         keyword => Keyword: TextValue,
-        exact => Exact: TextValue,
+        mana => Mana: ColorValue,
+        devotion => Devotion: DevotionValue,
+        produces => Produces: ProducesValue,
+        rarity => Rarity: RarityValue,
+        in_rarity => InRarity: RarityValue,
+        set => Set: SetValue,
+        in_set => InSet: SetValue,
+        number => Number: NumericValue,
+        block => Block: SetValue,
+        set_type => SetType: SetTypeValue,
+        in_set_type => InSetType: SetTypeValue,
+        cube => Cube: CubeValue,
+        legal => Format: FormatValue,
+        banned => Banned: FormatValue,
+        restricted => Restricted: FormatValue,
+        cheapest => Cheapest: CurrencyValue,
+        artist => Artist: TextValue,
+        flavor => Flavor: TextOrRegexValue,
+        watermark => Watermark: TextValue,
+        border_color => BorderColor: BorderColorValue,
+        frame => Frame: FrameValue,
+        date => Date: DateValue,
+        game => Game: GameValue,
+        in_game => InGame: GameValue,
+        language => Language: LanguageValue,
+        in_language => InLanguage: LanguageValue,
+        name => Name: TextOrRegexValue,
+
+        power => NumericComparable(Power),
+        toughness => NumericComparable(Toughness),
+        pow_tou => NumericComparable(PowTou),
+        loyalty => NumericComparable(Loyalty),
+        cmc => NumericComparable(Cmc),
+        artist_count => NumericComparable(ArtistCount),
+        usd => NumericComparable(Usd),
+        usd_foil => NumericComparable(UsdFoil),
+        eur => NumericComparable(Eur),
+        tix => NumericComparable(Tix),
+        illustration_count => NumericComparable(IllustrationCount),
+        print_count => NumericComparable(PrintCount),
+        set_count => NumericComparable(SetCount),
+        paper_print_count => NumericComparable(PaperPrintCount),
+        paper_set_count => NumericComparable(PaperSetCount),
+        year => NumericComparable(Year),
     }
+
+
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -537,8 +602,11 @@ impl fmt::Display for Property {
     }
 }
 
-#[derive(Clone, Eq, PartialEq, Hash, Debug)]
-pub enum ValueKind {
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct ValueKind(ValueKindImpl);
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+enum ValueKindImpl {
     Color,
     ColorIdentity,
     Type,
@@ -546,13 +614,8 @@ pub enum ValueKind {
     FullOracle,
     Keyword,
     Mana,
-    Cmc,
     Devotion,
     Produces,
-    Power,
-    Toughness,
-    PowTou,
-    Loyalty,
     Rarity,
     InRarity,
     Set,
@@ -565,30 +628,69 @@ pub enum ValueKind {
     Format,
     Banned,
     Restricted,
-    Usd,
-    UsdFoil,
-    Eur,
-    Tix,
     Cheapest,
     Artist,
-    ArtistCount,
     Flavor,
     Watermark,
-    IllustrationCount,
     BorderColor,
     Frame,
-    Year,
     Date,
-    PrintCount,
-    SetCount,
-    PaperPrintCount,
-    PaperSetCount,
     Game,
     InGame,
     Language,
     InLanguage,
     Name,
-    Exact,
+    NumericComparable(NumericProperty),
+}
+
+/// These properties can be compared against one another.
+///
+/// For example `power(gt(NumericProperty::Toughness)`.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub enum NumericProperty {
+    Power,
+    Toughness,
+    PowTou,
+    Loyalty,
+    Cmc,
+    ArtistCount,
+    Usd,
+    UsdFoil,
+    Eur,
+    Tix,
+    IllustrationCount,
+    PrintCount,
+    SetCount,
+    PaperPrintCount,
+    PaperSetCount,
+    Year,
+}
+
+const fn numeric_property_str(comp: NumericProperty) -> &'static str {
+    match comp {
+        NumericProperty::Power => "power",
+        NumericProperty::Toughness => "toughness",
+        NumericProperty::PowTou => "powtou",
+        NumericProperty::Loyalty => "loyalty",
+        NumericProperty::Cmc => "cmc",
+        NumericProperty::ArtistCount => "artists",
+        NumericProperty::Usd => "usd",
+        NumericProperty::UsdFoil => "usdfoil",
+        NumericProperty::Eur => "eur",
+        NumericProperty::Tix => "tix",
+        NumericProperty::IllustrationCount => "illustrations",
+        NumericProperty::PrintCount => "prints",
+        NumericProperty::SetCount => "sets",
+        NumericProperty::PaperPrintCount => "paperprints",
+        NumericProperty::PaperSetCount => "papersets",
+        NumericProperty::Year => "year",
+    }
+}
+
+impl fmt::Display for NumericProperty {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(numeric_property_str(*self))
+    }
 }
 
 impl fmt::Display for ValueKind {
@@ -596,58 +698,41 @@ impl fmt::Display for ValueKind {
         write!(
             f,
             "{}",
-            match self {
-                ValueKind::Color => "color",
-                ValueKind::ColorIdentity => "identity",
-                ValueKind::Type => "type",
-                ValueKind::Oracle => "oracle",
-                ValueKind::FullOracle => "fulloracle",
-                ValueKind::Keyword => "keyword",
-                ValueKind::Mana => "mana",
-                ValueKind::Cmc => "cmc",
-                ValueKind::Devotion => "devotion",
-                ValueKind::Produces => "produces",
-                ValueKind::Power => "power",
-                ValueKind::Toughness => "toughness",
-                ValueKind::PowTou => "powtou",
-                ValueKind::Loyalty => "loyalty",
-                ValueKind::Rarity => "rarity",
-                ValueKind::Set => "set",
-                ValueKind::Number => "number",
-                ValueKind::Block => "block",
-                ValueKind::SetType => "settype",
-                ValueKind::Cube => "cube",
-                ValueKind::Format => "format",
-                ValueKind::Banned => "banned",
-                ValueKind::Restricted => "restricted",
-                ValueKind::Usd => "usd",
-                ValueKind::UsdFoil => "usdfoil",
-                ValueKind::Eur => "eur",
-                ValueKind::Tix => "tix",
-                ValueKind::Cheapest => "cheapest",
-                ValueKind::Artist => "artist",
-                ValueKind::ArtistCount => "artists",
-                ValueKind::Flavor => "flavor",
-                ValueKind::Watermark => "watermark",
-                ValueKind::IllustrationCount => "illustrations",
-                ValueKind::BorderColor => "border",
-                ValueKind::Frame => "frame",
-                ValueKind::Year => "year",
-                ValueKind::Date => "date",
-                ValueKind::PrintCount => "prints",
-                ValueKind::SetCount => "sets",
-                ValueKind::PaperPrintCount => "paperprints",
-                ValueKind::PaperSetCount => "papersets",
-                ValueKind::Game => "game",
-                ValueKind::Language => "language",
-                ValueKind::InRarity
-                | ValueKind::InSet
-                | ValueKind::InSetType
-                | ValueKind::InGame
-                | ValueKind::InLanguage => "in",
-                ValueKind::Name => "name",
-                // TODO(msmorgan): Should "Exact" be a ValueKind?
-                ValueKind::Exact => "",
+            match &self.0 {
+                ValueKindImpl::Color => "color",
+                ValueKindImpl::ColorIdentity => "identity",
+                ValueKindImpl::Type => "type",
+                ValueKindImpl::Oracle => "oracle",
+                ValueKindImpl::FullOracle => "fulloracle",
+                ValueKindImpl::Keyword => "keyword",
+                ValueKindImpl::Mana => "mana",
+                ValueKindImpl::Devotion => "devotion",
+                ValueKindImpl::Produces => "produces",
+                ValueKindImpl::Rarity => "rarity",
+                ValueKindImpl::Set => "set",
+                ValueKindImpl::Number => "number",
+                ValueKindImpl::Block => "block",
+                ValueKindImpl::SetType => "settype",
+                ValueKindImpl::Cube => "cube",
+                ValueKindImpl::Format => "format",
+                ValueKindImpl::Banned => "banned",
+                ValueKindImpl::Restricted => "restricted",
+                ValueKindImpl::Cheapest => "cheapest",
+                ValueKindImpl::Artist => "artist",
+                ValueKindImpl::Flavor => "flavor",
+                ValueKindImpl::Watermark => "watermark",
+                ValueKindImpl::BorderColor => "border",
+                ValueKindImpl::Frame => "frame",
+                ValueKindImpl::Date => "date",
+                ValueKindImpl::Game => "game",
+                ValueKindImpl::Language => "language",
+                ValueKindImpl::InRarity
+                | ValueKindImpl::InSet
+                | ValueKindImpl::InSetType
+                | ValueKindImpl::InGame
+                | ValueKindImpl::InLanguage => "in",
+                ValueKindImpl::Name => "name",
+                ValueKindImpl::NumericComparable(np) => numeric_property_str(*np),
             }
         )
     }
@@ -773,9 +858,25 @@ pub trait ColorValue: ParamValue {}
 
 impl<T: 'static + ColorValue> ColorValue for Compare<T> {}
 
+pub trait DevotionValue: ParamValue {}
+
+pub trait ProducesValue: ParamValue {}
+
 pub trait NumericValue: ParamValue {}
 
 impl<T: 'static + NumericValue> NumericValue for Compare<T> {}
+
+pub trait NumericComparableValue: ParamValue {}
+
+impl<T: 'static + NumericValue> NumericComparableValue for T {}
+
+impl ParamValue for NumericProperty {
+    fn into_param(self, kind: ValueKind) -> Param {
+        numeric_property_str(self).into_param(kind)
+    }
+}
+
+impl NumericComparableValue for NumericProperty {}
 
 pub trait TextValue: ParamValue {}
 
@@ -815,6 +916,28 @@ impl ParamValue for u32 {
 
 impl NumericValue for u32 {}
 
+pub trait RarityValue: ParamValue {}
+
+pub trait SetValue: ParamValue {}
+
+pub trait CubeValue: ParamValue {}
+
+pub trait FormatValue: ParamValue {}
+
+pub trait CurrencyValue: ParamValue {}
+
+pub trait SetTypeValue: ParamValue {}
+
+pub trait BorderColorValue: ParamValue {}
+
+pub trait FrameValue: ParamValue {}
+
+pub trait DateValue: ParamValue {}
+
+pub trait GameValue: ParamValue {}
+
+pub trait LanguageValue: ParamValue {}
+
 pub mod prelude {
     pub use super::compare_fns::*;
     pub use super::param_fns::*;
@@ -844,7 +967,7 @@ mod tests {
     #[test]
     fn basic_search() {
         let cards = SearchOptions::new()
-            .query(named("lightning").and(named("helix")).and(cmc(eq(2))))
+            .query(name("lightning").and(name("helix")).and(cmc(eq(2))))
             .unique(UniqueStrategy::Prints)
             .search()
             .unwrap()
