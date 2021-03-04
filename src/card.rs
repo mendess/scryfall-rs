@@ -449,7 +449,7 @@ impl Card {
     /// `search_random`, but new!
     pub fn search_random_new(query: &impl crate::search::Search) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("random/")?;
-        query.write_query(&mut url);
+        query.write_query(&mut url)?;
         Uri::from(url).fetch()
     }
 

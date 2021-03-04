@@ -1,7 +1,7 @@
 #![allow(missing_docs)]
 
+use std::any::Any;
 use std::collections::VecDeque;
-use std::fmt::Write;
 use std::hash::Hash;
 use std::rc::Rc;
 use std::{fmt, ops};
@@ -125,7 +125,7 @@ impl SearchOptions {
     }
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(PartialEq, Debug)]
 pub enum Query {
     And(VecDeque<Query>),
     Or(VecDeque<Query>),
@@ -262,13 +262,48 @@ mod query_fns {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct Param(ParamImpl);
 
-#[derive(Clone, Debug)]
+impl Param {
+    fn property(prop: Property) -> Self {
+        Param(ParamImpl::Property(prop))
+    }
+
+    fn value<T, P>(kind: ValueKind, op: Option<CompareOp>, value: P) -> Self
+    where
+        T: 'static + fmt::Debug + fmt::Display,
+        P: 'static + ParamValue<Data = T>,
+    {
+        Param(ParamImpl::Value(
+            kind,
+            op,
+            Box::new(ParamData {
+                inner: Rc::new(Box::new(value)),
+            }),
+        ))
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ParamData<T> {
+    inner: Rc<Box<dyn ParamValue<Data = T>>>,
+}
+
+trait Data: Any + fmt::Debug + fmt::Display {}
+
+impl<T: 'static + fmt::Debug + fmt::Display> Data for ParamData<T> {}
+
+impl<T: 'static + fmt::Display> fmt::Display for ParamData<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.inner)
+    }
+}
+
+#[derive(Debug)]
 enum ParamImpl {
     Property(Property),
-    Value(ValueKind, Rc<Compare<Box<dyn ParamValue>>>),
+    Value(ValueKind, Option<CompareOp>, Box<dyn Data>),
 }
 
 impl PartialEq for Param {
@@ -282,9 +317,19 @@ impl fmt::Display for Param {
         match &self.0 {
             ParamImpl::Property(kind) => fmt::Display::fmt(kind, f),
             // TODO(msmorgan): Quote the value. How?
-            ParamImpl::Value(ValueKind::Exact, value) => write!(f, "!{}", value.value),
-            ParamImpl::Value(kind, value) => {
-                write!(f, "{}{}", kind, value)
+            ParamImpl::Value(ValueKind::Exact, None, value) => write!(f, "!{}", value),
+            ParamImpl::Value(kind, op, value) => {
+                write!(
+                    f,
+                    "{}{}{}",
+                    kind,
+                    if let Some(op) = op {
+                        op.to_string()
+                    } else {
+                        ":".to_string()
+                    },
+                    value
+                )
             },
         }
     }
@@ -303,10 +348,7 @@ mod param_fns {
         ($($meth:ident => $Kind:ident : $Constraint:ident,)*) => {
             $(
                 pub fn $meth(value: impl $Constraint) -> Query {
-                    Query::Param(Param(ParamImpl::Value(
-                        ValueKind::$Kind,
-                        Rc::new(value.into_compare()),
-                    )))
+                    Query::Param(value.into_param(ValueKind::$Kind))
                 }
             )*
         };
@@ -526,7 +568,7 @@ impl fmt::Display for Property {
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
-enum ValueKind {
+pub enum ValueKind {
     Color,
     ColorIdentity,
     Type,
@@ -678,6 +720,11 @@ pub enum FourColor {
     Growth,
 }
 
+pub enum Parity {
+    Even,
+    Odd,
+}
+
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum CompareOp {
     Lte,
@@ -744,15 +791,25 @@ mod compare_fns {
 }
 
 pub trait ParamValue: fmt::Debug + fmt::Display {
-    fn into_compare(self) -> Compare<Box<dyn ParamValue>>;
+    type Data: fmt::Display + fmt::Debug;
+
+    fn into_param(self, kind: ValueKind) -> Param;
 }
 
 impl<T: 'static + ParamValue> ParamValue for Compare<T> {
-    fn into_compare(self) -> Compare<Box<dyn ParamValue>> {
-        Compare {
-            op: self.op,
-            value: Box::new(self.value),
-        }
+    type Data = T;
+
+    fn into_param(self, kind: ValueKind) -> Param {
+        Param::value(kind, self.op, self.value)
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Quoted<T>(T);
+
+impl<T: fmt::Display> fmt::Display for Quoted<T> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "\"{}\"", self.0)
     }
 }
 
@@ -772,20 +829,20 @@ pub trait TextOrRegexValue: ParamValue {}
 
 impl<T: 'static + TextOrRegexValue> TextOrRegexValue for Compare<T> {}
 
-// TODO(msmorgan): This is inelegant.
-macro_rules! impl_into_compare {
-    () => {
-        fn into_compare(self) -> Compare<Box<dyn ParamValue>> {
-            Compare {
-                op: None,
-                value: Box::new(self),
-            }
-        }
-    };
+impl ParamValue for String {
+    type Data = Quoted<String>;
+
+    fn into_param(self, kind: ValueKind) -> Param {
+        Quoted(self).into_param(kind)
+    }
 }
 
-impl ParamValue for String {
-    impl_into_compare!();
+impl<T: 'static + ParamValue> ParamValue for Quoted<T> {
+    type Data = Quoted<T>;
+
+    fn into_param(self, kind: ValueKind) -> Param {
+        Param::value(kind, None, self)
+    }
 }
 
 impl TextValue for String {}
@@ -793,11 +850,10 @@ impl TextValue for String {}
 impl TextOrRegexValue for String {}
 
 impl ParamValue for &'_ str {
-    fn into_compare(self) -> Compare<Box<dyn ParamValue>> {
-        Compare {
-            op: None,
-            value: Box::new(self.to_string()),
-        }
+    type Data = Quoted<String>;
+
+    fn into_param(self, kind: ValueKind) -> Param {
+        self.to_string().into_param(kind)
     }
 }
 
@@ -806,7 +862,11 @@ impl TextValue for &'_ str {}
 impl TextOrRegexValue for &'_ str {}
 
 impl ParamValue for u32 {
-    impl_into_compare!();
+    type Data = u32;
+
+    fn into_param(self, kind: ValueKind) -> Param {
+        Param::value(kind, None, self)
+    }
 }
 
 impl NumericValue for u32 {}
@@ -818,8 +878,11 @@ pub mod prelude {
     pub use super::{
         Compare,
         ParamValue,
+        Property,
         Search,
         SearchOptions,
+        SortDirection,
+        SortMethod,
         TextOrRegexValue,
         TextValue,
         UniqueStrategy,
@@ -831,7 +894,6 @@ mod tests {
     use strum::IntoEnumIterator;
 
     use super::prelude::*;
-    use crate::search::{Property, SortDirection, SortMethod};
 
     #[test]
     fn basic_search() {
