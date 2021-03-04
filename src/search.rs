@@ -459,6 +459,9 @@ pub enum Property {
     IsCreatureLand,
     IsTriLand,
     IsBattleLand,
+
+    EvenCmc,
+    OddCmc,
 }
 
 impl fmt::Display for Property {
@@ -474,6 +477,7 @@ impl fmt::Display for Property {
                 | Property::NewFrame
                 | Property::NewLanguage
                 | Property::NewRarity => "new",
+                Property::EvenCmc | Property::OddCmc => "cmc",
                 _ => "is",
             },
             match self {
@@ -540,6 +544,8 @@ impl fmt::Display for Property {
                 Property::IsCreatureLand => "creature_land",
                 Property::IsTriLand => "tri_land",
                 Property::IsBattleLand => "battle_land",
+                Property::EvenCmc => "even",
+                Property::OddCmc => "odd",
             }
         )
     }
@@ -698,11 +704,6 @@ pub enum FourColor {
     Growth,
 }
 
-pub enum Parity {
-    Even,
-    Odd,
-}
-
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub enum CompareOp {
     Lte,
@@ -797,11 +798,7 @@ impl<T: 'static + NumericValue> NumericValue for Compare<T> {}
 
 pub trait TextValue: ParamValue {}
 
-impl<T: 'static + TextValue> TextValue for Compare<T> {}
-
 pub trait TextOrRegexValue: ParamValue {}
-
-impl<T: 'static + TextOrRegexValue> TextOrRegexValue for Compare<T> {}
 
 impl ParamValue for String {
     fn into_param(self, kind: ValueKind) -> Param {
