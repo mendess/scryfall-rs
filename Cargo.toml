@@ -33,4 +33,5 @@ uuid = { version = "0.8.2", features = ["serde"] }
 static_assertions = "1"
 
 [dev-dependencies]
+clap = "3.0.0-beta.2"
 rayon = "1.5.0"

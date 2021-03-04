@@ -155,7 +155,7 @@ pub struct SearchBuilder {
     #[serde(skip_serializing_if = "is_default")]
     unique: UniqueStrategy,
     #[serde(skip_serializing_if = "is_default")]
-    sort_by: SortMethod,
+    order: SortMethod,
     #[serde(skip_serializing_if = "is_default")]
     dir: SortDirection,
     page: usize,
@@ -197,7 +197,7 @@ impl SearchBuilder {
         SearchBuilder {
             page: 1,
             unique: Default::default(),
-            sort_by: Default::default(),
+            order: Default::default(),
             dir: Default::default(),
             include_extras: false,
             include_multilingual: false,
@@ -214,7 +214,7 @@ impl SearchBuilder {
 
     /// Change the sorting method used for the results.
     pub fn sorting_by(&mut self, method: SortMethod) -> &mut Self {
-        self.sort_by = method;
+        self.order = method;
         self
     }
 
