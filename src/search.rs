@@ -1,12 +1,63 @@
 #![allow(missing_docs)]
 
 use std::collections::VecDeque;
-use std::fmt;
 use std::fmt::Write;
 use std::hash::Hash;
 use std::rc::Rc;
+use std::{fmt, ops};
 
-#[derive(Serialize, Debug)]
+use serde::{Serialize, Serializer};
+use url::Url;
+
+pub use self::compare_fns::*;
+pub use self::param_fns::*;
+pub use crate::card_searcher::{SortDirection, SortMethod, UniqueStrategy};
+use crate::list::ListIter;
+use crate::Card;
+
+pub trait Search {
+    fn write_query(&self, url: &mut Url) -> crate::Result<()>;
+
+    fn search(&self) -> crate::Result<ListIter<Card>>
+    where
+        Self: Sized,
+    {
+        Card::search_new(self)
+    }
+
+    fn random(&self) -> crate::Result<Card>
+    where
+        Self: Sized,
+    {
+        Card::search_random_new(self)
+    }
+}
+
+impl Search for SearchOptions {
+    fn write_query(&self, url: &mut Url) -> crate::Result<()> {
+        self.serialize(serde_urlencoded::Serializer::new(
+            &mut url.query_pairs_mut(),
+        ))?;
+        Ok(())
+    }
+}
+
+impl Search for str {
+    fn write_query(&self, url: &mut Url) -> crate::Result<()> {
+        url.set_query(Some(self));
+        Ok(())
+    }
+}
+
+impl Search for Query {
+    fn write_query(&self, url: &mut Url) -> crate::Result<()> {
+        url.query_pairs_mut()
+            .append_pair("q", self.to_string().as_str());
+        Ok(())
+    }
+}
+
+#[derive(Serialize, Default, Debug)]
 pub struct SearchOptions {
     #[serde(skip_serializing_if = "is_default")]
     unique: UniqueStrategy,
@@ -14,6 +65,7 @@ pub struct SearchOptions {
     sort_by: SortMethod,
     #[serde(skip_serializing_if = "is_default")]
     dir: SortDirection,
+    #[serde(skip_serializing_if = "is_default")]
     page: usize,
     #[serde(skip_serializing_if = "is_default")]
     include_extras: bool,
@@ -21,7 +73,7 @@ pub struct SearchOptions {
     include_multilingual: bool,
     #[serde(skip_serializing_if = "is_default")]
     include_variations: bool,
-    #[serde(rename = "q", serialize_with = "serialize_params")]
+    #[serde(rename = "q", serialize_with = "serialize_query")]
     query: Query,
 }
 
@@ -29,34 +81,16 @@ fn is_default<T: Default + PartialEq>(value: &T) -> bool {
     value == &Default::default()
 }
 
-fn serialize_params<S: Serializer>(query: &Query, serializer: S) -> Result<S::Ok, S::Error> {
+fn serialize_query<S: Serializer>(query: &Query, serializer: S) -> Result<S::Ok, S::Error> {
     query.to_string().serialize(serializer)
-}
-
-impl Default for SearchOptions {
-    fn default() -> Self {
-        SearchOptions {
-            unique: Default::default(),
-            sort_by: Default::default(),
-            dir: Default::default(),
-            page: 1,
-            include_extras: false,
-            include_multilingual: false,
-            include_variations: false,
-            query: Query::Empty,
-        }
-    }
-}
-
-impl Search for SearchOptions {
-    fn to_query(&self) -> String {
-        serde_urlencoded::to_string(self).unwrap()
-    }
 }
 
 impl SearchOptions {
     pub fn new() -> Self {
-        Default::default()
+        SearchOptions {
+            page: 1,
+            ..Default::default()
+        }
     }
 
     pub fn query(&mut self, query: Query) -> &mut Self {
@@ -69,8 +103,25 @@ impl SearchOptions {
         self
     }
 
-    pub fn search(&self) -> crate::Result<ListIter<Card>> {
-        Card::search(self)
+    pub fn sorted(&mut self, sort_by: SortMethod, dir: SortDirection) -> &mut Self {
+        self.sort_by = sort_by;
+        self.dir = dir;
+        self
+    }
+
+    pub fn extras(&mut self, include_extras: bool) -> &mut Self {
+        self.include_extras = include_extras;
+        self
+    }
+
+    pub fn multilingual(&mut self, include_multilingual: bool) -> &mut Self {
+        self.include_multilingual = include_multilingual;
+        self
+    }
+
+    pub fn variations(&mut self, include_variations: bool) -> &mut Self {
+        self.include_variations = include_variations;
+        self
     }
 }
 
@@ -83,6 +134,12 @@ pub enum Query {
     Empty,
 }
 
+impl Default for Query {
+    fn default() -> Self {
+        Query::Empty
+    }
+}
+
 impl fmt::Display for Query {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let (exprs, sep) = match self {
@@ -93,28 +150,8 @@ impl fmt::Display for Query {
             Query::Empty => return write!(f, ""),
         };
 
-        f.write_char('(')?;
-        let mut first = true;
-        for expr in exprs {
-            write!(
-                f,
-                "{}{}",
-                if first {
-                    first = false;
-                    ""
-                } else {
-                    sep
-                },
-                expr
-            )?;
-        }
-        f.write_char(')')
-    }
-}
-
-impl Default for Query {
-    fn default() -> Self {
-        Query::Empty
+        use itertools::Itertools;
+        write!(f, "({})", exprs.iter().format(sep))
     }
 }
 
@@ -124,8 +161,35 @@ impl From<Param> for Query {
     }
 }
 
+impl ops::BitAnd for Query {
+    type Output = Self;
+
+    fn bitand(self, other: Self) -> Self {
+        self.and(other)
+    }
+}
+
+impl ops::BitOr for Query {
+    type Output = Self;
+
+    fn bitor(self, other: Self) -> Self {
+        self.or(other)
+    }
+}
+
+impl ops::Not for Query {
+    type Output = Query;
+
+    fn not(self) -> Self::Output {
+        match self {
+            Query::Not(q) => *q,
+            q => Query::Not(Box::new(q)),
+        }
+    }
+}
+
 impl Query {
-    pub fn and(self, other: Self) -> Self {
+    pub fn and(self, other: Self) -> Query {
         match (self, other) {
             (Query::Empty, x) | (x, Query::Empty) => x,
             (Query::And(mut a_list), Query::And(mut b_list)) => {
@@ -149,7 +213,7 @@ impl Query {
         }
     }
 
-    pub fn or(self, other: Self) -> Self {
+    pub fn or(self, other: Self) -> Query {
         match (self, other) {
             (Query::Empty, x) | (x, Query::Empty) => x,
             (Query::Or(mut a_list), Query::Or(mut b_list)) => {
@@ -171,6 +235,30 @@ impl Query {
                 Query::Or(list)
             },
         }
+    }
+}
+
+mod query_fns {
+    use super::*;
+
+    pub fn and(queries: impl IntoIterator<Item = Query>) -> Query {
+        let mut result = Query::Empty;
+        for query in queries {
+            result = result.and(query);
+        }
+        result
+    }
+
+    pub fn or(queries: impl IntoIterator<Item = Query>) -> Query {
+        let mut result = Query::Empty;
+        for query in queries {
+            result = result.and(query);
+        }
+        result
+    }
+
+    pub fn not(q: Query) -> Query {
+        ops::Not::not(q)
     }
 }
 
@@ -224,17 +312,21 @@ mod param_fns {
         };
     }
 
+    pub fn prop(prop: Property) -> Query {
+        Query::Param(Param(ParamImpl::Property(prop)))
+    }
+
     param_fns! {
         color => Color: ColorValue,
         artist => Artist: TextValue,
         cmc => Cmc: NumericValue,
         named => Name: TextOrRegexValue,
+        keyword => Keyword: TextValue,
     }
 }
 
-pub use self::param_fns::*;
-
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum Property {
     /// Cards that have a color indicator.
     HasColorIndicator,
@@ -402,7 +494,7 @@ impl fmt::Display for Property {
                 Property::IsReprint => "reprint",
                 Property::IsMasterpiece => "masterpiece",
                 Property::IsUnique => "unique",
-                Property::SoldInBoosters => "boosters",
+                Property::SoldInBoosters => "booster",
                 Property::SoldInPwDecks => "planeswalker_deck",
                 Property::SoldInLeague => "league",
                 Property::SoldInBuyABox => "buyabox",
@@ -415,7 +507,7 @@ impl fmt::Display for Property {
                 Property::IsBounceLand => "bounce_land",
                 Property::IsCanopyLand => "canopy_land",
                 Property::IsCheckLand => "check_land",
-                Property::IsDualLand => "dual_land",
+                Property::IsDualLand => "dual",
                 Property::IsFastLand => "fast_land",
                 Property::IsFetchLand => "fetch_land",
                 Property::IsFilterLand => "filter_land",
@@ -651,13 +743,6 @@ mod compare_fns {
     }
 }
 
-use serde::{Serialize, Serializer};
-
-pub use self::compare_fns::*;
-use crate::card_searcher::{Search, SortDirection, SortMethod, UniqueStrategy};
-use crate::list::ListIter;
-use crate::Card;
-
 pub trait ParamValue: fmt::Debug + fmt::Display {
     fn into_compare(self) -> Compare<Box<dyn ParamValue>>;
 }
@@ -729,12 +814,24 @@ impl NumericValue for u32 {}
 pub mod prelude {
     pub use super::compare_fns::*;
     pub use super::param_fns::*;
-    pub use super::{Compare, ParamValue, TextOrRegexValue, TextValue};
+    pub use super::query_fns::*;
+    pub use super::{
+        Compare,
+        ParamValue,
+        Search,
+        SearchOptions,
+        TextOrRegexValue,
+        TextValue,
+        UniqueStrategy,
+    };
 }
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use strum::IntoEnumIterator;
+
+    use super::prelude::*;
+    use crate::search::{Property, SortDirection, SortMethod};
 
     #[test]
     fn basic_search() {
@@ -746,10 +843,42 @@ mod tests {
             .map(|c| c.unwrap())
             .collect::<Vec<_>>();
 
-        assert!(!cards.is_empty());
+        assert!(cards.len() > 1);
 
         for card in cards {
             assert_eq!(card.name, "Lightning Helix")
+        }
+    }
+
+    #[test]
+    fn random_works_with_search_options() {
+        // `SearchOptions` can set more query params than the "cards/random" API method
+        // accepts. Scryfall should ignore these and return a random card.
+        assert!(
+            SearchOptions::new()
+                .query(keyword("storm"))
+                .unique(UniqueStrategy::Art)
+                .sorted(SortMethod::Usd, SortDirection::Ascending)
+                .extras(true)
+                .multilingual(true)
+                .variations(true)
+                .random()
+                .unwrap()
+                .oracle_text
+                .unwrap()
+                .to_lowercase()
+                .contains("storm")
+        );
+    }
+
+    #[test]
+    #[ignore]
+    fn all_properties_work() {
+        for p in Property::iter() {
+            let query = prop(p);
+            query
+                .random()
+                .unwrap_or_else(|_| panic!("Could not get a random card with {}", p));
         }
     }
 }
