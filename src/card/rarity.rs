@@ -9,6 +9,7 @@ pub enum Rarity {
     Common,
     Uncommon,
     Rare,
+    Special,
     Mythic,
     Bonus,
 }
