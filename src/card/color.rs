@@ -1,3 +1,5 @@
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 /// Enum defining the 5 colors of magic, plus colorless.
@@ -17,6 +19,23 @@ pub enum Color {
     Red = 1 << 3,
     #[serde(rename = "G")]
     Green = 1 << 4,
+}
+
+impl fmt::Display for Color {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Color::Colorless => "C",
+                Color::White => "W",
+                Color::Blue => "U",
+                Color::Black => "B",
+                Color::Red => "R",
+                Color::Green => "G",
+            }
+        )
+    }
 }
 
 /// Definition of a cards colors. This can be used to in conjunction with

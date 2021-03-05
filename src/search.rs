@@ -10,7 +10,6 @@ use url::Url;
 
 pub use self::compare_fns::*;
 pub use self::param_fns::*;
-use crate::card::Rarity;
 pub use crate::card_searcher::{SortDirection, SortMethod, UniqueStrategy};
 use crate::list::ListIter;
 use crate::Card;
@@ -335,7 +334,7 @@ mod param_fns {
 
     macro_rules! param_fns {
         ($func:ident => $Kind:ident : $Constraint:ident, $($rest:tt)*) => {
-            pub fn $func(value: impl $Constraint) -> Query {
+            pub fn $func(value: impl 'static + $Constraint) -> Query {
                 Query::Param(value.into_param(ValueKind(ValueKindImpl::$Kind)))
             }
 
@@ -343,7 +342,7 @@ mod param_fns {
         };
 
         ($func:ident => NumericComparable($Kind:ident), $($rest:tt)*) => {
-            pub fn $func(value: impl NumericComparableValue) -> Query {
+            pub fn $func(value: impl 'static + NumericComparableValue) -> Query {
                 Query::Param(value.into_param(ValueKind(ValueKindImpl::NumericComparable(
                     NumericProperty::$Kind,
                 ))))
@@ -368,7 +367,7 @@ mod param_fns {
         keyword => Keyword: TextValue,
         mana => Mana: ColorValue,
         devotion => Devotion: DevotionValue,
-        produces => Produces: ProducesValue,
+        produces => Produces: ColorValue,
         rarity => Rarity: RarityValue,
         in_rarity => InRarity: RarityValue,
         set => Set: SetValue,
@@ -685,8 +684,8 @@ pub enum NumericProperty {
     Year,
 }
 
-const fn numeric_property_str(comp: NumericProperty) -> &'static str {
-    match comp {
+const fn numeric_property_str(prop: NumericProperty) -> &'static str {
+    match prop {
         NumericProperty::Power => "power",
         NumericProperty::Toughness => "toughness",
         NumericProperty::PowTou => "powtou",
@@ -857,7 +856,12 @@ mod compare_fns {
 }
 
 pub trait ParamValue: fmt::Debug + fmt::Display {
-    fn into_param(self, kind: ValueKind) -> Param;
+    fn into_param(self, kind: ValueKind) -> Param
+    where
+        Self: 'static + Sized,
+    {
+        Param::value(kind, self)
+    }
 }
 
 impl<T: 'static + ParamValue> ParamValue for Compare<T> {
@@ -866,36 +870,37 @@ impl<T: 'static + ParamValue> ParamValue for Compare<T> {
     }
 }
 
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct Quoted<T>(T);
-
-impl<T: fmt::Display> fmt::Display for Quoted<T> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "\"{}\"", self.0)
-    }
-}
-
+// TODO(msmorgan): Impls for `Guild` etc.
 pub trait ColorValue: ParamValue {}
+
+// TODO(msmorgan): Maybe add `color_count` and `produces_count` etc instead.
+impl<T: NumericValue> ColorValue for T {}
 
 impl<T: 'static + ColorValue> ColorValue for Compare<T> {}
 
+impl ParamValue for crate::card::Color {}
+
+/// Color parameters allow to query by specific colors
+impl ColorValue for crate::card::Color {}
+
+impl ParamValue for crate::card::Colors {}
+impl ColorValue for crate::card::Colors {}
+
+// impl<T: TextValue> ColorValue for T {}
+
+/// Devotion works differently than other color parameters. All the color
+/// symbols must match and the symbols can be hybrid mana.
 pub trait DevotionValue: ParamValue {}
 
-pub trait ProducesValue: ParamValue {}
+pub struct Devotion(crate::card::Color, usize);
 
 pub trait NumericValue: ParamValue {}
 
 macro_rules! impl_numeric_values {
     ($($Ty:ty,)*) => {
         $(
-            impl ParamValue for $Ty {
-                fn into_param(self, kind: ValueKind) -> Param {
-                    Param::value(kind, self)
-                }
-            }
-
+            impl ParamValue for $Ty {}
             impl NumericValue for $Ty {}
-
             impl NumericComparableValue for $Ty {}
         )*
     };
@@ -917,70 +922,125 @@ impl ParamValue for NumericProperty {
         numeric_property_str(self).into_param(kind)
     }
 }
-
 impl NumericComparableValue for NumericProperty {}
 
 pub trait TextValue: ParamValue {}
 
-pub trait TextOrRegexValue: ParamValue {}
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Quoted<T>(T);
+
+impl<T: fmt::Display> fmt::Display for Quoted<T> {
+    // TODO(msmorgan): This breaks if the value has quotes in it.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "\"{}\"", self.0)
+    }
+}
+
+impl ParamValue for Quoted<String> {
+    fn into_param(self, kind: ValueKind) -> Param {
+        Param::value(kind, self)
+    }
+}
+impl TextValue for Quoted<String> {}
 
 impl ParamValue for String {
     fn into_param(self, kind: ValueKind) -> Param {
         Quoted(self).into_param(kind)
     }
 }
-
-impl<T: 'static + ParamValue> ParamValue for Quoted<T> {
-    fn into_param(self, kind: ValueKind) -> Param {
-        Param::value(kind, self)
-    }
-}
-
 impl TextValue for String {}
-
-impl TextOrRegexValue for String {}
 
 impl ParamValue for &str {
     fn into_param(self, kind: ValueKind) -> Param {
         self.to_string().into_param(kind)
     }
 }
-
 impl TextValue for &str {}
 
-impl TextOrRegexValue for &str {}
+pub trait TextOrRegexValue: ParamValue {}
 
-pub trait RarityValue: ParamValue {}
+impl<T: TextValue> TextOrRegexValue for T {}
 
-impl ParamValue for Rarity {
-    fn into_param(self, kind: ValueKind) -> Param {
-        Param::value(kind, self)
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Regex(String);
+
+impl fmt::Display for Regex {
+    // TODO(msmorgan): Escapes.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "/{}/", self.0)
     }
 }
 
-impl RarityValue for Rarity {}
+impl ParamValue for Regex {}
+impl TextOrRegexValue for Regex {}
 
-impl RarityValue for Compare<Rarity> {}
+/// A parameter that
+pub trait RarityValue: ParamValue {}
+
+impl<T: TextValue> RarityValue for T {}
+
+impl ParamValue for crate::card::Rarity {}
+impl RarityValue for crate::card::Rarity {}
+impl RarityValue for Compare<crate::card::Rarity> {}
 
 pub trait SetValue: ParamValue {}
 
 pub trait CubeValue: ParamValue {}
 
+impl<T: TextValue> CubeValue for T {}
+
 pub trait FormatValue: ParamValue {}
+
+impl<T: TextValue> FormatValue for T {}
+
+impl ParamValue for crate::format::Format {}
+impl FormatValue for crate::format::Format {}
 
 pub trait CurrencyValue: ParamValue {}
 
+impl<T: TextValue> CurrencyValue for T {}
+
+// TODO(msmorgan): Make a currency enum.
+
 pub trait SetTypeValue: ParamValue {}
+
+impl<T: TextValue> SetTypeValue for T {}
 
 pub trait BorderColorValue: ParamValue {}
 
+impl<T: TextValue> BorderColorValue for T {}
+
+impl ParamValue for crate::card::BorderColor {}
+impl BorderColorValue for crate::card::BorderColor {}
+
+/// A parameter with card frames and frame effects.
 pub trait FrameValue: ParamValue {}
 
+impl<T: TextValue> FrameValue for T {}
+
+impl ParamValue for crate::card::FrameEffect {}
+impl FrameValue for crate::card::FrameEffect {}
+
+impl ParamValue for crate::card::Frame {}
+impl FrameValue for crate::card::Frame {}
+
+/// A parameter that specifies a date.
+/// TODO(msmorgan): What is the date format?
+/// TODO(msmorgan): Implement for chrono types.
 pub trait DateValue: ParamValue {}
 
+/// A parameter that specifies a game that the card appears in.
+/// Valid for any `TextValue` and for [`Game`][crate::card::Game].
 pub trait GameValue: ParamValue {}
 
+impl<T: TextValue> GameValue for T {}
+
+impl ParamValue for crate::card::Game {}
+impl GameValue for crate::card::Game {}
+
 pub trait LanguageValue: ParamValue {}
+
+impl<T: TextValue> LanguageValue for T {}
 
 pub mod prelude {
     pub use super::compare_fns::*;
