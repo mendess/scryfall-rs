@@ -270,10 +270,6 @@ impl Param {
         Param(ParamImpl::Property(prop))
     }
 
-    fn exact(name: impl 'static + TextValue) -> Self {
-        Param(ParamImpl::Exact(Lrc::new(name)))
-    }
-
     fn value(kind: ValueKind, op: Option<CompareOp>, value: impl 'static + ParamValue) -> Self {
         Param(ParamImpl::Value(kind, op, Lrc::new(value)))
     }
@@ -282,7 +278,6 @@ impl Param {
 #[derive(Clone, Debug)]
 enum ParamImpl {
     Property(Property),
-    Exact(Lrc<dyn ParamValue>),
     Value(ValueKind, Option<CompareOp>, Lrc<dyn ParamValue>),
 }
 
@@ -296,7 +291,9 @@ impl fmt::Display for Param {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.0 {
             ParamImpl::Property(prop) => write!(f, "{}", prop),
-            ParamImpl::Exact(value) => write!(f, "!{}", value),
+            ParamImpl::Value(ValueKind(ValueKindImpl::Exact), None, value) => {
+                write!(f, "!{}", value)
+            },
             ParamImpl::Value(kind, op, value) => {
                 write!(f, "{}{}{}", kind, compare_op_str(*op), value)
             },
@@ -334,11 +331,7 @@ mod param_fns {
     }
 
     pub fn prop(prop: Property) -> Query {
-        Query::Param(Param(ParamImpl::Property(prop)))
-    }
-
-    pub fn exact(name: impl 'static + TextValue) -> Query {
-        Query::Param(Param::exact(name))
+        Query::Param(Param::property(prop))
     }
 
     param_fns! {
@@ -375,6 +368,7 @@ mod param_fns {
         language => Language: LanguageValue,
         in_language => InLanguage: LanguageValue,
         name => Name: TextOrRegexValue,
+        exact => Exact: TextValue,
 
         power => NumericComparable(Power),
         toughness => NumericComparable(Toughness),
@@ -639,6 +633,7 @@ enum ValueKindImpl {
     Language,
     InLanguage,
     Name,
+    Exact,
     NumericComparable(NumericProperty),
 }
 
@@ -732,6 +727,8 @@ impl fmt::Display for ValueKind {
                 | ValueKindImpl::InLanguage => "in",
                 ValueKindImpl::Name => "name",
                 ValueKindImpl::NumericComparable(np) => numeric_property_str(*np),
+                // TODO(msmorgan): Should this just be unreachable?
+                ValueKindImpl::Exact => return Err(fmt::Error::default()),
             }
         )
     }
@@ -1046,6 +1043,7 @@ mod tests {
             .sorted(SortMethod::Released, SortDirection::Ascending);
 
         search.write_query(&mut url).unwrap();
+        eprintln!("{}", url);
 
         assert_eq!(
             Card::search_new(&search)
@@ -1056,20 +1054,25 @@ mod tests {
                 .set
                 .to_string(),
             "lea",
-            "LEA lotus was not first with URL: {}",
-            url,
         );
     }
 
     #[test]
     fn rarity_comparison() {
+        // The cards with "Special" rarity (power nine in vma).
+        let cards = SearchOptions::new()
+            .query(rarity(gt(Rarity::Mythic)))
+            .search()
+            .unwrap()
+            .collect::<Vec<_>>();
+
+        assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
+
         assert!(
-            SearchOptions::new()
-                .query(rarity(gt(Rarity::Rare)))
-                .random()
-                .unwrap()
-                .rarity
-                > Rarity::Rare
+            cards
+                .into_iter()
+                .map(|c| c.unwrap())
+                .all(|c| c.rarity > Rarity::Mythic)
         );
     }
 }
