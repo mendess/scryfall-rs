@@ -33,6 +33,18 @@ pub trait Search {
     }
 }
 
+impl<T: Search> Search for &T {
+    fn write_query(&self, url: &mut Url) -> crate::Result<()> {
+        <T as Search>::write_query(*self, url)
+    }
+}
+
+impl<T: Search> Search for &mut T {
+    fn write_query(&self, url: &mut Url) -> crate::Result<()> {
+        <T as Search>::write_query(*self, url)
+    }
+}
+
 impl Search for SearchOptions {
     fn write_query(&self, url: &mut Url) -> crate::Result<()> {
         self.serialize(serde_urlencoded::Serializer::new(
@@ -270,8 +282,12 @@ impl Param {
         Param(ParamImpl::Property(prop))
     }
 
-    fn value(kind: ValueKind, op: Option<CompareOp>, value: impl 'static + ParamValue) -> Self {
-        Param(ParamImpl::Value(kind, op, Lrc::new(value)))
+    fn value(kind: ValueKind, value: impl 'static + ParamValue) -> Self {
+        Param(ParamImpl::Value(kind, None, Lrc::new(value)))
+    }
+
+    fn cmp_value(kind: ValueKind, op: CompareOp, value: impl 'static + ParamValue) -> Self {
+        Param(ParamImpl::Value(kind, Some(op), Lrc::new(value)))
     }
 }
 
@@ -321,7 +337,9 @@ mod param_fns {
 
         ($func:ident => NumericComparable($Kind:ident), $($rest:tt)*) => {
             pub fn $func(value: impl NumericComparableValue) -> Query {
-                Query::Param(value.into_param(ValueKind(ValueKindImpl::NumericComparable(NumericProperty::$Kind))))
+                Query::Param(value.into_param(ValueKind(ValueKindImpl::NumericComparable(
+                    NumericProperty::$Kind,
+                ))))
             }
 
             param_fns!($($rest)*);
@@ -795,13 +813,13 @@ const fn compare_op_str(op: Option<CompareOp>) -> &'static str {
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Compare<T> {
-    op: Option<CompareOp>,
+    op: CompareOp,
     value: T,
 }
 
 impl<T: fmt::Display> fmt::Display for Compare<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}{}", compare_op_str(self.op), &self.value)
+        write!(f, "{}{}", compare_op_str(Some(self.op)), &self.value)
     }
 }
 
@@ -813,7 +831,7 @@ mod compare_fns {
             $(
                 pub fn $meth<T>(x: T) -> Compare<T> {
                     Compare {
-                        op: Some(CompareOp::$Variant),
+                        op: CompareOp::$Variant,
                         value: x,
                     }
                 }
@@ -837,7 +855,7 @@ pub trait ParamValue: fmt::Debug + fmt::Display {
 
 impl<T: 'static + ParamValue> ParamValue for Compare<T> {
     fn into_param(self, kind: ValueKind) -> Param {
-        Param::value(kind, self.op, self.value)
+        Param::cmp_value(kind, self.op, self.value)
     }
 }
 
@@ -860,11 +878,32 @@ pub trait ProducesValue: ParamValue {}
 
 pub trait NumericValue: ParamValue {}
 
-impl<T: 'static + NumericValue> NumericValue for Compare<T> {}
+macro_rules! impl_numeric_values {
+    ($($Ty:ty,)*) => {
+        $(
+            impl ParamValue for $Ty {
+                fn into_param(self, kind: ValueKind) -> Param {
+                    Param::value(kind, self)
+                }
+            }
+
+            impl NumericValue for $Ty {}
+
+            impl NumericComparableValue for $Ty {}
+        )*
+    };
+}
+
+#[rustfmt::skip]
+impl_numeric_values!(
+    usize, u8, u16, u32, u64, u128,
+    isize, i8, i16, i32, i64, i128,
+    f32, f64,
+);
 
 pub trait NumericComparableValue: ParamValue {}
 
-impl<T: 'static + NumericValue> NumericComparableValue for T {}
+impl<T: 'static + NumericComparableValue> NumericComparableValue for Compare<T> {}
 
 impl ParamValue for NumericProperty {
     fn into_param(self, kind: ValueKind) -> Param {
@@ -886,7 +925,7 @@ impl ParamValue for String {
 
 impl<T: 'static + ParamValue> ParamValue for Quoted<T> {
     fn into_param(self, kind: ValueKind) -> Param {
-        Param::value(kind, None, self)
+        Param::value(kind, self)
     }
 }
 
@@ -894,29 +933,21 @@ impl TextValue for String {}
 
 impl TextOrRegexValue for String {}
 
-impl ParamValue for &'_ str {
+impl ParamValue for &str {
     fn into_param(self, kind: ValueKind) -> Param {
         self.to_string().into_param(kind)
     }
 }
 
-impl TextValue for &'_ str {}
+impl TextValue for &str {}
 
-impl TextOrRegexValue for &'_ str {}
-
-impl ParamValue for u32 {
-    fn into_param(self, kind: ValueKind) -> Param {
-        Param::value(kind, None, self)
-    }
-}
-
-impl NumericValue for u32 {}
+impl TextOrRegexValue for &str {}
 
 pub trait RarityValue: ParamValue {}
 
 impl ParamValue for Rarity {
     fn into_param(self, kind: ValueKind) -> Param {
-        Param::value(kind, None, self)
+        Param::value(kind, self)
     }
 }
 
@@ -981,12 +1012,13 @@ mod tests {
     use url::Url;
 
     use super::prelude::*;
+    use crate::search::NumericProperty;
     use crate::Card;
 
     #[test]
     fn basic_search() {
         let cards = SearchOptions::new()
-            .query(name("lightning").and(name("helix")).and(cmc(eq(2))))
+            .query(name("lightning") & name("helix") & cmc(eq(2)))
             .unique(UniqueStrategy::Prints)
             .search()
             .unwrap()
@@ -1059,7 +1091,7 @@ mod tests {
 
     #[test]
     fn rarity_comparison() {
-        // The cards with "Special" rarity (power nine in vma).
+        // The cards with "Bonus" rarity (power nine in vma).
         let cards = SearchOptions::new()
             .query(rarity(gt(Rarity::Mythic)))
             .search()
@@ -1073,6 +1105,26 @@ mod tests {
                 .into_iter()
                 .map(|c| c.unwrap())
                 .all(|c| c.rarity > Rarity::Mythic)
+        );
+    }
+
+    #[test]
+    fn numeric_property_comparison() {
+        let card = Card::search_random_new(
+            power(eq(NumericProperty::Toughness))
+                & pow_tou(eq(NumericProperty::Cmc))
+                & not(prop(Property::IsFunny)),
+        )
+        .unwrap();
+
+        assert_eq!(
+            card.power.as_ref().unwrap(),
+            card.toughness.as_ref().unwrap(),
+        );
+        assert_eq!(
+            card.power.unwrap().parse::<u32>().unwrap()
+                + card.toughness.unwrap().parse::<u32>().unwrap(),
+            card.cmc as u32,
         );
     }
 }

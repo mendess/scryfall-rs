@@ -423,7 +423,7 @@ impl Card {
     }
 
     /// `search`, but new!
-    pub fn search_new(query: &impl crate::search::Search) -> crate::Result<ListIter<Card>> {
+    pub fn search_new(query: impl crate::search::Search) -> crate::Result<ListIter<Card>> {
         let mut url = CARDS_URL.join("search/")?;
         query.write_query(&mut url)?;
         Uri::from(url).fetch_iter()
@@ -447,7 +447,7 @@ impl Card {
     }
 
     /// `search_random`, but new!
-    pub fn search_random_new(query: &impl crate::search::Search) -> crate::Result<Card> {
+    pub fn search_random_new(query: impl crate::search::Search) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("random/")?;
         query.write_query(&mut url)?;
         Uri::from(url).fetch()
