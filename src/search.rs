@@ -18,6 +18,13 @@ use crate::Card;
 pub trait Search {
     fn write_query(&self, url: &mut Url) -> crate::Result<()>;
 
+    #[cfg(test)]
+    fn query_string(&self) -> crate::Result<String> {
+        let mut url = Url::parse("http://localhost")?;
+        self.write_query(&mut url)?;
+        Ok(url.query().unwrap_or_default().to_string())
+    }
+
     fn search(&self) -> crate::Result<ListIter<Card>>
     where
         Self: Sized,
@@ -989,6 +996,9 @@ pub mod prelude {
         FrameValue as _,
         GameValue as _,
         LanguageValue as _,
+        NumericComparableValue as _,
+        NumericProperty,
+        NumericValue as _,
         ParamValue,
         Property,
         RarityValue as _,
@@ -1008,11 +1018,7 @@ pub mod prelude {
 
 #[cfg(test)]
 mod tests {
-    use strum::IntoEnumIterator;
-    use url::Url;
-
     use super::prelude::*;
-    use crate::search::NumericProperty;
     use crate::Card;
 
     #[test]
@@ -1056,6 +1062,8 @@ mod tests {
     #[test]
     #[ignore]
     fn all_properties_work() {
+        use strum::IntoEnumIterator;
+
         for p in Property::iter() {
             let query = prop(p);
             query
@@ -1066,7 +1074,6 @@ mod tests {
 
     #[test]
     fn finds_alpha_lotus() {
-        let mut url = Url::parse("http://api.scryfall.com/cards/search/").unwrap();
         let mut search = SearchOptions::new();
 
         search
@@ -1074,8 +1081,7 @@ mod tests {
             .unique(UniqueStrategy::Prints)
             .sorted(SortMethod::Released, SortDirection::Ascending);
 
-        search.write_query(&mut url).unwrap();
-        eprintln!("{}", url);
+        eprintln!("{}", search.query_string().unwrap());
 
         assert_eq!(
             Card::search_new(&search)
@@ -1113,18 +1119,23 @@ mod tests {
         let card = Card::search_random_new(
             power(eq(NumericProperty::Toughness))
                 & pow_tou(eq(NumericProperty::Cmc))
-                & not(prop(Property::IsFunny)),
+                & !prop(Property::IsFunny),
         )
         .unwrap();
 
+        let power = card.power.unwrap().parse::<u32>().unwrap();
+        let toughness = card.toughness.unwrap().parse::<u32>().unwrap();
+
+        assert_eq!(power, toughness);
+        assert_eq!(power + toughness, card.cmc as u32);
+    }
+
+    #[test]
+    fn query_string_sanity_check() {
+        let query = cmc(4) & name("Yargle");
         assert_eq!(
-            card.power.as_ref().unwrap(),
-            card.toughness.as_ref().unwrap(),
-        );
-        assert_eq!(
-            card.power.unwrap().parse::<u32>().unwrap()
-                + card.toughness.unwrap().parse::<u32>().unwrap(),
-            card.cmc as u32,
+            query.query_string().unwrap(),
+            "q=%28cmc%3A4+AND+name%3A%22Yargle%22%29"
         );
     }
 }
