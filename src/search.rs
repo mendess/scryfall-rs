@@ -1,20 +1,29 @@
-#![allow(missing_docs)]
+#![warn(missing_docs)]
 
-use std::collections::VecDeque;
+use std::fmt;
 use std::hash::Hash;
 use std::rc::Rc as Lrc;
-use std::{fmt, ops};
 
 use serde::{Serialize, Serializer};
 use url::Url;
 
 pub use self::compare_fns::*;
 pub use self::param_fns::*;
-pub use crate::card_searcher::{SortDirection, SortMethod, UniqueStrategy};
 use crate::list::ListIter;
 use crate::Card;
 
+/// A type implementing `Search` can be turned into a Scryfall query. This is
+/// the argument type for [`Card::search`] and
+/// [`search_random`][Card::search_random].
+///
+/// The `scryfall` crate provides the type [`Query`] for specifying search
+/// expressions. For advanced search, use [`SearchOptions`] to specify sorting,
+/// unique rollup, and other options.
+///
+/// The `Search` trait is implemented for `&str` and `String` as well,
+/// supporting custom searches using [scryfall.com syntax][https://scryfall.com/docs/syntax].
 pub trait Search {
+    /// Write this search as the query for the given `Url`.
     fn write_query(&self, url: &mut Url) -> crate::Result<()>;
 
     #[cfg(test)]
@@ -24,6 +33,7 @@ pub trait Search {
         Ok(url.query().unwrap_or_default().to_string())
     }
 
+    /// Convenience method for passing this object to [`Card::search`].
     fn search(&self) -> crate::Result<ListIter<Card>>
     where
         Self: Sized,
@@ -31,6 +41,7 @@ pub trait Search {
         Card::search_new(self)
     }
 
+    /// Convenience method for passing this object to [`Card::search_random`].
     fn random(&self) -> crate::Result<Card>
     where
         Self: Sized,
@@ -75,6 +86,11 @@ impl Search for Query {
     }
 }
 
+/// Advanced searching options for Scryfall, including unique de-duplication
+/// strategy, sort order, page number, and any extras to include. For
+/// documentation on each option, refer to this struct's methods.
+///
+/// For more information, refer to the [official docs](https://scryfall.com/docs/api/cards/search).
 #[derive(Serialize, Default, Debug)]
 pub struct SearchOptions {
     #[serde(skip_serializing_if = "is_default")]
@@ -104,6 +120,7 @@ fn serialize_query<S: Serializer>(query: &Query, serializer: S) -> Result<S::Ok,
 }
 
 impl SearchOptions {
+    /// Constructs a new `SearchOptions` with default values and an empty query.
     pub fn new() -> Self {
         SearchOptions {
             page: 1,
@@ -111,61 +128,181 @@ impl SearchOptions {
         }
     }
 
+    /// Constructs a new `SearchOptions` with default values and the specified
+    /// `query`.
+    pub fn with_query(query: Query) -> Self {
+        SearchOptions {
+            query,
+            ..Self::new()
+        }
+    }
+
+    /// Sets the [`Query`] to use for this search.
     pub fn query(&mut self, query: Query) -> &mut Self {
         self.query = query;
         self
     }
 
+    /// Sets the strategy for omitting similar cards.
     pub fn unique(&mut self, unique: UniqueStrategy) -> &mut Self {
         self.unique = unique;
         self
     }
 
+    /// Sets the method and direction to sort returned cards.
     pub fn sorted(&mut self, sort_by: SortMethod, dir: SortDirection) -> &mut Self {
         self.order = sort_by;
         self.dir = dir;
         self
     }
 
+    /// If true, extra cards (tokens, planes, etc) will be included.
     pub fn extras(&mut self, include_extras: bool) -> &mut Self {
         self.include_extras = include_extras;
         self
     }
 
+    /// If true, cards in every language supported by Scryfall will be included.
     pub fn multilingual(&mut self, include_multilingual: bool) -> &mut Self {
         self.include_multilingual = include_multilingual;
         self
     }
 
+    /// If true, rare care variants will be included, like the
+    /// [Hairy Runesword](https://scryfall.com/card/drk/107%E2%80%A0/runesword).
     pub fn variations(&mut self, include_variations: bool) -> &mut Self {
         self.include_variations = include_variations;
         self
     }
 }
 
+/// The unique parameter specifies if Scryfall should remove “duplicate” results
+/// in your query.
+#[derive(Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum UniqueStrategy {
+    /// Removes duplicate gameplay objects (cards that share a name and have the
+    /// same functionality). For example, if your search matches more than
+    /// one print of Pacifism, only one copy of Pacifism will be returned.
+    Cards,
+    /// Returns only one copy of each unique artwork for matching cards. For
+    /// example, if your search matches more than one print of Pacifism, one
+    /// card with each different illustration for Pacifism will be returned,
+    /// but any cards that duplicate artwork already in the results will
+    /// be omitted.
+    Art,
+    /// Returns all prints for all cards matched (disables rollup). For example,
+    /// if your search matches more than one print of Pacifism, all matching
+    /// prints will be returned.
+    Prints,
+}
+
+impl Default for UniqueStrategy {
+    fn default() -> Self {
+        UniqueStrategy::Cards
+    }
+}
+
+/// The order parameter determines how Scryfall should sort the returned cards.
+#[derive(Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum SortMethod {
+    /// Sort cards by name, A → Z
+    Name,
+    /// Sort cards by their set and collector number: AAA/#1 → ZZZ/#999
+    Set,
+    /// Sort cards by their release date: Newest → Oldest
+    Released,
+    /// Sort cards by their rarity: Common → Mythic
+    Rarity,
+    /// Sort cards by their color and color identity: WUBRG → multicolor →
+    /// colorless
+    Color,
+    /// Sort cards by their lowest known U.S. Dollar price: 0.01 → highest, null
+    /// last
+    Usd,
+    /// Sort cards by their lowest known TIX price: 0.01 → highest, null last
+    Tix,
+    /// Sort cards by their lowest known Euro price: 0.01 → highest, null last
+    Eur,
+    /// Sort cards by their converted mana cost: 0 → highest
+    Cmc,
+    /// Sort cards by their power: null → highest
+    Power,
+    /// Sort cards by their toughness: null → highest
+    Toughness,
+    /// Sort cards by their EDHREC ranking: lowest → highest
+    Edhrec,
+    /// Sort cards by their front-side artist name: A → Z
+    Artist,
+}
+
+impl Default for SortMethod {
+    fn default() -> Self {
+        SortMethod::Name
+    }
+}
+
+/// Which direction the sorting should occur:
+#[derive(Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[serde(rename_all = "lowercase")]
+pub enum SortDirection {
+    /// Scryfall will automatically choose the most intuitive direction to sort
+    Auto,
+    /// Sort ascending (flip the direction of the arrows in [`SortMethod`])
+    ///
+    /// [`SortMethod`]: enum.SortMethod.html
+    #[serde(rename = "asc")]
+    Ascending,
+    /// Sort descending (flip the direction of the arrows in [`SortMethod`])
+    ///
+    /// [`SortMethod`]: enum.SortMethod.html
+    #[serde(rename = "desc")]
+    Descending,
+}
+
+impl Default for SortDirection {
+    fn default() -> Self {
+        SortDirection::Auto
+    }
+}
+
+/// A search query, composed of search parameters and boolean operations.
+///
+/// For information on search parameters, see [`Param`].
 #[derive(PartialEq, Debug)]
-pub enum Query {
-    And(VecDeque<Query>),
-    Or(VecDeque<Query>),
+pub struct Query(QueryImpl);
+
+// TODO(msmorgan): Move the docs from here to somewhere else?
+#[derive(PartialEq, Debug)]
+enum QueryImpl {
+    /// The returned cards must match all of the sub-queries.
+    And(Vec<Query>),
+    /// The returned cards must match at least one of the sub-queries.
+    Or(Vec<Query>),
+    /// The returned cards must not match the sub-query.
     Not(Box<Query>),
+    /// The returned cards must match the specified search param.
     Param(Param),
+    /// Empty query, used as a default value. Attempting to search with an empty
+    /// query will result in a failure response.
     Empty,
 }
 
 impl Default for Query {
     fn default() -> Self {
-        Query::Empty
+        Query(QueryImpl::Empty)
     }
 }
 
 impl fmt::Display for Query {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let (exprs, sep) = match self {
-            Query::And(exprs) => (exprs, " AND "),
-            Query::Or(exprs) => (exprs, " OR "),
-            Query::Not(expr) => return write!(f, "-{}", expr),
-            Query::Param(param) => return write!(f, "{}", param),
-            Query::Empty => return write!(f, ""),
+        let (exprs, sep) = match &self.0 {
+            QueryImpl::And(exprs) => (exprs, " AND "),
+            QueryImpl::Or(exprs) => (exprs, " OR "),
+            QueryImpl::Not(expr) => return write!(f, "-{}", expr),
+            QueryImpl::Param(param) => return write!(f, "{}", param),
+            QueryImpl::Empty => return write!(f, ""),
         };
 
         use itertools::Itertools;
@@ -175,111 +312,87 @@ impl fmt::Display for Query {
 
 impl From<Param> for Query {
     fn from(param: Param) -> Self {
-        Query::Param(param)
-    }
-}
-
-impl ops::BitAnd for Query {
-    type Output = Self;
-
-    fn bitand(self, other: Self) -> Self {
-        self.and(other)
-    }
-}
-
-impl ops::BitOr for Query {
-    type Output = Self;
-
-    fn bitor(self, other: Self) -> Self {
-        self.or(other)
-    }
-}
-
-impl ops::Not for Query {
-    type Output = Query;
-
-    fn not(self) -> Self::Output {
-        match self {
-            Query::Not(q) => *q,
-            q => Query::Not(Box::new(q)),
-        }
+        Query(QueryImpl::Param(param))
     }
 }
 
 impl Query {
+    /// Combines this query with `other` using the boolean AND operation.
     pub fn and(self, other: Self) -> Query {
-        match (self, other) {
-            (Query::Empty, x) | (x, Query::Empty) => x,
-            (Query::And(mut a_list), Query::And(mut b_list)) => {
+        Query(match (self.0, other.0) {
+            (QueryImpl::Empty, q) | (q, QueryImpl::Empty) => q,
+            (QueryImpl::And(mut a_list), QueryImpl::And(mut b_list)) => {
                 a_list.append(&mut b_list);
-                Query::And(a_list)
+                QueryImpl::And(a_list)
             },
-            (Query::And(mut a_list), b) => {
-                a_list.push_back(b);
-                Query::And(a_list)
+            (QueryImpl::And(mut a_list), b) => {
+                a_list.push(Query(b));
+                QueryImpl::And(a_list)
             },
-            (a, Query::And(mut b_list)) => {
-                b_list.push_front(a);
-                Query::And(b_list)
+            (a, QueryImpl::And(mut b_list)) => {
+                b_list.insert(0, Query(a));
+                QueryImpl::And(b_list)
             },
-            (a, b) => {
-                let mut list = VecDeque::with_capacity(2);
-                list.push_back(a);
-                list.push_back(b);
-                Query::And(list)
-            },
-        }
+            (a, b) => QueryImpl::And(vec![Query(a), Query(b)]),
+        })
     }
 
+    /// Combines this query with `other` using the boolean OR operation.
     pub fn or(self, other: Self) -> Query {
-        match (self, other) {
-            (Query::Empty, x) | (x, Query::Empty) => x,
-            (Query::Or(mut a_list), Query::Or(mut b_list)) => {
+        Query(match (self.0, other.0) {
+            (QueryImpl::Empty, q) | (q, QueryImpl::Empty) => q,
+            (QueryImpl::Or(mut a_list), QueryImpl::Or(mut b_list)) => {
                 a_list.append(&mut b_list);
-                Query::Or(a_list)
+                QueryImpl::Or(a_list)
             },
-            (Query::Or(mut a_list), b) => {
-                a_list.push_back(b);
-                Query::Or(a_list)
+            (QueryImpl::Or(mut a_list), b) => {
+                a_list.push(Query(b));
+                QueryImpl::Or(a_list)
             },
-            (a, Query::Or(mut b_list)) => {
-                b_list.push_front(a);
-                Query::Or(b_list)
+            (a, QueryImpl::Or(mut b_list)) => {
+                b_list.insert(0, Query(a));
+                QueryImpl::Or(b_list)
             },
-            (a, b) => {
-                let mut list = VecDeque::with_capacity(2);
-                list.push_back(a);
-                list.push_back(b);
-                Query::Or(list)
-            },
-        }
+            (a, b) => QueryImpl::Or(vec![Query(a), Query(b)]),
+        })
     }
 }
 
 mod query_fns {
     use super::*;
 
+    /// Combines the specified `queries` using the boolean AND operation.
     pub fn and(queries: impl IntoIterator<Item = Query>) -> Query {
-        let mut result = Query::Empty;
+        let mut result = Query(QueryImpl::Empty);
         for query in queries {
             result = result.and(query);
         }
         result
     }
 
+    /// Combines the specified `queries` using the boolean OR operation.
     pub fn or(queries: impl IntoIterator<Item = Query>) -> Query {
-        let mut result = Query::Empty;
+        let mut result = Query(QueryImpl::Empty);
         for query in queries {
             result = result.and(query);
         }
         result
     }
 
-    pub fn not(q: Query) -> Query {
-        ops::Not::not(q)
+    /// Negates the specified `query`.
+    pub fn not(query: Query) -> Query {
+        Query(match query.0 {
+            QueryImpl::Not(q) => (*q).0,
+            QueryImpl::Empty => QueryImpl::Empty,
+            q => QueryImpl::Not(Box::new(Query(q))),
+        })
     }
 }
 
+/// A filter to provide to the search to reduce the cards returned.
+///
+/// For more information on available parameters, refer to the
+/// [official docs](https://scryfall.com/docs/syntax).
 #[derive(Clone, Debug)]
 pub struct Param(ParamImpl);
 
@@ -332,20 +445,23 @@ impl From<Property> for Param {
 mod param_fns {
     use super::*;
 
+    // TODO(msmorgan): Docs for these functions.
     macro_rules! param_fns {
         ($func:ident => $Kind:ident : $Constraint:ident, $($rest:tt)*) => {
+            #[allow(missing_docs)]
             pub fn $func(value: impl 'static + $Constraint) -> Query {
-                Query::Param(value.into_param(ValueKind(ValueKindImpl::$Kind)))
+                Query(QueryImpl::Param(value.into_param(ValueKind(ValueKindImpl::$Kind))))
             }
 
             param_fns!($($rest)*);
         };
 
         ($func:ident => NumericComparable($Kind:ident), $($rest:tt)*) => {
+            #[allow(missing_docs)]
             pub fn $func(value: impl 'static + NumericComparableValue) -> Query {
-                Query::Param(value.into_param(ValueKind(ValueKindImpl::NumericComparable(
+                Query(QueryImpl::Param(value.into_param(ValueKind(ValueKindImpl::NumericComparable(
                     NumericProperty::$Kind,
-                ))))
+                )))))
             }
 
             param_fns!($($rest)*);
@@ -354,8 +470,9 @@ mod param_fns {
         () => {};
     }
 
+    /// Match a card with a specified [`Property`].
     pub fn prop(prop: Property) -> Query {
-        Query::Param(Param::property(prop))
+        Query(QueryImpl::Param(Param::property(prop)))
     }
 
     param_fns! {
@@ -413,6 +530,8 @@ mod param_fns {
     }
 }
 
+// TODO(msmorgan): Expand on these docs to explain different types of props.
+/// A property is a boolean flag associated with a card or printing.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, derive(strum::EnumIter))]
 pub enum Property {
@@ -510,25 +629,49 @@ pub enum Property {
     /// Find cards that were given away in releases.
     SoldInRelease,
 
-    IsCycleLand,
+    // TODO(msmorgan): Docs and examples for all land families.
+    // TODO(msmorgan): Rename to Bicycle/BiCycle?
+    #[allow(missing_docs)]
+    IsCyclingDualLand,
+    // TODO(msmorgan): Rename to Tricycle/TriCycle?
+    #[allow(missing_docs)]
+    IsCyclingTriLand,
+    #[allow(missing_docs)]
     IsBounceLand,
+    #[allow(missing_docs)]
     IsCanopyLand,
+    #[allow(missing_docs)]
     IsCheckLand,
+    #[allow(missing_docs)]
     IsDualLand,
+    #[allow(missing_docs)]
     IsFastLand,
+    #[allow(missing_docs)]
     IsFetchLand,
+    #[allow(missing_docs)]
     IsFilterLand,
+    #[allow(missing_docs)]
     IsGainLand,
+    #[allow(missing_docs)]
     IsPainLand,
+    #[allow(missing_docs)]
     IsScryLand,
+    #[allow(missing_docs)]
     IsShadowLand,
+    #[allow(missing_docs)]
     IsShockLand,
+    #[allow(missing_docs)]
     IsStorageLand,
+    #[allow(missing_docs)]
     IsCreatureLand,
+    #[allow(missing_docs)]
     IsTriLand,
+    #[allow(missing_docs)]
     IsBattleLand,
 
+    /// The converted mana cost of this card is an even number.
     EvenCmc,
+    /// The converted mana cost of this card is an odd number.
     OddCmc,
 }
 
@@ -595,7 +738,8 @@ impl fmt::Display for Property {
                 Property::SoldInGameDay => "gameday",
                 Property::SoldInPreRelease => "prerelease",
                 Property::SoldInRelease => "release",
-                Property::IsCycleLand => "cycle_land",
+                Property::IsCyclingDualLand => "bicycle_land",
+                Property::IsCyclingTriLand => "tricycle_land",
                 Property::IsBounceLand => "bounce_land",
                 Property::IsCanopyLand => "canopy_land",
                 Property::IsCheckLand => "check_land",
@@ -884,6 +1028,7 @@ impl ParamValue for crate::card::Color {}
 impl ColorValue for crate::card::Color {}
 
 impl ParamValue for crate::card::Colors {}
+
 impl ColorValue for crate::card::Colors {}
 
 // impl<T: TextValue> ColorValue for T {}
@@ -922,6 +1067,7 @@ impl ParamValue for NumericProperty {
         numeric_property_str(self).into_param(kind)
     }
 }
+
 impl NumericComparableValue for NumericProperty {}
 
 pub trait TextValue: ParamValue {}
@@ -941,6 +1087,7 @@ impl ParamValue for Quoted<String> {
         Param::value(kind, self)
     }
 }
+
 impl TextValue for Quoted<String> {}
 
 impl ParamValue for String {
@@ -948,6 +1095,7 @@ impl ParamValue for String {
         Quoted(self).into_param(kind)
     }
 }
+
 impl TextValue for String {}
 
 impl ParamValue for &str {
@@ -955,6 +1103,7 @@ impl ParamValue for &str {
         self.to_string().into_param(kind)
     }
 }
+
 impl TextValue for &str {}
 
 pub trait TextOrRegexValue: ParamValue {}
@@ -972,6 +1121,7 @@ impl fmt::Display for Regex {
 }
 
 impl ParamValue for Regex {}
+
 impl TextOrRegexValue for Regex {}
 
 /// A parameter that
@@ -980,7 +1130,9 @@ pub trait RarityValue: ParamValue {}
 impl<T: TextValue> RarityValue for T {}
 
 impl ParamValue for crate::card::Rarity {}
+
 impl RarityValue for crate::card::Rarity {}
+
 impl RarityValue for Compare<crate::card::Rarity> {}
 
 pub trait SetValue: ParamValue {}
@@ -994,6 +1146,7 @@ pub trait FormatValue: ParamValue {}
 impl<T: TextValue> FormatValue for T {}
 
 impl ParamValue for crate::format::Format {}
+
 impl FormatValue for crate::format::Format {}
 
 pub trait CurrencyValue: ParamValue {}
@@ -1011,6 +1164,7 @@ pub trait BorderColorValue: ParamValue {}
 impl<T: TextValue> BorderColorValue for T {}
 
 impl ParamValue for crate::card::BorderColor {}
+
 impl BorderColorValue for crate::card::BorderColor {}
 
 /// A parameter with card frames and frame effects.
@@ -1019,9 +1173,11 @@ pub trait FrameValue: ParamValue {}
 impl<T: TextValue> FrameValue for T {}
 
 impl ParamValue for crate::card::FrameEffect {}
+
 impl FrameValue for crate::card::FrameEffect {}
 
 impl ParamValue for crate::card::Frame {}
+
 impl FrameValue for crate::card::Frame {}
 
 /// A parameter that specifies a date.
@@ -1036,6 +1192,7 @@ pub trait GameValue: ParamValue {}
 impl<T: TextValue> GameValue for T {}
 
 impl ParamValue for crate::card::Game {}
+
 impl GameValue for crate::card::Game {}
 
 pub trait LanguageValue: ParamValue {}
@@ -1061,6 +1218,7 @@ pub mod prelude {
         NumericValue as _,
         ParamValue,
         Property,
+        Query,
         RarityValue as _,
         Search,
         SearchOptions,
@@ -1084,7 +1242,7 @@ mod tests {
     #[test]
     fn basic_search() {
         let cards = SearchOptions::new()
-            .query(name("lightning") & name("helix") & cmc(eq(2)))
+            .query(and(vec![name("lightning"), name("helix"), cmc(eq(2))]))
             .unique(UniqueStrategy::Prints)
             .search()
             .unwrap()
@@ -1176,11 +1334,11 @@ mod tests {
 
     #[test]
     fn numeric_property_comparison() {
-        let card = Card::search_random_new(
-            power(eq(NumericProperty::Toughness))
-                & pow_tou(eq(NumericProperty::Cmc))
-                & !prop(Property::IsFunny),
-        )
+        let card = Card::search_random_new(and(vec![
+            power(eq(NumericProperty::Toughness)),
+            pow_tou(eq(NumericProperty::Cmc)),
+            not(prop(Property::IsFunny)),
+        ]))
         .unwrap();
 
         let power = card.power.unwrap().parse::<u32>().unwrap();
@@ -1192,7 +1350,7 @@ mod tests {
 
     #[test]
     fn query_string_sanity_check() {
-        let query = cmc(4) & name("Yargle");
+        let query = cmc(4).and(name("Yargle"));
         assert_eq!(
             query.query_string().unwrap(),
             "q=%28cmc%3A4+AND+name%3A%22Yargle%22%29"

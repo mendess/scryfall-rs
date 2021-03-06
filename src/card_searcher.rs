@@ -24,6 +24,7 @@ use static_assertions::assert_impl_all;
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
 use crate::list::ListIter;
+pub use crate::search::{SortDirection, SortMethod, UniqueStrategy};
 use crate::set::SetCode;
 
 /// Search expresses that the implementing type can be turned into a query to
@@ -294,97 +295,6 @@ impl SearchBuilder {
 impl Search for SearchBuilder {
     fn to_query(&self) -> String {
         serde_urlencoded::to_string(self).unwrap()
-    }
-}
-
-/// The unique parameter specifies if Scryfall should remove “duplicate” results
-/// in your query.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum UniqueStrategy {
-    /// Removes duplicate gameplay objects (cards that share a name and have the
-    /// same functionality). For example, if your search matches more than
-    /// one print of Pacifism, only one copy of Pacifism will be returned.
-    Cards,
-    /// Returns only one copy of each unique artwork for matching cards. For
-    /// example, if your search matches more than one print of Pacifism, one
-    /// card with each different illustration for Pacifism will be returned,
-    /// but any cards that duplicate artwork already in the results will
-    /// be omitted.
-    Art,
-    /// Returns all prints for all cards matched (disables rollup). For example,
-    /// if your search matches more than one print of Pacifism, all matching
-    /// prints will be returned.
-    Prints,
-}
-
-impl Default for UniqueStrategy {
-    fn default() -> Self {
-        UniqueStrategy::Cards
-    }
-}
-
-/// The order parameter determines how Scryfall should sort the returned cards.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum SortMethod {
-    /// Sort cards by name, A → Z
-    Name,
-    /// Sort cards by their set and collector number: AAA/#1 → ZZZ/#999
-    Set,
-    /// Sort cards by their release date: Newest → Oldest
-    Released,
-    /// Sort cards by their rarity: Common → Mythic
-    Rarity,
-    /// Sort cards by their color and color identity: WUBRG → multicolor →
-    /// colorless
-    Color,
-    /// Sort cards by their lowest known U.S. Dollar price: 0.01 → highest, null
-    /// last
-    Usd,
-    /// Sort cards by their lowest known TIX price: 0.01 → highest, null last
-    Tix,
-    /// Sort cards by their lowest known Euro price: 0.01 → highest, null last
-    Eur,
-    /// Sort cards by their converted mana cost: 0 → highest
-    Cmc,
-    /// Sort cards by their power: null → highest
-    Power,
-    /// Sort cards by their toughness: null → highest
-    Toughness,
-    /// Sort cards by their EDHREC ranking: lowest → highest
-    Edhrec,
-    /// Sort cards by their front-side artist name: A → Z
-    Artist,
-}
-
-impl Default for SortMethod {
-    fn default() -> Self {
-        SortMethod::Name
-    }
-}
-
-/// Which direction the sorting should occur:
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
-#[serde(rename_all = "lowercase")]
-pub enum SortDirection {
-    /// Scryfall will automatically choose the most intuitive direction to sort
-    Auto,
-    /// Sort ascending (flip the direction of the arrows in [`SortMethod`])
-    ///
-    /// [`SortMethod`]: enum.SortMethod.html
-    #[serde(rename = "asc")]
-    Ascending,
-    /// Sort descending (flip the direction of the arrows in [`SortMethod`])
-    ///
-    /// [`SortMethod`]: enum.SortMethod.html
-    #[serde(rename = "desc")]
-    Descending,
-}
-
-impl Default for SortDirection {
-    fn default() -> Self {
-        SortDirection::Auto
     }
 }
 
