@@ -459,9 +459,9 @@ mod param_fns {
         ($func:ident => NumericComparable($Kind:ident), $($rest:tt)*) => {
             #[allow(missing_docs)]
             pub fn $func(value: impl 'static + NumericComparableValue) -> Query {
-                Query(QueryImpl::Param(value.into_param(ValueKind(ValueKindImpl::NumericComparable(
-                    NumericProperty::$Kind,
-                )))))
+                Query(QueryImpl::Param(value.into_param(ValueKind(
+                    ValueKindImpl::NumericComparable(NumProperty::$Kind),
+                ))))
             }
 
             param_fns!($($rest)*);
@@ -763,6 +763,11 @@ impl fmt::Display for Property {
     }
 }
 
+/// The type of parameter that this is. Corresponds to the name before the ':'
+/// or other operator.
+///
+/// Refer to [the syntax documentation](https://scryfall.com/docs/syntax) for details on the
+/// available parameter types.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct ValueKind(ValueKindImpl);
 
@@ -802,54 +807,78 @@ enum ValueKindImpl {
     InLanguage,
     Name,
     Exact,
-    NumericComparable(NumericProperty),
+    NumericComparable(NumProperty),
 }
 
 /// These properties can be compared against one another.
 ///
 /// For example `power(gt(NumericProperty::Toughness)`.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub enum NumericProperty {
+pub enum NumProperty {
+    /// The card's power. Only creature cards have this.
     Power,
+    /// The card's toughness. Only creature cards have this.
     Toughness,
+    /// The card's power plus its toughness. Only creatures cards have this.
     PowTou,
+    /// The card's starting loyalty. Only planeswalker cards have this.
+    ///
+    /// The value '0' will match non-numeric loyalties such as 'X'.
     Loyalty,
+    /// The card's converted mana cost. Cards without a mana cost have a
+    /// converted mana cost of '0'.
     Cmc,
+    /// The number of artists who contributed to this printing of the card.
+    ///
+    /// *Note*: This is not the same as the number of unique artists for a
+    /// particular card.
     ArtistCount,
+    /// This card's current nonfoil market price in US Dollars.
     Usd,
+    /// This card's current foil market price in US Dollars.
     UsdFoil,
+    /// This card's current market price in Euros.
     Eur,
+    /// This card's current market price in MTGO Tickets.
     Tix,
+    /// The number of different illustrations among prints of this card.
     IllustrationCount,
+    /// The number of different prints of this card, including both paper and
+    /// digital-exclusive sets.
     PrintCount,
+    /// The number of different sets this card has appeared in, including both
+    /// paper and digital-exclusive sets.
     SetCount,
+    /// The number of different prints of this card in paper.
     PaperPrintCount,
+    /// The number of different sets this card has appeared in, paper only.
     PaperSetCount,
+    /// The release year of this printing.
     Year,
 }
 
-const fn numeric_property_str(prop: NumericProperty) -> &'static str {
+const fn numeric_property_str(prop: NumProperty) -> &'static str {
     match prop {
-        NumericProperty::Power => "power",
-        NumericProperty::Toughness => "toughness",
-        NumericProperty::PowTou => "powtou",
-        NumericProperty::Loyalty => "loyalty",
-        NumericProperty::Cmc => "cmc",
-        NumericProperty::ArtistCount => "artists",
-        NumericProperty::Usd => "usd",
-        NumericProperty::UsdFoil => "usdfoil",
-        NumericProperty::Eur => "eur",
-        NumericProperty::Tix => "tix",
-        NumericProperty::IllustrationCount => "illustrations",
-        NumericProperty::PrintCount => "prints",
-        NumericProperty::SetCount => "sets",
-        NumericProperty::PaperPrintCount => "paperprints",
-        NumericProperty::PaperSetCount => "papersets",
-        NumericProperty::Year => "year",
+        NumProperty::Power => "power",
+        NumProperty::Toughness => "toughness",
+        NumProperty::PowTou => "powtou",
+        NumProperty::Loyalty => "loyalty",
+        NumProperty::Cmc => "cmc",
+        NumProperty::ArtistCount => "artists",
+        NumProperty::Usd => "usd",
+        NumProperty::UsdFoil => "usdfoil",
+        NumProperty::Eur => "eur",
+        NumProperty::Tix => "tix",
+        NumProperty::IllustrationCount => "illustrations",
+        NumProperty::PrintCount => "prints",
+        NumProperty::SetCount => "sets",
+        NumProperty::PaperPrintCount => "paperprints",
+        NumProperty::PaperSetCount => "papersets",
+        NumProperty::Year => "year",
     }
 }
 
-impl fmt::Display for NumericProperty {
+impl fmt::Display for NumProperty {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_str(numeric_property_str(*self))
     }
@@ -902,45 +931,76 @@ impl fmt::Display for ValueKind {
     }
 }
 
+/// The guilds of Ravnica, commonly used as an alias for color pairs.
 pub enum Guild {
+    /// The Azorius Senate, aligned with white and blue (WU).
     Azorius,
+    /// The Boros Legion, aligned with red and white (RW).
     Boros,
+    /// House Dimir, aligned with blue and black (UB).
     Dimir,
+    /// The Golgari Swarm, aligned with black and green (BG).
     Golgari,
+    /// The Gruul Clans, aligned with red and green (RG).
     Gruul,
+    /// The Izzet League, aligned with blue and red (UR).
     Izzet,
+    /// The Orzhov Syndicate, aligned with white and black (WB).
     Orzhov,
+    /// The Cult of Rakdos, aligned with black and red (BR).
     Rakdos,
+    /// The Selesnya Conclave, aligned with green and white (GW).
     Selesnya,
+    /// The Simic Combine, aligned with green and blue (GU).
     Simic,
 }
 
+/// The shards of Alara, commonly used as aliases for color shards (three colors
+/// in an unbroken chain in the color pie).
 pub enum Shard {
+    /// The shard of Bant, aligned with green, white, and blue (GWU).
     Bant,
+    /// The shard of Esper, aligned with white, blue, and black (WUB).
     Esper,
+    /// The shard of Grixis, aligned with blue, black, and red (UBR).
     Grixis,
+    /// The shard of Jund, aligned with black, red, and green (BRG).
     Jund,
+    /// The shard of Naya, aligned with red, green, and white (RGW).
     Naya,
 }
 
+/// The clans of Tarkir, commonly used as aliases for color wedges (one color
+/// and its two enemy colors).
 pub enum Wedge {
+    /// The Abzan Houses, aligned with white, black, and green (WBG).
     Abzan,
+    /// The Jeskai Way, aligned with blue, red, and white (URW).
     Jeskai,
+    /// The Mardu Horde, aligned with red, white, and black (RWB).
     Mardu,
+    /// The Sultai Brood, aligned with black, green, and blue (BGU).
     Sultai,
+    /// The Temur Frontier, aligned with green, blue, and red (GUR).
     Temur,
 }
 
+/// The four-color aliases supported by Scryfall.
 pub enum FourColor {
+    /// Black, green, red, and white (BGRW).
     Aggression,
+    /// Green, red, blue, and white (GRUW).
     Altruism,
+    /// Black, red, blue, and white (BRUW).
     Artifice,
+    /// Black, green, red, and blue (BGRU).
     Chaos,
+    /// Black, green, blue, and white (BGUW).
     Growth,
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub enum CompareOp {
+enum CompareOp {
     Lte,
     Lt,
     Gte,
@@ -961,6 +1021,7 @@ const fn compare_op_str(op: Option<CompareOp>) -> &'static str {
     }
 }
 
+/// An operator and RHS for a comparison expression of a parameter.
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Compare<T> {
     op: CompareOp,
@@ -977,8 +1038,12 @@ mod compare_fns {
     use super::*;
 
     macro_rules! compare_fns {
-        ($($meth:ident => $Variant:ident,)*) => {
+        ($(
+            $(#[$($attr:meta)*])?
+            $meth:ident => $Variant:ident,
+        )*) => {
             $(
+                $(#[$($attr)*])?
                 pub fn $meth<T>(x: T) -> Compare<T> {
                     Compare {
                         op: CompareOp::$Variant,
@@ -990,16 +1055,25 @@ mod compare_fns {
     }
 
     compare_fns! {
+        #[doc = "Less than `x`."]
         lt => Lt,
+        #[doc = "Less than or equal to `x`."]
         lte => Lte,
+        #[doc = "Greater than or equal to `x`."]
         gte => Gte,
+        #[doc = "Greater than `x`."]
         gt => Gt,
+        #[doc = "Equal to `x`."]
         eq => Eq,
+        #[doc = "Not equal to `x`."]
         neq => Neq,
     }
 }
 
+/// The base type for a parameter value. The `into_param` function handles
+/// converting the type into a [`Param`].
 pub trait ParamValue: fmt::Debug + fmt::Display {
+    /// Convert this value into a [`Param`] with the specified `kind`.
     fn into_param(self, kind: ValueKind) -> Param
     where
         Self: 'static + Sized,
@@ -1062,13 +1136,13 @@ pub trait NumericComparableValue: ParamValue {}
 
 impl<T: 'static + NumericComparableValue> NumericComparableValue for Compare<T> {}
 
-impl ParamValue for NumericProperty {
+impl ParamValue for NumProperty {
     fn into_param(self, kind: ValueKind) -> Param {
         numeric_property_str(self).into_param(kind)
     }
 }
 
-impl NumericComparableValue for NumericProperty {}
+impl NumericComparableValue for NumProperty {}
 
 pub trait TextValue: ParamValue {}
 
@@ -1213,8 +1287,8 @@ pub mod prelude {
         FrameValue as _,
         GameValue as _,
         LanguageValue as _,
+        NumProperty,
         NumericComparableValue as _,
-        NumericProperty,
         NumericValue as _,
         ParamValue,
         Property,
@@ -1335,8 +1409,8 @@ mod tests {
     #[test]
     fn numeric_property_comparison() {
         let card = Card::search_random_new(and(vec![
-            power(eq(NumericProperty::Toughness)),
-            pow_tou(eq(NumericProperty::Cmc)),
+            power(eq(NumProperty::Toughness)),
+            pow_tou(eq(NumProperty::Cmc)),
             not(prop(Property::IsFunny)),
         ]))
         .unwrap();
