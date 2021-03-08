@@ -270,12 +270,9 @@ impl Default for SortDirection {
 /// A search query, composed of search parameters and boolean operations.
 ///
 /// For information on search parameters, see [`Param`].
-#[derive(PartialEq, Debug)]
-pub struct Query(QueryImpl);
-
 // TODO(msmorgan): Move the docs from here to somewhere else?
 #[derive(PartialEq, Debug)]
-enum QueryImpl {
+pub enum Query {
     /// The returned cards must match all of the sub-queries.
     And(Vec<Query>),
     /// The returned cards must match at least one of the sub-queries.
@@ -286,23 +283,24 @@ enum QueryImpl {
     Param(Param),
     /// Empty query, used as a default value. Attempting to search with an empty
     /// query will result in a failure response.
+    #[doc(hidden)]
     Empty,
 }
 
 impl Default for Query {
     fn default() -> Self {
-        Query(QueryImpl::Empty)
+        Query::Empty
     }
 }
 
 impl fmt::Display for Query {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let (exprs, sep) = match &self.0 {
-            QueryImpl::And(exprs) => (exprs, " AND "),
-            QueryImpl::Or(exprs) => (exprs, " OR "),
-            QueryImpl::Not(expr) => return write!(f, "-{}", expr),
-            QueryImpl::Param(param) => return write!(f, "{}", param),
-            QueryImpl::Empty => return write!(f, ""),
+        let (exprs, sep) = match &self {
+            Query::And(exprs) => (exprs, " AND "),
+            Query::Or(exprs) => (exprs, " OR "),
+            Query::Not(expr) => return write!(f, "-{}", expr),
+            Query::Param(param) => return write!(f, "{}", param),
+            Query::Empty => return write!(f, ""),
         };
 
         use itertools::Itertools;
@@ -312,80 +310,62 @@ impl fmt::Display for Query {
 
 impl From<Param> for Query {
     fn from(param: Param) -> Self {
-        Query(QueryImpl::Param(param))
+        Query::Param(param)
     }
 }
 
 impl Query {
     /// Combines this query with `other` using the boolean AND operation.
     pub fn and(self, other: Self) -> Query {
-        Query(match (self.0, other.0) {
-            (QueryImpl::Empty, q) | (q, QueryImpl::Empty) => q,
-            (QueryImpl::And(mut a_list), QueryImpl::And(mut b_list)) => {
+        match (self, other) {
+            (Query::Empty, q) | (q, Query::Empty) => q,
+            (Query::And(mut a_list), Query::And(mut b_list)) => {
                 a_list.append(&mut b_list);
-                QueryImpl::And(a_list)
+                Query::And(a_list)
             },
-            (QueryImpl::And(mut a_list), b) => {
-                a_list.push(Query(b));
-                QueryImpl::And(a_list)
+            (Query::And(mut a_list), b) => {
+                a_list.push(b);
+                Query::And(a_list)
             },
-            (a, QueryImpl::And(mut b_list)) => {
-                b_list.insert(0, Query(a));
-                QueryImpl::And(b_list)
+            (a, Query::And(mut b_list)) => {
+                b_list.insert(0, a);
+                Query::And(b_list)
             },
-            (a, b) => QueryImpl::And(vec![Query(a), Query(b)]),
-        })
+            (a, b) => Query::And(vec![a, b]),
+        }
     }
 
     /// Combines this query with `other` using the boolean OR operation.
     pub fn or(self, other: Self) -> Query {
-        Query(match (self.0, other.0) {
-            (QueryImpl::Empty, q) | (q, QueryImpl::Empty) => q,
-            (QueryImpl::Or(mut a_list), QueryImpl::Or(mut b_list)) => {
+        match (self, other) {
+            (Query::Empty, q) | (q, Query::Empty) => q,
+            (Query::Or(mut a_list), Query::Or(mut b_list)) => {
                 a_list.append(&mut b_list);
-                QueryImpl::Or(a_list)
+                Query::Or(a_list)
             },
-            (QueryImpl::Or(mut a_list), b) => {
-                a_list.push(Query(b));
-                QueryImpl::Or(a_list)
+            (Query::Or(mut a_list), b) => {
+                a_list.push(b);
+                Query::Or(a_list)
             },
-            (a, QueryImpl::Or(mut b_list)) => {
-                b_list.insert(0, Query(a));
-                QueryImpl::Or(b_list)
+            (a, Query::Or(mut b_list)) => {
+                b_list.insert(0, a);
+                Query::Or(b_list)
             },
-            (a, b) => QueryImpl::Or(vec![Query(a), Query(b)]),
-        })
+            (a, b) => Query::Or(vec![a, b]),
+        }
     }
 }
 
 mod query_fns {
     use super::*;
 
-    /// Combines the specified `queries` using the boolean AND operation.
-    pub fn and(queries: impl IntoIterator<Item = Query>) -> Query {
-        let mut result = Query(QueryImpl::Empty);
-        for query in queries {
-            result = result.and(query);
-        }
-        result
-    }
-
-    /// Combines the specified `queries` using the boolean OR operation.
-    pub fn or(queries: impl IntoIterator<Item = Query>) -> Query {
-        let mut result = Query(QueryImpl::Empty);
-        for query in queries {
-            result = result.and(query);
-        }
-        result
-    }
-
     /// Negates the specified `query`.
     pub fn not(query: Query) -> Query {
-        Query(match query.0 {
-            QueryImpl::Not(q) => (*q).0,
-            QueryImpl::Empty => QueryImpl::Empty,
-            q => QueryImpl::Not(Box::new(Query(q))),
-        })
+        match query {
+            Query::Not(q) => *q,
+            Query::Empty => Query::Empty,
+            q => Query::Not(Box::new(q)),
+        }
     }
 }
 
@@ -447,21 +427,29 @@ mod param_fns {
 
     // TODO(msmorgan): Docs for these functions.
     macro_rules! param_fns {
-        ($func:ident => $Kind:ident : $Constraint:ident, $($rest:tt)*) => {
-            #[allow(missing_docs)]
+        (
+            $(#[$($attr:meta)*])*
+            $func:ident => $Kind:ident : $Constraint:ident,
+            $($rest:tt)*
+        ) => {
+            $(#[$($attr)*])*
             pub fn $func(value: impl 'static + $Constraint) -> Query {
-                Query(QueryImpl::Param(value.into_param(ValueKind(ValueKindImpl::$Kind))))
+                Query::Param(value.into_param(ValueKind(ValueKindImpl::$Kind)))
             }
 
             param_fns!($($rest)*);
         };
 
-        ($func:ident => NumericComparable($Kind:ident), $($rest:tt)*) => {
-            #[allow(missing_docs)]
+        (
+            $(#[$($attr:meta)*])*
+            $func:ident => NumericComparable($Kind:ident),
+            $($rest:tt)*
+        ) => {
+            $(#[$($attr)*])*
             pub fn $func(value: impl 'static + NumericComparableValue) -> Query {
-                Query(QueryImpl::Param(value.into_param(ValueKind(
+                Query::Param(value.into_param(ValueKind(
                     ValueKindImpl::NumericComparable(NumProperty::$Kind),
-                ))))
+                )))
             }
 
             param_fns!($($rest)*);
@@ -472,7 +460,7 @@ mod param_fns {
 
     /// Match a card with a specified [`Property`].
     pub fn prop(prop: Property) -> Query {
-        Query(QueryImpl::Param(Param::property(prop)))
+        Query::Param(Param::property(prop))
     }
 
     param_fns! {
@@ -1039,11 +1027,11 @@ mod compare_fns {
 
     macro_rules! compare_fns {
         ($(
-            $(#[$($attr:meta)*])?
+            $(#[$($attr:meta)*])*
             $meth:ident => $Variant:ident,
         )*) => {
             $(
-                $(#[$($attr)*])?
+                $(#[$($attr)*])*
                 pub fn $meth<T>(x: T) -> Compare<T> {
                     Compare {
                         op: CompareOp::$Variant,
@@ -1146,11 +1134,15 @@ impl NumericComparableValue for NumProperty {}
 
 pub trait TextValue: ParamValue {}
 
+/// Helper struct for a quoted value. The `Display` impl for this struct
+/// surrounds the value in quotes. Representations that contain quotes are
+/// not supported.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Quoted<T>(T);
 
 impl<T: fmt::Display> fmt::Display for Quoted<T> {
     // TODO(msmorgan): This breaks if the value has quotes in it.
+    //     Scryfall does not support quote escaping.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "\"{}\"", self.0)
     }
@@ -1316,7 +1308,11 @@ mod tests {
     #[test]
     fn basic_search() {
         let cards = SearchOptions::new()
-            .query(and(vec![name("lightning"), name("helix"), cmc(eq(2))]))
+            .query(Query::And(vec![
+                name("lightning"),
+                name("helix"),
+                cmc(eq(2)),
+            ]))
             .unique(UniqueStrategy::Prints)
             .search()
             .unwrap()
@@ -1408,7 +1404,7 @@ mod tests {
 
     #[test]
     fn numeric_property_comparison() {
-        let card = Card::search_random_new(and(vec![
+        let card = Card::search_random_new(Query::And(vec![
             power(eq(NumProperty::Toughness)),
             pow_tou(eq(NumProperty::Cmc)),
             not(prop(Property::IsFunny)),
