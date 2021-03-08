@@ -464,57 +464,125 @@ mod param_fns {
     }
 
     param_fns! {
+        #[doc = "The color of this card, based on indicator or cost."]
         color => Color: ColorValue,
+        #[doc = "The color identity of this card, "]
         color_identity => ColorIdentity: ColorValue,
+        #[doc = "The type line of this card."]
         type_line => Type: TextOrRegexValue,
+        #[doc = "The updated oracle text of this card."]
         oracle_text => Oracle: TextOrRegexValue,
+        #[doc = "The updated oracle text of this card, including reminder text."]
         full_oracle_text => FullOracle: TextOrRegexValue,
+        #[doc = "Keyword ability that this card has."]
         keyword => Keyword: TextValue,
+        #[doc = "The mana cost of this card."]
         mana => Mana: ColorValue,
+        #[doc = "The devotion granted by this permanent."]
         devotion => Devotion: DevotionValue,
+        #[doc = "The colors of mana produced by this card."]
         produces => Produces: ColorValue,
+        #[doc = "The rarity of this printing."]
         rarity => Rarity: RarityValue,
+        #[doc = "Has the card ever been printed in this rarity?"]
         in_rarity => InRarity: RarityValue,
+        #[doc = "The set code of this printing."]
         set => Set: SetValue,
+        #[doc = "Was the card printed in this set?"]
         in_set => InSet: SetValue,
+        #[doc = "The card's collector number."]
         number => Number: NumericValue,
+        #[doc = "The block of this card. Works with any set grouped in the same block."]
         block => Block: SetValue,
+        #[doc(hidden)]
+        #[doc = "The type of set this printing is in."]
         set_type => SetType: SetTypeValue,
+        #[doc = "Has the card appeared in a set of this type?"]
         in_set_type => InSetType: SetTypeValue,
+        #[doc = "Does the card appear in this cube on MTGO?"]
         cube => Cube: CubeValue,
+        #[doc(hidden)]
+        format => Format: FormatValue,
+        #[doc = "The card is legal in this format."]
         legal => Format: FormatValue,
+        #[doc = "The card is banned in this format."]
         banned => Banned: FormatValue,
+        #[doc = "The card is restricted in this format."]
         restricted => Restricted: FormatValue,
+        #[doc = "Return the printing that is the cheapest in the specified currency."]
         cheapest => Cheapest: CurrencyValue,
+        #[doc = "The artist who illustrated this card."]
         artist => Artist: TextValue,
+        #[doc = "The flavor text of this printing."]
         flavor => Flavor: TextOrRegexValue,
+        #[doc = "The type of watermark on this printing."]
         watermark => Watermark: TextValue,
+        #[doc = "The border color of this printing."]
         border_color => BorderColor: BorderColorValue,
+        #[doc = "The card frame of this printing, related to the year of the print."]
         frame => Frame: FrameValue,
+        #[doc = "The date this printing was released."]
         date => Date: DateValue,
+        #[doc = "This printing is available in the specified game."]
         game => Game: GameValue,
+        #[doc = "This card is available in the specified game."]
         in_game => InGame: GameValue,
+        #[doc = "This printing is in the specified language."]
         language => Language: LanguageValue,
+        #[doc = "Has this card ever been printed in the specified language?"]
         in_language => InLanguage: LanguageValue,
+        #[doc = "The card's name, using fuzzy search."]
         name => Name: TextOrRegexValue,
+        #[doc = "The card's full, exact name."]
         exact => Exact: TextValue,
 
+        #[doc = "The card's power, if it is a creature or vehicle. '*' and 'X' count as 0."]
         power => NumericComparable(Power),
+        #[doc = "The card's toughness, if it is a creature or vehicle. '*' and 'X' count as 0."]
         toughness => NumericComparable(Toughness),
+        #[doc = "The card's power plus its toughness."]
         pow_tou => NumericComparable(PowTou),
+        #[doc = "The card's loyalty, if it is a planeswalker. 'X' counts as 0."]
         loyalty => NumericComparable(Loyalty),
+        #[doc = "The converted mana cost of this card."]
         cmc => NumericComparable(Cmc),
+        #[doc = "The number of artists credited for this printing."]
         artist_count => NumericComparable(ArtistCount),
+        #[doc = "The current market price of this card in US Dollars."]
         usd => NumericComparable(Usd),
+        #[doc = "The current foil market price of this card in US Dollars."]
         usd_foil => NumericComparable(UsdFoil),
+        #[doc = "The current market price of this card in Euros."]
         eur => NumericComparable(Eur),
+        #[doc = "The current market price of this card in MTGO tickets."]
         tix => NumericComparable(Tix),
+        #[doc = "The number of unique art this card has had."]
         illustration_count => NumericComparable(IllustrationCount),
+        #[doc = "The number of unique prints of this card."]
         print_count => NumericComparable(PrintCount),
+        #[doc = "The number of sets this card has appeared in."]
         set_count => NumericComparable(SetCount),
+        #[doc = "The number of unique prints of this card, counting paper only."]
         paper_print_count => NumericComparable(PaperPrintCount),
+        #[doc = "The number of sets this card has appeared in, counting paper only."]
         paper_set_count => NumericComparable(PaperSetCount),
+        #[doc = "The year this card was released."]
         year => NumericComparable(Year),
+    }
+
+    /// The card is not eligible to be legal in this format.
+    fn not_legal(format: impl 'static + FormatValue + Clone) -> Query {
+        Query::And(vec![
+            Query::Not(Box::new(Query::Param(
+                format.clone().into_param(ValueKind(ValueKindImpl::Format)),
+            ))),
+            Query::Not(Box::new(Query::Param(
+                format.clone().into_param(ValueKind(ValueKindImpl::Banned)),
+            ))),
+            Query::Not(Box::new(Query::Param(
+                format.into_param(ValueKind(ValueKindImpl::Restricted)),
+            ))),
+        ])
     }
 }
 
@@ -1416,6 +1484,13 @@ mod tests {
 
         assert_eq!(power, toughness);
         assert_eq!(power + toughness, card.cmc as u32);
+
+        let card = Card::search_new(pow_tou(gt(NumProperty::Year)))
+            .unwrap()
+            .map(|c| c.unwrap())
+            .collect::<Vec<_>>();
+
+        assert!(card.into_iter().any(|c| &c.name == "Infinity Elemental"));
     }
 
     #[test]
