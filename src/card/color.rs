@@ -44,21 +44,32 @@ impl fmt::Display for Color {
 pub struct Colors(u8);
 
 impl Colors {
+    /// Constructs a `Colors` object from a list of individual colors.
+    pub const fn from_slice(colors: &[Color]) -> Self {
+        let mut result = Colors::colorless();
+        let mut i = 0;
+        while i < colors.len() {
+            result.0 |= colors[i] as u8;
+            i += 1;
+        }
+        result
+    }
+
     /// Creates an instance representing a multicolored card without specifying
     /// its colors.
-    pub fn multicolored() -> Self {
+    pub const fn multicolored() -> Self {
         Colors(1 << 7)
     }
 
     /// Creates an instance representing a colorless card.
-    pub fn colorless() -> Self {
+    pub const fn colorless() -> Self {
         Colors(Color::Colorless as u8)
     }
 
     /// Checks to see if a card is a certain color.
     ///
     /// Note: Multicolored cards are may not be any particular color.
-    pub fn is(self, color: Color) -> bool {
+    pub const fn is(self, color: Color) -> bool {
         self.0 & color as u8 != 0
     }
 
@@ -66,19 +77,19 @@ impl Colors {
     /// created by [`Colors::multicolored`].
     ///
     /// [`Colors::multicolored`]: #method.multicolored
-    pub fn is_multicolored(self) -> bool {
+    pub const fn is_multicolored(self) -> bool {
         self.0 & (1 << 7) != 0
     }
 
     /// Checks if a card is colorless.
-    pub fn is_colorless(self) -> bool {
+    pub const fn is_colorless(self) -> bool {
         self.0 == 0
     }
 }
 
 impl From<&[Color]> for Colors {
     fn from(colors: &[Color]) -> Self {
-        Colors(colors.iter().fold(0, |acc, c| acc | *c as u8))
+        Colors::from_slice(colors)
     }
 }
 

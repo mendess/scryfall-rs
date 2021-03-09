@@ -1037,22 +1037,26 @@ impl fmt::Display for Guild {
     }
 }
 
+const fn colors_from_guild(guild: Guild) -> crate::card::Colors {
+    use crate::card::Color::*;
+    let colors = match guild {
+        Guild::Azorius => [White, Blue],
+        Guild::Boros => [Red, White],
+        Guild::Dimir => [Blue, Black],
+        Guild::Golgari => [Black, Green],
+        Guild::Gruul => [Red, Green],
+        Guild::Izzet => [Blue, Red],
+        Guild::Orzhov => [White, Black],
+        Guild::Rakdos => [Black, Red],
+        Guild::Selesnya => [Green, White],
+        Guild::Simic => [Green, Blue],
+    };
+    crate::card::Colors::from_slice(&colors)
+}
+
 impl From<Guild> for crate::card::Colors {
     fn from(guild: Guild) -> Self {
-        use crate::card::Color::*;
-        let colors = match guild {
-            Guild::Azorius => [White, Blue],
-            Guild::Boros => [Red, White],
-            Guild::Dimir => [Blue, Black],
-            Guild::Golgari => [Black, Green],
-            Guild::Gruul => [Red, Green],
-            Guild::Izzet => [Blue, Red],
-            Guild::Orzhov => [White, Black],
-            Guild::Rakdos => [Black, Red],
-            Guild::Selesnya => [Green, White],
-            Guild::Simic => [Green, Blue],
-        };
-        colors[..].into()
+        colors_from_guild(guild)
     }
 }
 
@@ -1088,17 +1092,21 @@ impl fmt::Display for Shard {
     }
 }
 
+const fn colors_from_shard(shard: Shard) -> crate::card::Colors {
+    use crate::card::Color::*;
+    let colors = match shard {
+        Shard::Bant => [Green, White, Blue],
+        Shard::Esper => [White, Blue, Black],
+        Shard::Grixis => [Blue, Black, Red],
+        Shard::Jund => [Black, Red, Green],
+        Shard::Naya => [Red, Green, White],
+    };
+    crate::card::Colors::from_slice(&colors)
+}
+
 impl From<Shard> for crate::card::Colors {
     fn from(shard: Shard) -> Self {
-        use crate::card::Color::*;
-        let colors = match shard {
-            Shard::Bant => [Green, White, Blue],
-            Shard::Esper => [White, Blue, Black],
-            Shard::Grixis => [Blue, Black, Red],
-            Shard::Jund => [Black, Red, Green],
-            Shard::Naya => [Red, Green, White],
-        };
-        colors[..].into()
+        colors_from_shard(shard)
     }
 }
 
@@ -1134,17 +1142,21 @@ impl fmt::Display for Wedge {
     }
 }
 
+const fn colors_from_wedge(wedge: Wedge) -> crate::card::Colors {
+    use crate::card::Color::*;
+    let colors = match wedge {
+        Wedge::Abzan => [White, Black, Green],
+        Wedge::Jeskai => [Blue, Red, White],
+        Wedge::Mardu => [Red, White, Black],
+        Wedge::Sultai => [Black, Green, Blue],
+        Wedge::Temur => [Green, Blue, Red],
+    };
+    crate::card::Colors::from_slice(&colors)
+}
+
 impl From<Wedge> for crate::card::Colors {
     fn from(wedge: Wedge) -> Self {
-        use crate::card::Color::*;
-        let colors = match wedge {
-            Wedge::Abzan => [White, Black, Green],
-            Wedge::Jeskai => [Blue, Red, White],
-            Wedge::Mardu => [Red, White, Black],
-            Wedge::Sultai => [Black, Green, Blue],
-            Wedge::Temur => [Green, Blue, Red],
-        };
-        colors[..].into()
+        colors_from_wedge(wedge)
     }
 }
 
@@ -1179,17 +1191,21 @@ impl fmt::Display for FourColor {
     }
 }
 
+const fn colors_from_four_color(alias: FourColor) -> crate::card::Colors {
+    use crate::card::Color::*;
+    let colors = match alias {
+        FourColor::Aggression => [Black, Red, Green, White],
+        FourColor::Altruism => [Red, Green, White, Blue],
+        FourColor::Artifice => [White, Blue, Black, Red],
+        FourColor::Chaos => [Blue, Black, Red, Green],
+        FourColor::Growth => [Green, White, Blue, Black],
+    };
+    crate::card::Colors::from_slice(&colors)
+}
+
 impl From<FourColor> for crate::card::Colors {
     fn from(alias: FourColor) -> Self {
-        use crate::card::Color::*;
-        let colors = match alias {
-            FourColor::Aggression => [Black, Red, Green, White],
-            FourColor::Altruism => [Red, Green, White, Blue],
-            FourColor::Artifice => [White, Blue, Black, Red],
-            FourColor::Chaos => [Blue, Black, Red, Green],
-            FourColor::Growth => [Green, White, Blue, Black],
-        };
-        colors[..].into()
+        colors_from_four_color(alias)
     }
 }
 
