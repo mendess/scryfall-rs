@@ -237,6 +237,12 @@ impl<Rhs: Into<Colors>> ops::BitOr<Rhs> for Colors {
     }
 }
 
+impl<Rhs: Into<Colors>> ops::BitOrAssign<Rhs> for Colors {
+    fn bitor_assign(&mut self, rhs: Rhs) {
+        *self = *self | rhs;
+    }
+}
+
 /// Multicolored card. This can be used as a
 /// [`ColorParam`][crate::search::ColorParam] for searching Scryfall.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
