@@ -1094,6 +1094,9 @@ impl ColorValue for crate::card::Color {}
 impl ParamValue for crate::card::Colors {}
 impl ColorValue for crate::card::Colors {}
 
+impl ParamValue for crate::card::Multicolored {}
+impl ColorValue for crate::card::Multicolored {}
+
 impl ParamValue for Guild {}
 impl ColorValue for Guild {}
 
@@ -1286,6 +1289,7 @@ pub mod prelude {
     pub use super::{
         BorderColorValue,
         ColorValue,
+        Compare,
         CubeValue,
         CurrencyValue,
         DateValue,
@@ -1294,20 +1298,17 @@ pub mod prelude {
         FrameValue,
         GameValue,
         LanguageValue,
+        NumProperty,
         NumericComparableValue,
         NumericValue,
-        RarityValue,
-        SetTypeValue,
-        SetValue,
-    };
-    pub use super::{
-        Compare,
-        NumProperty,
         ParamValue,
         Property,
         Query,
+        RarityValue,
         Search,
         SearchOptions,
+        SetTypeValue,
+        SetValue,
         SortDirection,
         SortMethod,
         TextOrRegexValue,

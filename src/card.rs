@@ -25,7 +25,7 @@ use uuid::Uuid;
 
 pub use self::border_color::BorderColor;
 pub use self::card_faces::CardFace;
-pub use self::color::{Color, Colors};
+pub use self::color::{Color, Colors, Multicolored};
 pub use self::frame::Frame;
 pub use self::frame_effect::FrameEffect;
 pub use self::game::Game;

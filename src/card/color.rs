@@ -1,6 +1,8 @@
-use std::fmt;
+use std::{fmt, ops};
 
 use serde::{Deserialize, Serialize};
+
+use self::Color::*;
 
 /// Enum defining the 5 colors of magic, plus colorless.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -38,13 +40,13 @@ impl fmt::Display for Color {
     }
 }
 
-/// Definition of a cards colors. This can be used to in conjunction with
-/// the search builder as a [`ColorParam`][crate::card_searcher::ColorParam].
+/// Definition of a cards colors. This can be used in conjunction with
+/// the `search` module as a [`ColorParam`][crate::card_searcher::ColorParam].
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Colors(u8);
 
 impl Colors {
-    /// Constructs a `Colors` object from a list of individual colors.
+    /// Constructs an instance from a list of `colors`.
     pub const fn from_slice(colors: &[Color]) -> Self {
         let mut result = Colors::colorless();
         let mut i = 0;
@@ -55,10 +57,11 @@ impl Colors {
         result
     }
 
-    /// Creates an instance representing a multicolored card without specifying
-    /// its colors.
-    pub const fn multicolored() -> Self {
-        Colors(1 << 7)
+    /// Constructs an instance representing a single `color`.
+    pub const fn monocolor(color: Color) -> Self {
+        let mut result = Colors::colorless();
+        result.0 |= color as u8;
+        result
     }
 
     /// Creates an instance representing a colorless card.
@@ -66,24 +69,46 @@ impl Colors {
         Colors(Color::Colorless as u8)
     }
 
-    /// Checks to see if a card is a certain color.
-    ///
-    /// Note: Multicolored cards are may not be any particular color.
+    /// Checks if this instance is a certain color.
     pub const fn is(self, color: Color) -> bool {
         self.0 & color as u8 != 0
     }
 
-    /// Checks if a card is multicolored. This only works for instances
-    /// created by [`Colors::multicolored`].
-    ///
-    /// [`Colors::multicolored`]: #method.multicolored
+    /// Checks if this instance is multicolored, which is true if it contains
+    /// more than one color flag.
     pub const fn is_multicolored(self) -> bool {
-        self.0 & (1 << 7) != 0
+        self.0.count_ones() >= 2
     }
 
-    /// Checks if a card is colorless.
+    /// Checks if this instance is colorless.
     pub const fn is_colorless(self) -> bool {
         self.0 == 0
+    }
+}
+
+impl std::fmt::Display for Colors {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        if self.is_colorless() {
+            write!(f, "c")
+        } else {
+            let mut s = String::with_capacity(5);
+            if self.is(White) {
+                s.push('w');
+            }
+            if self.is(Blue) {
+                s.push('u');
+            }
+            if self.is(Black) {
+                s.push('b');
+            }
+            if self.is(Red) {
+                s.push('r');
+            }
+            if self.is(Green) {
+                s.push('g');
+            }
+            write!(f, "{}", s)
+        }
     }
 }
 
@@ -93,31 +118,35 @@ impl From<&[Color]> for Colors {
     }
 }
 
-impl std::fmt::Display for Colors {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use self::Color::*;
-        if self.is_multicolored() {
-            write!(f, "m")
-        } else if self.is_colorless() {
-            write!(f, "c")
-        } else {
-            let mut s = String::new();
-            if self.is(White) {
-                s += "w";
-            }
-            if self.is(Blue) {
-                s += "u";
-            }
-            if self.is(Black) {
-                s += "b";
-            }
-            if self.is(Red) {
-                s += "r";
-            }
-            if self.is(Green) {
-                s += "g";
-            }
-            write!(f, "{}", s)
-        }
+impl From<Color> for Colors {
+    fn from(color: Color) -> Self {
+        Colors::monocolor(color)
+    }
+}
+
+impl<Rhs: Into<Colors>> ops::BitOr<Rhs> for Color {
+    type Output = Colors;
+
+    fn bitor(self, other: Rhs) -> Self::Output {
+        Colors(self as u8 | other.into().0)
+    }
+}
+
+impl<Rhs: Into<Colors>> ops::BitOr<Rhs> for Colors {
+    type Output = Colors;
+
+    fn bitor(self, other: Rhs) -> Self::Output {
+        Colors(self.0 | other.into().0)
+    }
+}
+
+/// Multicolored card. This can be used as a
+/// [`ColorParam`][crate::search::ColorParam] for searching Scryfall.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct Multicolored;
+
+impl fmt::Display for Multicolored {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "m")
     }
 }
