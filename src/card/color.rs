@@ -45,7 +45,104 @@ impl fmt::Display for Color {
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Colors(u8);
 
+macro_rules! color_consts {
+    ($($(#[$($attr:meta)*])* $($name:ident),+ => [$($color:tt)*];)*) => {
+        $(
+            color_consts!(@inner ($(($($attr)*))*) ($($name),+) [$($color)*]);
+        )*
+    };
+
+    (@inner $attrs:tt ($($name:ident),+) $colors:tt) => {
+        $(
+            color_consts!(@inner $attrs $name $colors);
+        )+
+    };
+
+    (@inner ($(($($attr:meta)*))*) $name:ident [$($color:ident),*]) => {
+        $(#[$($attr)*])*
+        pub const $name: Self = Colors::from_slice(&[$($color),*]);
+    };
+}
+
+#[warn(missing_docs)]
 impl Colors {
+    color_consts! {
+        #[doc = "Colorless."]
+        C, COLORLESS => [];
+
+        #[doc = "White."]
+        W, WHITE => [White];
+        #[doc = "Blue."]
+        U, BLUE => [Blue];
+        #[doc = "Black."]
+        B, BLACK => [Black];
+        #[doc = "Red."]
+        R, RED => [Red];
+        #[doc = "Green."]
+        G, GREEN => [Green];
+
+        #[doc = "White and blue. The colors of the Azorius Senate from Ravnica."]
+        WU, AZORIUS => [White, Blue];
+        #[doc = "Blue and black. The colors of House Dimir from Ravnica."]
+        UB, DIMIR => [Blue, Black];
+        #[doc = "Black and red. The colors of the Cult of Rakdos from Ravnica."]
+        BR, RAKDOS => [Black, Red];
+        #[doc = "Red and green. The colors of the Gruul Clans from Ravnica."]
+        RG, GRUUL => [Red, Green];
+        #[doc = "Green and white. The colors of the Selesnya Conclave from Ravnica."]
+        WG, SELESNYA => [Green, White];
+        #[doc = "White and black. The colors of the Orzhov Syndicate from Ravnica."]
+        WB, ORZHOV => [White, Black];
+        #[doc = "Blue and red. The colors of the Izzet League from Ravnica."]
+        UR, IZZET => [Blue, Red];
+        #[doc = "Black and green. The colors of the Golgari Swarm from Ravnica."]
+        BG, GOLGARI => [Black, Green];
+        #[doc = "Red and white. The colors of the Boros Legion from Ravnica."]
+        WR, BOROS => [Red, White];
+        #[doc = "Green and blue. The colors of the Simic Combine from Ravnica."]
+        UG, SIMIC => [Green, Blue];
+
+        #[doc = "White, blue, and black. The colors of the Esper shard of Alara."]
+        WUB, ESPER => [White, Blue, Black];
+        #[doc = "Blue, black, and red. The colors of the Grixis shard of Alara."]
+        UBR, GRIXIS => [Blue, Black, Red];
+        #[doc = "Black, red, and green. The colors of the Jund shard of Alara."]
+        BRG, JUND => [Black, Red, Green];
+        #[doc = "Red, green, and white. The colors of the Naya shard of Alara."]
+        WRG, NAYA => [Red, Green, White];
+        #[doc = "Green, white, and blue. The colors of the Bant shard of Alara."]
+        WUG, BANT => [Green, White, Blue];
+        #[doc = "White, black, and green. The colors of the Abzan Houses from Tarkir."]
+        WBG, ABZAN => [White, Black, Green];
+        #[doc = "Blue, red, and white. The colors of the Jeskai Way from Tarkir."]
+        WUR, JESKAI => [Blue, Red, White];
+        #[doc = "Black, green, and blue. The colors of the Sultai Brood from Tarkir."]
+        UBG, SULTAI => [Black, Green, Blue];
+        #[doc = "Red, white, and black. The colors of the Mardu Horde from Tarkir."]
+        WBR, MARDU => [Red, White, Black];
+        #[doc = "Green, blue, and red. The colors of the Temur Frontier from Tarkir."]
+        URG, TEMUR => [Green, Blue, Red];
+
+        #[doc = "White, blue, black, and red. The colors of artifice and \
+                 [Yore-Tiller Nephilim](https://scryfall.com/card/gpt/140)."]
+        WUBR => [White, Blue, Black, Red];
+        #[doc = "Blue, black, red, and green. The colors of chaos and \
+                 [Glint-Eye Nephilim](https://scryfall.com/card/gpt/115)."]
+        UBRG => [Blue, Black, Red, Green];
+        #[doc = "Black, red, green, and white. The colors of aggression and \
+                 [Dune-Brood Nephilim](https://scryfall.com/card/gpt/110)."]
+        WBRG => [Black, Red, Green, White];
+        #[doc = "Red, green, white, and blue. The colors of altruism and \
+                 [Ink-treader Nephilim](https://scryfall.com/card/gpt/117)."]
+        WURG => [Red, Green, White, Blue];
+        #[doc = "Green, white, blue, and black. The colors of growth and \
+                 [Witch-Maw Nephilim](https://scryfall.com/card/gpt/138)."]
+        WUBG => [Green, White, Blue, Black];
+
+        #[doc = "White, blue, black, red, and green. All five colors."]
+        WUBRG, ALL => [White, Blue, Black, Red, Green];
+    }
+
     /// Constructs an instance from a list of `colors`.
     pub const fn from_slice(colors: &[Color]) -> Self {
         let mut result = Colors::colorless();
