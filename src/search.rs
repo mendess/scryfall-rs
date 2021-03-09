@@ -1278,30 +1278,36 @@ pub trait LanguageValue: ParamValue {}
 impl<T: TextValue> LanguageValue for T {}
 
 pub mod prelude {
+    pub use super::color_aliases::*;
     pub use super::compare_fns::*;
     pub use super::param_fns::*;
     pub use super::query_fns::*;
+    // Value types.
     pub use super::{
-        BorderColorValue as _,
+        BorderColorValue,
+        ColorValue,
+        CubeValue,
+        CurrencyValue,
+        DateValue,
+        DevotionValue,
+        FormatValue,
+        FrameValue,
+        GameValue,
+        LanguageValue,
+        NumericComparableValue,
+        NumericValue,
+        RarityValue,
+        SetTypeValue,
+        SetValue,
+    };
+    pub use super::{
         Compare,
-        CubeValue as _,
-        CurrencyValue as _,
-        DateValue as _,
-        FormatValue as _,
-        FrameValue as _,
-        GameValue as _,
-        LanguageValue as _,
         NumProperty,
-        NumericComparableValue as _,
-        NumericValue as _,
         ParamValue,
         Property,
         Query,
-        RarityValue as _,
         Search,
         SearchOptions,
-        SetTypeValue as _,
-        SetValue as _,
         SortDirection,
         SortMethod,
         TextOrRegexValue,
@@ -1444,5 +1450,28 @@ mod tests {
             query.query_string().unwrap(),
             "q=%28cmc%3A4+AND+name%3A%22Yargle%22%29"
         );
+    }
+
+    #[test]
+    #[ignore]
+    fn all_color_aliases_work() {
+        use strum::IntoEnumIterator;
+
+        use crate::card::Colors;
+
+        fn do_test<T>()
+        where
+            T: 'static + IntoEnumIterator + Clone + ColorValue + Into<Colors>,
+        {
+            for alias in T::iter() {
+                let card = color(eq(alias.clone())).random().unwrap();
+                assert_eq!(Colors::from(card.colors.unwrap().as_slice()), alias.into());
+            }
+        }
+
+        do_test::<Guild>();
+        do_test::<Shard>();
+        do_test::<Wedge>();
+        do_test::<FourColor>();
     }
 }

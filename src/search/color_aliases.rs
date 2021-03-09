@@ -5,6 +5,7 @@ use crate::card::Colors;
 
 /// The guilds of Ravnica, commonly used as an alias for color pairs.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum Guild {
     /// The Azorius Senate, aligned with white and blue (WU).
     Azorius,
@@ -49,7 +50,7 @@ impl fmt::Display for Guild {
     }
 }
 
-const fn colors_from_guild(guild: Guild) -> crate::card::Colors {
+const fn colors_from_guild(guild: Guild) -> Colors {
     let colors = match guild {
         Guild::Azorius => [White, Blue],
         Guild::Boros => [Red, White],
@@ -62,10 +63,10 @@ const fn colors_from_guild(guild: Guild) -> crate::card::Colors {
         Guild::Selesnya => [Green, White],
         Guild::Simic => [Green, Blue],
     };
-    crate::card::Colors::from_slice(&colors)
+    Colors::from_slice(&colors)
 }
 
-impl From<Guild> for crate::card::Colors {
+impl From<Guild> for Colors {
     fn from(guild: Guild) -> Self {
         colors_from_guild(guild)
     }
@@ -74,6 +75,7 @@ impl From<Guild> for crate::card::Colors {
 /// The shards of Alara, commonly used as aliases for color shards (three colors
 /// in an unbroken chain in the color pie).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum Shard {
     /// The shard of Bant, aligned with green, white, and blue (GWU).
     Bant,
@@ -103,7 +105,7 @@ impl fmt::Display for Shard {
     }
 }
 
-const fn colors_from_shard(shard: Shard) -> crate::card::Colors {
+const fn colors_from_shard(shard: Shard) -> Colors {
     let colors = match shard {
         Shard::Bant => [Green, White, Blue],
         Shard::Esper => [White, Blue, Black],
@@ -111,10 +113,10 @@ const fn colors_from_shard(shard: Shard) -> crate::card::Colors {
         Shard::Jund => [Black, Red, Green],
         Shard::Naya => [Red, Green, White],
     };
-    crate::card::Colors::from_slice(&colors)
+    Colors::from_slice(&colors)
 }
 
-impl From<Shard> for crate::card::Colors {
+impl From<Shard> for Colors {
     fn from(shard: Shard) -> Self {
         colors_from_shard(shard)
     }
@@ -123,6 +125,7 @@ impl From<Shard> for crate::card::Colors {
 /// The clans of Tarkir, commonly used as aliases for color wedges (one color
 /// and its two enemy colors).
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum Wedge {
     /// The Abzan Houses, aligned with white, black, and green (WBG).
     Abzan,
@@ -152,7 +155,7 @@ impl fmt::Display for Wedge {
     }
 }
 
-const fn colors_from_wedge(wedge: Wedge) -> crate::card::Colors {
+const fn colors_from_wedge(wedge: Wedge) -> Colors {
     let colors = match wedge {
         Wedge::Abzan => [White, Black, Green],
         Wedge::Jeskai => [Blue, Red, White],
@@ -160,10 +163,10 @@ const fn colors_from_wedge(wedge: Wedge) -> crate::card::Colors {
         Wedge::Sultai => [Black, Green, Blue],
         Wedge::Temur => [Green, Blue, Red],
     };
-    crate::card::Colors::from_slice(&colors)
+    Colors::from_slice(&colors)
 }
 
-impl From<Wedge> for crate::card::Colors {
+impl From<Wedge> for Colors {
     fn from(wedge: Wedge) -> Self {
         colors_from_wedge(wedge)
     }
@@ -171,6 +174,7 @@ impl From<Wedge> for crate::card::Colors {
 
 /// The four-color aliases supported by Scryfall.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum FourColor {
     /// Black, green, red, and white (BGRW).
     Aggression,
@@ -200,7 +204,7 @@ impl fmt::Display for FourColor {
     }
 }
 
-const fn colors_from_four_color(alias: FourColor) -> crate::card::Colors {
+const fn colors_from_four_color(alias: FourColor) -> Colors {
     let colors = match alias {
         FourColor::Aggression => [Black, Red, Green, White],
         FourColor::Altruism => [Red, Green, White, Blue],
@@ -208,10 +212,10 @@ const fn colors_from_four_color(alias: FourColor) -> crate::card::Colors {
         FourColor::Chaos => [Blue, Black, Red, Green],
         FourColor::Growth => [Green, White, Blue, Black],
     };
-    crate::card::Colors::from_slice(&colors)
+    Colors::from_slice(&colors)
 }
 
-impl From<FourColor> for crate::card::Colors {
+impl From<FourColor> for Colors {
     fn from(alias: FourColor) -> Self {
         colors_from_four_color(alias)
     }
