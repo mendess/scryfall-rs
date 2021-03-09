@@ -125,19 +125,19 @@ impl Colors {
 
         #[doc = "White, blue, black, and red. The colors of artifice and \
                  [Yore-Tiller Nephilim](https://scryfall.com/card/gpt/140)."]
-        WUBR => [White, Blue, Black, Red];
+        WUBR, ARTIFICE => [White, Blue, Black, Red];
         #[doc = "Blue, black, red, and green. The colors of chaos and \
                  [Glint-Eye Nephilim](https://scryfall.com/card/gpt/115)."]
-        UBRG => [Blue, Black, Red, Green];
+        UBRG, CHAOS => [Blue, Black, Red, Green];
         #[doc = "Black, red, green, and white. The colors of aggression and \
                  [Dune-Brood Nephilim](https://scryfall.com/card/gpt/110)."]
-        WBRG => [Black, Red, Green, White];
+        WBRG, AGGRESSION => [Black, Red, Green, White];
         #[doc = "Red, green, white, and blue. The colors of altruism and \
                  [Ink-treader Nephilim](https://scryfall.com/card/gpt/117)."]
-        WURG => [Red, Green, White, Blue];
+        WURG, ALTRUISM => [Red, Green, White, Blue];
         #[doc = "Green, white, blue, and black. The colors of growth and \
                  [Witch-Maw Nephilim](https://scryfall.com/card/gpt/138)."]
-        WUBG => [Green, White, Blue, Black];
+        WUBG, GROWTH => [Green, White, Blue, Black];
 
         #[doc = "White, blue, black, red, and green. All five colors."]
         WUBRG, ALL => [White, Blue, Black, Red, Green];
