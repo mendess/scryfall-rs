@@ -7,13 +7,10 @@ use std::rc::Rc as Lrc;
 use serde::{Serialize, Serializer};
 use url::Url;
 
-pub use self::color_aliases::*;
 pub use self::compare_fns::*;
 pub use self::param_fns::*;
 use crate::list::ListIter;
 use crate::Card;
-
-mod color_aliases;
 
 /// A type implementing `Search` can be turned into a Scryfall query. This is
 /// the argument type for [`Card::search`] and
@@ -1097,18 +1094,6 @@ impl ColorValue for crate::card::Colors {}
 impl ParamValue for crate::card::Multicolored {}
 impl ColorValue for crate::card::Multicolored {}
 
-impl ParamValue for Guild {}
-impl ColorValue for Guild {}
-
-impl ParamValue for Shard {}
-impl ColorValue for Shard {}
-
-impl ParamValue for Wedge {}
-impl ColorValue for Wedge {}
-
-impl ParamValue for FourColor {}
-impl ColorValue for FourColor {}
-
 // TODO(msmorgan): Should text be a valid ColorValue?
 
 /// Devotion works differently than other color parameters. All the color
@@ -1281,7 +1266,6 @@ pub trait LanguageValue: ParamValue {}
 impl<T: TextValue> LanguageValue for T {}
 
 pub mod prelude {
-    pub use super::color_aliases::*;
     pub use super::compare_fns::*;
     pub use super::param_fns::*;
     pub use super::query_fns::*;
@@ -1451,28 +1435,5 @@ mod tests {
             query.query_string().unwrap(),
             "q=%28cmc%3A4+AND+name%3A%22Yargle%22%29"
         );
-    }
-
-    #[test]
-    #[ignore]
-    fn all_color_aliases_work() {
-        use strum::IntoEnumIterator;
-
-        use crate::card::Colors;
-
-        fn do_test<T>()
-        where
-            T: 'static + IntoEnumIterator + Clone + ColorValue + Into<Colors>,
-        {
-            for alias in T::iter() {
-                let card = color(eq(alias.clone())).random().unwrap();
-                assert_eq!(Colors::from(card.colors.unwrap().as_slice()), alias.into());
-            }
-        }
-
-        do_test::<Guild>();
-        do_test::<Shard>();
-        do_test::<Wedge>();
-        do_test::<FourColor>();
     }
 }
