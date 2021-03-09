@@ -21,7 +21,7 @@ pub enum Color {
 
 /// Definition of a cards colors. This can be used to in conjunction with
 /// the search builder as a [`ColorParam`][crate::card_searcher::ColorParam].
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub struct Colors(u8);
 
 impl Colors {
@@ -78,30 +78,19 @@ impl Colors {
     /// WUBRG (White, Blue, Black, Red, Green)
     pub const WUBRG: Self = Colors::colorless().white().blue().black().red().green();
 
-    /// Creates an instance representing a multicolored card without specifying
-    /// its colors.
-    pub const fn multicolored() -> Self {
-        Colors(1 << 7)
-    }
-
     /// Creates an instance representing a colorless card.
     pub const fn colorless() -> Self {
         Colors(Color::Colorless as u8)
     }
 
     /// Checks to see if a card is a certain color.
-    ///
-    /// Note: Multicolored cards may not be any particular color.
     pub const fn is(self, color: Color) -> bool {
         self.0 & color as u8 != 0
     }
 
-    /// Checks if a card is multicolored. This only works for instances
-    /// created by [`Colors::multicolored`].
-    ///
-    /// [`Colors::multicolored`]: #method.multicolored
+    /// Checks if a card is multicolored.
     pub const fn is_multicolored(self) -> bool {
-        self.0 & (1 << 7) != 0
+        self.0.count_ones() > 1
     }
 
     /// Checks if a card is colorless.
@@ -110,33 +99,28 @@ impl Colors {
     }
 
     /// Adds white
-    pub const fn white(mut self) -> Self {
-        self.0 |= Color::White as u8;
-        self
+    pub const fn white(self) -> Self {
+        self.add(Color::White)
     }
 
     /// Adds blue
-    pub const fn blue(mut self) -> Self {
-        self.0 |= Color::Blue as u8;
-        self
+    pub const fn blue(self) -> Self {
+        self.add(Color::Blue)
     }
 
     /// Adds black
-    pub const fn black(mut self) -> Self {
-        self.0 |= Color::Black as u8;
-        self
+    pub const fn black(self) -> Self {
+        self.add(Color::Black)
     }
 
     /// Adds red
-    pub const fn red(mut self) -> Self {
-        self.0 |= Color::Blue as u8;
-        self
+    pub const fn red(self) -> Self {
+        self.add(Color::Red)
     }
 
     /// Adds green
-    pub const fn green(mut self) -> Self {
-        self.0 |= Color::Green as u8;
-        self
+    pub const fn green(self) -> Self {
+        self.add(Color::Green)
     }
 
     /// Add a color
@@ -190,5 +174,38 @@ impl std::fmt::Display for Colors {
             }
             write!(f, "{}", s)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use paste::paste;
+    macro_rules! single_color {
+        ($($lower:ident => $upper:ident,)+) => {
+            $(
+                #[test]
+                fn $lower() {
+                    assert!(Colors::default().$lower().is(Color::$upper))
+                }
+
+                paste! {
+                    #[test]
+                    fn [<repeat_ $lower _ok>]() {
+                        let double = Colors::default().$lower().$lower();
+                        let single = Colors::default().$lower();
+                        assert_eq!(double, single);
+                    }
+                }
+            )*
+        }
+    }
+
+    single_color! {
+        white => White,
+        blue => Blue,
+        black => Black,
+        red => Red,
+        green => Green,
     }
 }
