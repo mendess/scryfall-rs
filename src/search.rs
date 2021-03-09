@@ -466,8 +466,12 @@ mod param_fns {
     param_fns! {
         #[doc = "The color of this card, based on indicator or cost."]
         color => Color: ColorValue,
-        #[doc = "The color identity of this card, "]
+        #[doc = "The number of colors of this card, based on indicator or cost."]
+        color_count => Color: NumericValue,
+        #[doc = "The color identity of this card, for Commander-like formats."]
         color_identity => ColorIdentity: ColorValue,
+        #[doc = "The number of colors in this card's identity, for Commander-like formats."]
+        color_identity_count => ColorIdentity: NumericValue,
         #[doc = "The type line of this card."]
         type_line => Type: TextOrRegexValue,
         #[doc = "The updated oracle text of this card."]
@@ -571,7 +575,7 @@ mod param_fns {
     }
 
     /// The card is not eligible to be legal in this format.
-    fn not_legal(format: impl 'static + FormatValue + Clone) -> Query {
+    pub fn not_legal(format: impl 'static + FormatValue + Clone) -> Query {
         Query::And(vec![
             Query::Not(Box::new(Query::Param(
                 format.clone().into_param(ValueKind(ValueKindImpl::Format)),
@@ -988,6 +992,7 @@ impl fmt::Display for ValueKind {
 }
 
 /// The guilds of Ravnica, commonly used as an alias for color pairs.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Guild {
     /// The Azorius Senate, aligned with white and blue (WU).
     Azorius,
@@ -1011,8 +1016,49 @@ pub enum Guild {
     Simic,
 }
 
+impl fmt::Display for Guild {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Guild::Azorius => "azorius",
+                Guild::Boros => "boros",
+                Guild::Dimir => "dimir",
+                Guild::Golgari => "golgari",
+                Guild::Gruul => "gruul",
+                Guild::Izzet => "izzet",
+                Guild::Orzhov => "orzhov",
+                Guild::Rakdos => "rakdos",
+                Guild::Selesnya => "selesnya",
+                Guild::Simic => "simic",
+            }
+        )
+    }
+}
+
+impl From<Guild> for crate::card::Colors {
+    fn from(guild: Guild) -> Self {
+        use crate::card::Color::*;
+        let colors = match guild {
+            Guild::Azorius => [White, Blue],
+            Guild::Boros => [Red, White],
+            Guild::Dimir => [Blue, Black],
+            Guild::Golgari => [Black, Green],
+            Guild::Gruul => [Red, Green],
+            Guild::Izzet => [Blue, Red],
+            Guild::Orzhov => [White, Black],
+            Guild::Rakdos => [Black, Red],
+            Guild::Selesnya => [Green, White],
+            Guild::Simic => [Green, Blue],
+        };
+        colors[..].into()
+    }
+}
+
 /// The shards of Alara, commonly used as aliases for color shards (three colors
 /// in an unbroken chain in the color pie).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Shard {
     /// The shard of Bant, aligned with green, white, and blue (GWU).
     Bant,
@@ -1026,8 +1072,39 @@ pub enum Shard {
     Naya,
 }
 
+impl fmt::Display for Shard {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Shard::Bant => "bant",
+                Shard::Esper => "esper",
+                Shard::Grixis => "grixis",
+                Shard::Jund => "jund",
+                Shard::Naya => "naya",
+            }
+        )
+    }
+}
+
+impl From<Shard> for crate::card::Colors {
+    fn from(shard: Shard) -> Self {
+        use crate::card::Color::*;
+        let colors = match shard {
+            Shard::Bant => [Green, White, Blue],
+            Shard::Esper => [White, Blue, Black],
+            Shard::Grixis => [Blue, Black, Red],
+            Shard::Jund => [Black, Red, Green],
+            Shard::Naya => [Red, Green, White],
+        };
+        colors[..].into()
+    }
+}
+
 /// The clans of Tarkir, commonly used as aliases for color wedges (one color
 /// and its two enemy colors).
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum Wedge {
     /// The Abzan Houses, aligned with white, black, and green (WBG).
     Abzan,
@@ -1041,7 +1118,38 @@ pub enum Wedge {
     Temur,
 }
 
+impl fmt::Display for Wedge {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Wedge::Abzan => "abzan",
+                Wedge::Jeskai => "jeskai",
+                Wedge::Mardu => "mardu",
+                Wedge::Sultai => "sultai",
+                Wedge::Temur => "temur",
+            }
+        )
+    }
+}
+
+impl From<Wedge> for crate::card::Colors {
+    fn from(wedge: Wedge) -> Self {
+        use crate::card::Color::*;
+        let colors = match wedge {
+            Wedge::Abzan => [White, Black, Green],
+            Wedge::Jeskai => [Blue, Red, White],
+            Wedge::Mardu => [Red, White, Black],
+            Wedge::Sultai => [Black, Green, Blue],
+            Wedge::Temur => [Green, Blue, Red],
+        };
+        colors[..].into()
+    }
+}
+
 /// The four-color aliases supported by Scryfall.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum FourColor {
     /// Black, green, red, and white (BGRW).
     Aggression,
@@ -1053,6 +1161,36 @@ pub enum FourColor {
     Chaos,
     /// Black, green, blue, and white (BGUW).
     Growth,
+}
+
+impl fmt::Display for FourColor {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                FourColor::Aggression => "aggression",
+                FourColor::Altruism => "altruism",
+                FourColor::Artifice => "artifice",
+                FourColor::Chaos => "chaos",
+                FourColor::Growth => "growth",
+            }
+        )
+    }
+}
+
+impl From<FourColor> for crate::card::Colors {
+    fn from(alias: FourColor) -> Self {
+        use crate::card::Color::*;
+        let colors = match alias {
+            FourColor::Aggression => [Black, Red, Green, White],
+            FourColor::Altruism => [Red, Green, White, Blue],
+            FourColor::Artifice => [White, Blue, Black, Red],
+            FourColor::Chaos => [Blue, Black, Red, Green],
+            FourColor::Growth => [Green, White, Blue, Black],
+        };
+        colors[..].into()
+    }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -1144,24 +1282,30 @@ impl<T: 'static + ParamValue> ParamValue for Compare<T> {
     }
 }
 
-// TODO(msmorgan): Impls for `Guild` etc.
+/// Color parameters allow querying by specific colors.
 pub trait ColorValue: ParamValue {}
-
-// TODO(msmorgan): Maybe add `color_count` and `produces_count` etc instead.
-impl<T: NumericValue> ColorValue for T {}
 
 impl<T: 'static + ColorValue> ColorValue for Compare<T> {}
 
 impl ParamValue for crate::card::Color {}
-
-/// Color parameters allow to query by specific colors
 impl ColorValue for crate::card::Color {}
 
 impl ParamValue for crate::card::Colors {}
-
 impl ColorValue for crate::card::Colors {}
 
-// impl<T: TextValue> ColorValue for T {}
+impl ParamValue for Guild {}
+impl ColorValue for Guild {}
+
+impl ParamValue for Shard {}
+impl ColorValue for Shard {}
+
+impl ParamValue for Wedge {}
+impl ColorValue for Wedge {}
+
+impl ParamValue for FourColor {}
+impl ColorValue for FourColor {}
+
+// TODO(msmorgan): Should text be a valid ColorValue?
 
 /// Devotion works differently than other color parameters. All the color
 /// symbols must match and the symbols can be hybrid mana.
@@ -1197,7 +1341,6 @@ impl ParamValue for NumProperty {
         numeric_property_str(self).into_param(kind)
     }
 }
-
 impl NumericComparableValue for NumProperty {}
 
 pub trait TextValue: ParamValue {}
