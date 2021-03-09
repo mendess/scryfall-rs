@@ -75,6 +75,8 @@ impl Colors {
     pub const ALTRUISM: Self = Colors::colorless().red().green().white().blue();
     /// Growth (Green, White, Blue, Black)
     pub const GROWTH: Self = Colors::colorless().green().white().blue().black();
+    /// WUBRG (White, Blue, Black, Red, Green)
+    pub const WUBRG: Self = Colors::colorless().white().blue().black().red().green();
 
     /// Creates an instance representing a multicolored card without specifying
     /// its colors.
