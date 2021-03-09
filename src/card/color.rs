@@ -91,7 +91,7 @@ impl Colors {
 
     /// Checks to see if a card is a certain color.
     ///
-    /// Note: Multicolored cards are may not be any particular color.
+    /// Note: Multicolored cards may not be any particular color.
     pub const fn is(self, color: Color) -> bool {
         self.0 & color as u8 != 0
     }
@@ -154,7 +154,13 @@ impl Colors {
 
 impl From<&[Color]> for Colors {
     fn from(colors: &[Color]) -> Self {
-        Colors(colors.iter().fold(0, |acc, c| acc | *c as u8))
+        colors.iter().fold(Self::colorless(), |acc, c| acc.add(*c))
+    }
+}
+
+impl From<Color> for Colors {
+    fn from(color: Color) -> Self {
+        Self::colorless().add(color)
     }
 }
 
