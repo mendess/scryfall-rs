@@ -24,7 +24,7 @@ use static_assertions::assert_impl_all;
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
 use crate::list::ListIter;
-pub use crate::search::{SortDirection, SortMethod, UniqueStrategy};
+pub use crate::search::advanced::{SortDirection, SortMethod, UniqueStrategy};
 use crate::set::SetCode;
 
 /// Search expresses that the implementing type can be turned into a query to

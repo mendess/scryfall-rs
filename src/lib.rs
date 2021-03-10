@@ -41,6 +41,7 @@
 //! One of the main features of `scryfall` is its advanced search.
 //! For this the [`card_searcher`] module provides a type safe api
 //! to interact and query the search engine.
+use std::rc::Rc as Lrc;
 
 pub mod bulk;
 pub mod card;

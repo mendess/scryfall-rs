@@ -1,12 +1,7 @@
 use clap::Clap;
 use scryfall::card::Game;
-use scryfall::card_searcher::{
-    GameParam,
-    SearchBuilder,
-    SortDirection,
-    SortMethod,
-    UniqueStrategy,
-};
+use scryfall::card_searcher::{GameParam, SearchBuilder};
+use scryfall::search::advanced::{SortDirection, SortMethod, UniqueStrategy};
 
 #[derive(Clap)]
 struct Opts {
