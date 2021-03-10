@@ -104,61 +104,91 @@ impl Colors {
         GREEN => [Green];
 
         #[doc = "White and blue. The colors of the Azorius Senate from Ravnica."]
+        #[doc(alias = "uw")]
+        #[doc(alias = "wu")]
         AZORIUS => [White, Blue];
         #[doc = "Blue and black. The colors of House Dimir from Ravnica."]
+        #[doc(alias = "ub")]
         DIMIR => [Blue, Black];
         #[doc = "Black and red. The colors of the Cult of Rakdos from Ravnica."]
+        #[doc(alias = "br")]
         RAKDOS => [Black, Red];
         #[doc = "Red and green. The colors of the Gruul Clans from Ravnica."]
+        #[doc(alias = "rg")]
         GRUUL => [Red, Green];
         #[doc = "Green and white. The colors of the Selesnya Conclave from Ravnica."]
+        #[doc(alias = "gw")]
         SELESNYA => [Green, White];
         #[doc = "White and black. The colors of the Orzhov Syndicate from Ravnica."]
+        #[doc(alias = "wb")]
+        #[doc(alias = "bw")]
         ORZHOV => [White, Black];
         #[doc = "Blue and red. The colors of the Izzet League from Ravnica."]
+        #[doc(alias = "ur")]
         IZZET => [Blue, Red];
         #[doc = "Black and green. The colors of the Golgari Swarm from Ravnica."]
+        #[doc(alias = "bg")]
         GOLGARI => [Black, Green];
         #[doc = "Red and white. The colors of the Boros Legion from Ravnica."]
+        #[doc(alias = "rw")]
         BOROS => [Red, White];
         #[doc = "Green and blue. The colors of the Simic Combine from Ravnica."]
+        #[doc(alias = "gu")]
+        #[doc(alias = "ug")]
         SIMIC => [Green, Blue];
 
         #[doc = "White, blue, and black. The colors of the Esper shard of Alara."]
+        #[doc(alias = "wub")]
         ESPER => [White, Blue, Black];
         #[doc = "Blue, black, and red. The colors of the Grixis shard of Alara."]
+        #[doc(alias = "ubr")]
         GRIXIS => [Blue, Black, Red];
         #[doc = "Black, red, and green. The colors of the Jund shard of Alara."]
+        #[doc(alias = "brg")]
         JUND => [Black, Red, Green];
         #[doc = "Red, green, and white. The colors of the Naya shard of Alara."]
+        #[doc(alias = "rgw")]
         NAYA => [Red, Green, White];
         #[doc = "Green, white, and blue. The colors of the Bant shard of Alara."]
+        #[doc(alias = "gwu")]
         BANT => [Green, White, Blue];
         #[doc = "White, black, and green. The colors of the Abzan Houses from Tarkir."]
+        #[doc(alias = "junk")]
+        #[doc(alias = "bgw")]
         ABZAN => [White, Black, Green];
         #[doc = "Blue, red, and white. The colors of the Jeskai Way from Tarkir."]
+        #[doc(alias = "american")]
+        #[doc(alias = "ruw")]
         JESKAI => [Blue, Red, White];
         #[doc = "Black, green, and blue. The colors of the Sultai Brood from Tarkir."]
+        #[doc(alias = "bug")]
         SULTAI => [Black, Green, Blue];
         #[doc = "Red, white, and black. The colors of the Mardu Horde from Tarkir."]
+        #[doc(alias = "rbw")]
         MARDU => [Red, White, Black];
         #[doc = "Green, blue, and red. The colors of the Temur Frontier from Tarkir."]
+        #[doc(alias = "rug")]
         TEMUR => [Green, Blue, Red];
 
         #[doc = "White, blue, black, and red. The colors of artifice and \
                  [Yore-Tiller Nephilim](https://scryfall.com/card/gpt/140)."]
+        #[doc(alias = "wubr")]
         ARTIFICE => [White, Blue, Black, Red];
         #[doc = "Blue, black, red, and green. The colors of chaos and \
                  [Glint-Eye Nephilim](https://scryfall.com/card/gpt/115)."]
+        #[doc(alias = "ubrg")]
         CHAOS => [Blue, Black, Red, Green];
         #[doc = "Black, red, green, and white. The colors of aggression and \
                  [Dune-Brood Nephilim](https://scryfall.com/card/gpt/110)."]
+        #[doc(alias = "brgw")]
         AGGRESSION => [Black, Red, Green, White];
         #[doc = "Red, green, white, and blue. The colors of altruism and \
                  [Ink-treader Nephilim](https://scryfall.com/card/gpt/117)."]
+        #[doc(alias = "rgwu")]
         ALTRUISM => [Red, Green, White, Blue];
         #[doc = "Green, white, blue, and black. The colors of growth and \
                  [Witch-Maw Nephilim](https://scryfall.com/card/gpt/138)."]
+        #[doc(alias = "gwub")]
         GROWTH => [Green, White, Blue, Black];
 
         #[doc = "White, blue, black, red, and green. All five colors."]
