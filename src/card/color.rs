@@ -40,9 +40,15 @@ impl fmt::Display for Color {
     }
 }
 
+impl Default for Color {
+    fn default() -> Self {
+        Colorless
+    }
+}
+
 /// Definition of a cards colors. This can be used in conjunction with
 /// the `search` module as a [`ColorParam`][crate::search::ColorParam].
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub struct Colors(u8);
 
 macro_rules! color_consts {
@@ -78,17 +84,23 @@ macro_rules! color_consts {
 impl Colors {
     color_consts! {
         #[doc = "Colorless."]
+        #[doc(alias = "c")]
         COLORLESS => [];
 
         #[doc = "White."]
+        #[doc(alias = "w")]
         WHITE => [White];
         #[doc = "Blue."]
+        #[doc(alias = "u")]
         BLUE => [Blue];
         #[doc = "Black."]
+        #[doc(alias = "b")]
         BLACK => [Black];
         #[doc = "Red."]
+        #[doc(alias = "r")]
         RED => [Red];
         #[doc = "Green."]
+        #[doc(alias = "g")]
         GREEN => [Green];
 
         #[doc = "White and blue. The colors of the Azorius Senate from Ravnica."]
@@ -150,6 +162,7 @@ impl Colors {
         GROWTH => [Green, White, Blue, Black];
 
         #[doc = "White, blue, black, red, and green. All five colors."]
+        #[doc(alias = "wubrg")]
         ALL => [White, Blue, Black, Red, Green];
     }
 
