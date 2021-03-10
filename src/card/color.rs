@@ -158,7 +158,7 @@ impl Colors {
         let mut result = Colors::colorless();
         let mut i = 0;
         while i < colors.len() {
-            result.0 |= colors[i] as u8;
+            result = result.with(colors[i]);
             i += 1;
         }
         result
@@ -166,14 +166,12 @@ impl Colors {
 
     /// Constructs an instance representing a single `color`.
     pub const fn monocolor(color: Color) -> Self {
-        let mut result = Colors::colorless();
-        result.0 |= color as u8;
-        result
+        Colors(color as u8)
     }
 
     /// Creates an instance representing a colorless card.
     pub const fn colorless() -> Self {
-        Colors(Color::Colorless as u8)
+        Colors(Colorless as u8)
     }
 
     /// Checks if this instance is a certain color.
@@ -184,12 +182,45 @@ impl Colors {
     /// Checks if this instance is multicolored, which is true if it contains
     /// more than one color flag.
     pub const fn is_multicolored(self) -> bool {
-        self.0.count_ones() >= 2
+        self.0.count_ones() > 1
     }
 
     /// Checks if this instance is colorless.
     pub const fn is_colorless(self) -> bool {
-        self.0 == 0
+        self.0 == Colorless as u8
+    }
+
+    /// Produces a new instance with all the colors from both `self` and
+    /// `other`.
+    pub const fn union(self, other: Colors) -> Self {
+        Colors(self.0 | other.0)
+    }
+
+    /// Produces a new instance with the colors that `self` and `other` have in
+    /// common.
+    pub const fn intersection(self, other: Colors) -> Self {
+        Colors(self.0 & other.0)
+    }
+
+    /// Produces a new instance with the colors from `other` removed.
+    pub const fn difference(self, other: Colors) -> Self {
+        Colors(self.0 & !other.0)
+    }
+
+    /// Produces a new instance with the colors that are in `self` or `other`,
+    /// but not both.
+    pub const fn symmetric_difference(self, other: Colors) -> Self {
+        Colors((self.0 ^ other.0) & (self.0 | other.0))
+    }
+
+    /// Produces a new instance with the specified color added.
+    pub const fn with(self, color: Color) -> Self {
+        Colors(self.0 | color as u8)
+    }
+
+    /// Produces a new instance with the specified color removed.
+    pub const fn without(self, color: Color) -> Self {
+        Colors(self.0 & !(color as u8))
     }
 }
 
@@ -231,28 +262,6 @@ impl From<Color> for Colors {
     }
 }
 
-impl<Rhs: Into<Colors>> ops::BitOr<Rhs> for Color {
-    type Output = Colors;
-
-    fn bitor(self, other: Rhs) -> Self::Output {
-        Colors(self as u8 | other.into().0)
-    }
-}
-
-impl<Rhs: Into<Colors>> ops::BitOr<Rhs> for Colors {
-    type Output = Colors;
-
-    fn bitor(self, other: Rhs) -> Self::Output {
-        Colors(self.0 | other.into().0)
-    }
-}
-
-impl<Rhs: Into<Colors>> ops::BitOrAssign<Rhs> for Colors {
-    fn bitor_assign(&mut self, rhs: Rhs) {
-        *self = *self | rhs;
-    }
-}
-
 /// Multicolored card. This can be used as a
 /// [`ColorParam`][crate::search::ColorParam] for searching Scryfall.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -261,5 +270,51 @@ pub struct Multicolored;
 impl fmt::Display for Multicolored {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "m")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn union() {
+        assert_eq!(Colors::RED.union(Colors::WHITE), Colors::BOROS);
+        assert_eq!(Colors::BLACK.union(Colorless.into()), Colors::BLACK);
+        assert_eq!(Colors::GOLGARI.union(Colors::WHITE), Colors::ABZAN);
+        assert_eq!(Colors::ALL.union(Colors::GREEN), Colors::ALL);
+    }
+
+    #[test]
+    fn intersection() {
+        assert_eq!(
+            Colors::ORZHOV.intersection(Colors::IZZET),
+            Colors::COLORLESS
+        );
+        assert_eq!(Colors::NAYA.intersection(Colors::ESPER), Colors::WHITE);
+        assert_eq!(Colors::ALL.intersection(Colors::GRUUL), Colors::GRUUL);
+    }
+
+    #[test]
+    fn difference() {
+        assert_eq!(Colors::SELESNYA.difference(Colors::ALL), Colors::COLORLESS);
+        assert_eq!(Colors::BANT.difference(Colors::RAKDOS), Colors::BANT);
+        assert_eq!(Colors::CHAOS.difference(Colors::JESKAI), Colors::GOLGARI);
+    }
+
+    #[test]
+    fn symmetric_difference() {
+        assert_eq!(
+            Colors::WHITE.symmetric_difference(Colors::BLACK),
+            Colors::ORZHOV
+        );
+        assert_eq!(
+            Colors::SIMIC.symmetric_difference(Colors::BLUE),
+            Colors::GREEN
+        );
+        assert_eq!(
+            Colors::GRIXIS.symmetric_difference(Colors::TEMUR),
+            Colors::GOLGARI
+        );
     }
 }
