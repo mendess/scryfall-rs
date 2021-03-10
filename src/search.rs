@@ -86,37 +86,15 @@ impl Search for String {
 }
 
 pub mod prelude {
+    pub use super::advanced::{SearchOptions, SortDirection, SortMethod, UniqueStrategy};
+    pub use super::param::compare::*;
+    pub use super::param::property::*;
+    pub use super::param::value::*;
     pub use super::param::Param;
     pub use super::query::{not, Query};
+    pub use super::Search;
     pub use crate::card::{BorderColor, Frame, FrameEffect, Game, Rarity};
-    pub use crate::search::advanced::{SearchOptions, SortDirection, SortMethod, UniqueStrategy};
     pub use crate::set::{SetCode, SetType};
-
-    // // Value types.
-    // pub use super::{
-    //     BorderColorValue,
-    //     ColorValue,
-    //     Compare,
-    //     CubeValue,
-    //     CurrencyValue,
-    //     DateValue,
-    //     DevotionValue,
-    //     FormatValue,
-    //     FrameValue,
-    //     GameValue,
-    //     LanguageValue,
-    //     NumericComparableValue,
-    //     NumericValue,
-    //     NumProperty,
-    //     ParamValue,
-    //     Property,
-    //     RarityValue,
-    //     Search,
-    //     SetTypeValue,
-    //     SetValue,
-    //     TextOrRegexValue,
-    //     TextValue,
-    // };
 }
 
 #[cfg(test)]
