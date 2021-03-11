@@ -1,3 +1,5 @@
+//! This module provides facilities for advanced search ot
+
 use serde::{Serialize, Serializer};
 use url::Url;
 
@@ -56,7 +58,7 @@ impl SearchOptions {
     }
 
     /// Constructs a new `SearchOptions` with default values and the specified
-    /// `query`.
+    /// query.
     pub fn with_query(query: Query) -> Self {
         SearchOptions {
             query,
@@ -64,9 +66,15 @@ impl SearchOptions {
         }
     }
 
-    /// Sets the [`Query`] to use for this search.
+    /// Sets the query to use for this search.
     pub fn query(&mut self, query: Query) -> &mut Self {
         self.query = query;
+        self
+    }
+
+    /// Sets the page number to start with. Page 0 is equivalent to page 1.
+    pub fn page(&mut self, page: usize) -> &mut Self {
+        self.page = page;
         self
     }
 

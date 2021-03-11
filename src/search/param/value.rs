@@ -187,7 +187,280 @@ impl fmt::Display for ValueKind {
     }
 }
 
-// TODO(msmorgan): Docs for these functions.
+/// The base trait for a parameter value. The `into_param` function handles
+/// converting the type into a [`Param`].
+pub trait ParamValue: fmt::Debug + fmt::Display {
+    /// Convert this value into a [`Param`] with the specified `kind`.
+    fn into_param(self, kind: ValueKind) -> Param
+    where
+        Self: 'static + Sized,
+    {
+        Param::value(kind, self)
+    }
+}
+
+/// Color parameters allow querying by specific colors.
+pub trait ColorValue: ParamValue {}
+
+impl<T: 'static + ColorValue> ColorValue for Compare<T> {}
+
+impl ParamValue for crate::card::Color {}
+impl ColorValue for crate::card::Color {}
+
+impl ParamValue for crate::card::Colors {}
+impl ColorValue for crate::card::Colors {}
+
+impl ParamValue for crate::card::Multicolored {}
+impl ColorValue for crate::card::Multicolored {}
+
+// TODO(msmorgan): Should text be a valid ColorValue?
+
+/// Devotion works differently than other color parameters. All the color
+/// symbols must match and the symbols can be hybrid mana.
+pub trait DevotionValue: ParamValue {}
+
+// TODO(msmorgan): Support hybrid mana devotion. `Colors` will not work, since
+//   the syntax is different for hybrid mana. Maybe a new `ManaSymbol` type?
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct Devotion(crate::card::Color, usize);
+
+impl fmt::Display for Devotion {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        if self.1 == 0 {
+            // This is invalid syntax, but prevents false positives. The query "devotion:"
+            // returns cards with a name containing "devotion".
+            write!(f, "0")
+        } else {
+            for _ in 0..=self.1 {
+                write!(f, "{{{}}}", self.0)?;
+            }
+            Ok(())
+        }
+    }
+}
+
+impl ParamValue for Devotion {}
+impl DevotionValue for Devotion {}
+
+impl DevotionValue for Compare<Devotion> {}
+
+impl Devotion {
+    pub fn new(color: crate::card::Color, count: usize) -> Self {
+        Devotion(color, count)
+    }
+}
+
+/// A numeric value for a parameter.
+pub trait NumericValue: ParamValue {}
+
+macro_rules! impl_numeric_values {
+    ($($Ty:ty,)*) => {
+        $(
+            impl ParamValue for $Ty {}
+            impl NumericValue for $Ty {}
+            impl NumericComparableValue for $Ty {}
+        )*
+    };
+}
+
+#[rustfmt::skip]
+impl_numeric_values!(
+    usize, u8, u16, u32, u64, u128,
+    isize, i8, i16, i32, i64, i128,
+    f32, f64,
+);
+
+pub trait NumericComparableValue: ParamValue {}
+
+impl<T: 'static + NumericComparableValue> NumericComparableValue for Compare<T> {}
+
+impl ParamValue for NumProperty {
+    fn into_param(self, kind: ValueKind) -> Param {
+        numeric_property_str(self).into_param(kind)
+    }
+}
+impl NumericComparableValue for NumProperty {}
+
+/// This is the
+pub trait TextValue: ParamValue {}
+
+/// Helper struct for a quoted value. The `Display` impl for this struct
+/// surrounds the value in quotes. Representations that contain quotes are
+/// not supported.
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Quoted<T>(T);
+
+impl<T: fmt::Display> fmt::Display for Quoted<T> {
+    // TODO(msmorgan): This breaks if the value has quotes in it.
+    //     Scryfall does not support quote escaping.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "\"{}\"", self.0)
+    }
+}
+
+impl ParamValue for Quoted<String> {
+    fn into_param(self, kind: ValueKind) -> Param {
+        Param::value(kind, self)
+    }
+}
+
+impl TextValue for Quoted<String> {}
+
+impl ParamValue for String {
+    fn into_param(self, kind: ValueKind) -> Param {
+        Quoted(self).into_param(kind)
+    }
+}
+
+impl TextValue for String {}
+
+impl ParamValue for &str {
+    fn into_param(self, kind: ValueKind) -> Param {
+        self.to_string().into_param(kind)
+    }
+}
+
+impl TextValue for &str {}
+
+pub trait TextOrRegexValue: ParamValue {}
+
+impl<T: TextValue> TextOrRegexValue for T {}
+
+/// `Regex` is a newtype for String, indicating that the string represents a
+/// regular expression and should be surrounded by slashes instead of qutoes.
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Regex(pub String);
+
+impl fmt::Display for Regex {
+    // TODO(msmorgan): Escapes.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "/{}/", self.0)
+    }
+}
+
+impl ParamValue for Regex {}
+impl TextOrRegexValue for Regex {}
+
+/// A value representing the rarity of a printing. Supports [comparison
+/// operators][compare].
+///
+/// Parameters with a `RarityValue` argument include [`rarity`] and
+/// [`in_rarity`].
+///
+/// This trait is implemented for `String`, `&str`, and the
+/// [`Rarity`][crate::card::Rarity] enum, and supports comparison operators.
+pub trait RarityValue: ParamValue {}
+
+impl<T: TextValue> RarityValue for T {}
+
+impl ParamValue for crate::card::Rarity {}
+impl RarityValue for crate::card::Rarity {}
+
+impl RarityValue for Compare<crate::card::Rarity> {}
+impl<T: 'static + TextValue> RarityValue for Compare<T> {}
+
+/// A value representing the name or code of the set a printing appears in.
+///
+/// Parameters with a `SetValue` argument include [`set`] and [`in_set`].
+///
+/// This trait is implemented for `String`, `&str`, and
+/// [`SetCode`][crate::set::SetCode].
+pub trait SetValue: ParamValue {}
+
+impl<T: TextValue> SetValue for T {}
+
+impl ParamValue for crate::set::SetCode {}
+impl SetValue for crate::set::SetCode {}
+
+/// A value representing a draft cube from MTGO, such as the
+/// [Vintage Cube](https://scryfall.com/cubes/vintage).
+///
+/// `CubeValue` is used as the value type for [`cube`].
+///
+/// This trait is implemented for `String` and `&str`.
+pub trait CubeValue: ParamValue {}
+
+impl<T: TextValue> CubeValue for T {}
+
+/// A value representing a constructed format, such as Standard or Commander.
+///
+/// Parameters with a `FormatValue` argument include [`format`], [`banned`], and
+/// [`restricted`].
+///
+/// This trait is implemented for `String` and `&str`, as well as the
+/// [`Format`][crate::format::Format] enum.
+pub trait FormatValue: ParamValue {}
+
+impl<T: TextValue> FormatValue for T {}
+
+impl ParamValue for crate::format::Format {}
+impl FormatValue for crate::format::Format {}
+
+/// A value representing a currency which has prices available on Scryfall.
+///
+/// `CurrencyValue` is used as an argument for the [`cheapest`] parameter.
+///
+/// This trait is implemented for `String` and `&str`.
+pub trait CurrencyValue: ParamValue {}
+
+impl<T: TextValue> CurrencyValue for T {}
+
+/// A value representing a type of Magic set, such as
+pub trait SetTypeValue: ParamValue {}
+
+impl<T: TextValue> SetTypeValue for T {}
+
+pub trait BorderColorValue: ParamValue {}
+
+impl<T: TextValue> BorderColorValue for T {}
+
+impl ParamValue for crate::card::BorderColor {}
+
+impl BorderColorValue for crate::card::BorderColor {}
+
+/// A value representing card frames and frame effects.
+pub trait FrameValue: ParamValue {}
+
+impl<T: TextValue> FrameValue for T {}
+
+impl ParamValue for crate::card::FrameEffect {}
+impl FrameValue for crate::card::FrameEffect {}
+
+impl ParamValue for crate::card::Frame {}
+impl FrameValue for crate::card::Frame {}
+
+/// A parameter that represents a date, in `yyyy[-mm[-dd]]` format. A set code
+/// can also be used used to stand in for the date that set was released.
+/// Supports [comparison operators][compare].
+pub trait DateValue: ParamValue {}
+
+impl<T: 'static + DateValue> DateValue for Compare<T> {}
+
+impl<T: SetValue> DateValue for T {}
+
+impl ParamValue for chrono::NaiveDate {
+    fn into_param(self, kind: ValueKind) -> Param
+    where
+        Self: 'static + Sized,
+    {
+        Param::value(kind, self.format("%Y-%m-%d").to_string())
+    }
+}
+impl DateValue for chrono::NaiveDate {}
+
+/// A parameter that specifies a game that the card appears in.
+/// Valid for any `TextValue` and for [`Game`][crate::card::Game].
+pub trait GameValue: ParamValue {}
+
+impl<T: TextValue> GameValue for T {}
+
+impl ParamValue for crate::card::Game {}
+impl GameValue for crate::card::Game {}
+
+pub trait LanguageValue: ParamValue {}
+
+impl<T: TextValue> LanguageValue for T {}
+
 macro_rules! param_fns {
     (
         $(#[$($attr:meta)*])*
@@ -255,7 +528,6 @@ param_fns! {
     number => Number: NumericValue,
     #[doc = "The block of this card. Works with any set grouped in the same block."]
     block => Block: SetValue,
-    #[doc(hidden)]
     #[doc = "The type of set this printing is in."]
     set_type => SetType: SetTypeValue,
     #[doc = "Has the card appeared in a set of this type?"]
@@ -264,8 +536,6 @@ param_fns! {
     cube => Cube: CubeValue,
     #[doc(hidden)]
     format => Format: FormatValue,
-    #[doc = "The card is legal in this format."]
-    legal => Format: FormatValue,
     #[doc = "The card is banned in this format."]
     banned => Banned: FormatValue,
     #[doc = "The card is restricted in this format."]
@@ -330,216 +600,3 @@ param_fns! {
     #[doc = "The year this card was released."]
     year => NumericComparable(Year),
 }
-
-/// The card is not eligible to be legal in this format.
-pub fn not_legal(format: impl 'static + FormatValue + Clone) -> Query {
-    Query::And(vec![
-        Query::Not(Box::new(Query::Param(
-            format.clone().into_param(ValueKind(ValueKindImpl::Format)),
-        ))),
-        Query::Not(Box::new(Query::Param(
-            format.clone().into_param(ValueKind(ValueKindImpl::Banned)),
-        ))),
-        Query::Not(Box::new(Query::Param(
-            format.into_param(ValueKind(ValueKindImpl::Restricted)),
-        ))),
-    ])
-}
-
-/// The base type for a parameter value. The `into_param` function handles
-/// converting the type into a [`Param`].
-pub trait ParamValue: fmt::Debug + fmt::Display {
-    /// Convert this value into a [`Param`] with the specified `kind`.
-    fn into_param(self, kind: ValueKind) -> Param
-    where
-        Self: 'static + Sized,
-    {
-        Param::value(kind, self)
-    }
-}
-
-/// Color parameters allow querying by specific colors.
-pub trait ColorValue: ParamValue {}
-
-impl<T: 'static + ColorValue> ColorValue for Compare<T> {}
-
-impl ParamValue for crate::card::Color {}
-impl ColorValue for crate::card::Color {}
-
-impl ParamValue for crate::card::Colors {}
-impl ColorValue for crate::card::Colors {}
-
-impl ParamValue for crate::card::Multicolored {}
-impl ColorValue for crate::card::Multicolored {}
-
-// TODO(msmorgan): Should text be a valid ColorValue?
-
-/// Devotion works differently than other color parameters. All the color
-/// symbols must match and the symbols can be hybrid mana.
-pub trait DevotionValue: ParamValue {}
-
-pub struct Devotion(crate::card::Color, usize);
-
-pub trait NumericValue: ParamValue {}
-
-macro_rules! impl_numeric_values {
-    ($($Ty:ty,)*) => {
-        $(
-            impl ParamValue for $Ty {}
-            impl NumericValue for $Ty {}
-            impl NumericComparableValue for $Ty {}
-        )*
-    };
-}
-
-#[rustfmt::skip]
-impl_numeric_values!(
-    usize, u8, u16, u32, u64, u128,
-    isize, i8, i16, i32, i64, i128,
-    f32, f64,
-);
-
-pub trait NumericComparableValue: ParamValue {}
-
-impl<T: 'static + NumericComparableValue> NumericComparableValue for Compare<T> {}
-
-impl ParamValue for NumProperty {
-    fn into_param(self, kind: ValueKind) -> Param {
-        numeric_property_str(self).into_param(kind)
-    }
-}
-impl NumericComparableValue for NumProperty {}
-
-pub trait TextValue: ParamValue {}
-
-/// Helper struct for a quoted value. The `Display` impl for this struct
-/// surrounds the value in quotes. Representations that contain quotes are
-/// not supported.
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct Quoted<T>(T);
-
-impl<T: fmt::Display> fmt::Display for Quoted<T> {
-    // TODO(msmorgan): This breaks if the value has quotes in it.
-    //     Scryfall does not support quote escaping.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "\"{}\"", self.0)
-    }
-}
-
-impl ParamValue for Quoted<String> {
-    fn into_param(self, kind: ValueKind) -> Param {
-        Param::value(kind, self)
-    }
-}
-
-impl TextValue for Quoted<String> {}
-
-impl ParamValue for String {
-    fn into_param(self, kind: ValueKind) -> Param {
-        Quoted(self).into_param(kind)
-    }
-}
-
-impl TextValue for String {}
-
-impl ParamValue for &str {
-    fn into_param(self, kind: ValueKind) -> Param {
-        self.to_string().into_param(kind)
-    }
-}
-
-impl TextValue for &str {}
-
-pub trait TextOrRegexValue: ParamValue {}
-
-impl<T: TextValue> TextOrRegexValue for T {}
-
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct Regex(String);
-
-impl fmt::Display for Regex {
-    // TODO(msmorgan): Escapes.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "/{}/", self.0)
-    }
-}
-
-impl ParamValue for Regex {}
-
-impl TextOrRegexValue for Regex {}
-
-/// A parameter that
-pub trait RarityValue: ParamValue {}
-
-impl<T: TextValue> RarityValue for T {}
-
-impl ParamValue for crate::card::Rarity {}
-
-impl RarityValue for crate::card::Rarity {}
-
-impl RarityValue for Compare<crate::card::Rarity> {}
-
-pub trait SetValue: ParamValue {}
-
-pub trait CubeValue: ParamValue {}
-
-impl<T: TextValue> CubeValue for T {}
-
-pub trait FormatValue: ParamValue {}
-
-impl<T: TextValue> FormatValue for T {}
-
-impl ParamValue for crate::format::Format {}
-
-impl FormatValue for crate::format::Format {}
-
-pub trait CurrencyValue: ParamValue {}
-
-impl<T: TextValue> CurrencyValue for T {}
-
-// TODO(msmorgan): Make a currency enum.
-
-pub trait SetTypeValue: ParamValue {}
-
-impl<T: TextValue> SetTypeValue for T {}
-
-pub trait BorderColorValue: ParamValue {}
-
-impl<T: TextValue> BorderColorValue for T {}
-
-impl ParamValue for crate::card::BorderColor {}
-
-impl BorderColorValue for crate::card::BorderColor {}
-
-/// A parameter with card frames and frame effects.
-pub trait FrameValue: ParamValue {}
-
-impl<T: TextValue> FrameValue for T {}
-
-impl ParamValue for crate::card::FrameEffect {}
-
-impl FrameValue for crate::card::FrameEffect {}
-
-impl ParamValue for crate::card::Frame {}
-
-impl FrameValue for crate::card::Frame {}
-
-/// A parameter that specifies a date.
-/// TODO(msmorgan): What is the date format?
-/// TODO(msmorgan): Implement for chrono types.
-/// TODO(msmorgan): This works with a `SetValue` too.
-pub trait DateValue: ParamValue {}
-
-/// A parameter that specifies a game that the card appears in.
-/// Valid for any `TextValue` and for [`Game`][crate::card::Game].
-pub trait GameValue: ParamValue {}
-
-impl<T: TextValue> GameValue for T {}
-
-impl ParamValue for crate::card::Game {}
-
-impl GameValue for crate::card::Game {}
-
-pub trait LanguageValue: ParamValue {}
-
-impl<T: TextValue> LanguageValue for T {}

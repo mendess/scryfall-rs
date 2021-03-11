@@ -1,4 +1,3 @@
-#![warn(missing_docs)]
 //! This module provides an abstraction over the search parameters available in
 //! Scryfall. For a complete documentation, refer to the
 //! [official site](https://scryfall.com/docs/syntax).
@@ -72,24 +71,92 @@ impl<T: Search> Search for &mut T {
     }
 }
 
+#[inline]
+fn write_query_string(query: &(impl ToString + ?Sized), url: &mut Url) -> crate::Result<()> {
+    url.query_pairs_mut()
+        .append_pair("q", query.to_string().as_str());
+    Ok(())
+}
+
 impl Search for str {
     fn write_query(&self, url: &mut Url) -> crate::Result<()> {
-        url.set_query(Some(self));
-        Ok(())
+        write_query_string(self, url)
     }
 }
 
 impl Search for String {
     fn write_query(&self, url: &mut Url) -> crate::Result<()> {
-        self.as_str().write_query(url)
+        write_query_string(self, url)
     }
 }
 
+/// This module re-exports types used for card searches into a common
+/// place, so they can all be imported with a glob.
+///
+/// ```rust,no_run
+/// use scryfall::search::prelude::*;
+/// ```
 pub mod prelude {
     pub use super::advanced::{SearchOptions, SortDirection, SortMethod, UniqueStrategy};
-    pub use super::param::compare::*;
-    pub use super::param::property::*;
-    pub use super::param::value::*;
+    pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
+    pub use super::param::property::{prop, Property};
+    pub use super::param::value::{
+        artist,
+        artist_count,
+        banned,
+        block,
+        border_color,
+        cheapest,
+        cmc,
+        color,
+        color_count,
+        color_identity,
+        color_identity_count,
+        cube,
+        date,
+        devotion,
+        eur,
+        exact,
+        flavor,
+        format,
+        frame,
+        full_oracle_text,
+        game,
+        illustration_count,
+        in_game,
+        in_language,
+        in_rarity,
+        in_set,
+        in_set_type,
+        keyword,
+        language,
+        loyalty,
+        mana,
+        name,
+        number,
+        oracle_text,
+        paper_print_count,
+        paper_set_count,
+        pow_tou,
+        power,
+        print_count,
+        produces,
+        rarity,
+        restricted,
+        set,
+        set_count,
+        set_type,
+        tix,
+        toughness,
+        type_line,
+        usd,
+        usd_foil,
+        watermark,
+        year,
+        Devotion,
+        NumProperty,
+        Regex,
+    };
     pub use super::param::Param;
     pub use super::query::{not, Query};
     pub use super::Search;
