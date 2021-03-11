@@ -1,11 +1,15 @@
 //! This module defines the [`Property`] type, which contains all the boolean
 //! properties Scryfall supports for searching cards.
+//!
+//! TODO(msmorgan): More.
 use std::fmt;
 
 use crate::search::param::Param;
 use crate::search::query::Query;
 
 /// A `Property` is a boolean flag associated with a card or printing.
+///
+/// TODO(msmorgan): More.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, derive(strum::EnumIter))]
 pub enum Property {

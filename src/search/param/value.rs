@@ -1,3 +1,5 @@
+//! TODO(msmorgan): Module docs.
+
 use std::fmt;
 
 use crate::search::param::compare::{compare_op_str, Compare, CompareOp};
@@ -221,6 +223,7 @@ pub trait DevotionValue: ParamValue {}
 
 // TODO(msmorgan): Support hybrid mana devotion. `Colors` will not work, since
 //   the syntax is different for hybrid mana. Maybe a new `ManaSymbol` type?
+/// TODO(msmorgan): Docs.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Devotion(crate::card::Color, usize);
 
@@ -245,12 +248,15 @@ impl DevotionValue for Devotion {}
 impl DevotionValue for Compare<Devotion> {}
 
 impl Devotion {
+    /// Constructs a `Devotion` object with the given color and devotion count.
     pub fn new(color: crate::card::Color, count: usize) -> Self {
         Devotion(color, count)
     }
 }
 
 /// A numeric value for a parameter.
+///
+/// TODO(msmorgan): More.
 pub trait NumericValue: ParamValue {}
 
 macro_rules! impl_numeric_values {
@@ -270,6 +276,7 @@ impl_numeric_values!(
     f32, f64,
 );
 
+/// TODO(msmorgan): Docs.
 pub trait NumericComparableValue: ParamValue {}
 
 impl<T: 'static + NumericComparableValue> NumericComparableValue for Compare<T> {}
@@ -322,6 +329,7 @@ impl ParamValue for &str {
 
 impl TextValue for &str {}
 
+/// TODO(msmorgan): Docs.
 pub trait TextOrRegexValue: ParamValue {}
 
 impl<T: TextValue> TextOrRegexValue for T {}
@@ -406,10 +414,12 @@ pub trait CurrencyValue: ParamValue {}
 impl<T: TextValue> CurrencyValue for T {}
 
 /// A value representing a type of Magic set, such as
+/// TODO(msmorgan): More.
 pub trait SetTypeValue: ParamValue {}
 
 impl<T: TextValue> SetTypeValue for T {}
 
+/// TODO(msmorgan): Docs.
 pub trait BorderColorValue: ParamValue {}
 
 impl<T: TextValue> BorderColorValue for T {}
@@ -419,6 +429,8 @@ impl ParamValue for crate::card::BorderColor {}
 impl BorderColorValue for crate::card::BorderColor {}
 
 /// A value representing card frames and frame effects.
+///
+/// TODO(msmorgan): More.
 pub trait FrameValue: ParamValue {}
 
 impl<T: TextValue> FrameValue for T {}
@@ -432,6 +444,8 @@ impl FrameValue for crate::card::Frame {}
 /// A parameter that represents a date, in `yyyy[-mm[-dd]]` format. A set code
 /// can also be used used to stand in for the date that set was released.
 /// Supports [comparison operators][super::compare].
+///
+/// TODO(msmorgan): More.
 pub trait DateValue: ParamValue {}
 
 impl<T: 'static + DateValue> DateValue for Compare<T> {}
@@ -450,6 +464,8 @@ impl DateValue for chrono::NaiveDate {}
 
 /// A parameter that specifies a game that the card appears in.
 /// Valid for any `TextValue` and for [`Game`][crate::card::Game].
+///
+/// TODO(msmorgan): Docs.
 pub trait GameValue: ParamValue {}
 
 impl<T: TextValue> GameValue for T {}
@@ -457,6 +473,7 @@ impl<T: TextValue> GameValue for T {}
 impl ParamValue for crate::card::Game {}
 impl GameValue for crate::card::Game {}
 
+/// TODO(msmorgan): Docs.
 pub trait LanguageValue: ParamValue {}
 
 impl<T: TextValue> LanguageValue for T {}

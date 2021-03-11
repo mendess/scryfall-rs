@@ -31,6 +31,8 @@ pub mod value;
 ///
 /// For more information on available parameters, refer to the
 /// [official docs](https://scryfall.com/docs/syntax).
+///
+/// TODO(msmorgan): More.
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Param(ParamImpl);
 
