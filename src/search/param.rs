@@ -32,7 +32,7 @@ pub mod value;
 ///
 /// For more information on available parameters, refer to the
 /// [official docs](https://scryfall.com/docs/syntax).
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Param(ParamImpl);
 
 impl Param {
@@ -40,25 +40,19 @@ impl Param {
         Param(ParamImpl::Property(prop))
     }
 
-    fn value(kind: ValueKind, value: impl 'static + ParamValue) -> Self {
-        Param(ParamImpl::Value(kind, None, Lrc::new(value)))
+    fn value(kind: ValueKind, value: impl ToString) -> Self {
+        Param(ParamImpl::Value(kind, None, value.to_string()))
     }
 
-    fn cmp_value(kind: ValueKind, op: CompareOp, value: impl 'static + ParamValue) -> Self {
-        Param(ParamImpl::Value(kind, Some(op), Lrc::new(value)))
+    fn cmp_value(kind: ValueKind, op: CompareOp, value: impl ToString) -> Self {
+        Param(ParamImpl::Value(kind, Some(op), value.to_string()))
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Eq, PartialEq, Hash, Debug)]
 enum ParamImpl {
     Property(Property),
-    Value(ValueKind, Option<CompareOp>, Lrc<dyn ParamValue>),
-}
-
-impl PartialEq for Param {
-    fn eq(&self, other: &Self) -> bool {
-        self.to_string() == other.to_string()
-    }
+    Value(ValueKind, Option<CompareOp>, String),
 }
 
 impl fmt::Display for Param {
