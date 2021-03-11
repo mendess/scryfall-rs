@@ -20,9 +20,8 @@ use url::Url;
 
 use self::compare::CompareOp;
 use self::property::Property;
-use self::value::{ParamValue, ValueKind};
+use self::value::ValueKind;
 use crate::search::Search;
-use crate::Lrc;
 
 pub mod compare;
 pub mod property;

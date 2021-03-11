@@ -9,8 +9,8 @@
 //!
 //! # Queries
 //!
-//! The [`Query`] object provides a mechanism for constructing simple
-//! and complex Scryfall queries.
+//! The [`Query`][self::query::Query] object provides a mechanism for
+//! constructing simple and complex Scryfall queries.
 //! complex queries to Scryfall.
 use url::Url;
 
@@ -25,12 +25,13 @@ pub mod query;
 /// the argument type for [`Card::search`] and
 /// [`search_random`][Card::search_random].
 ///
-/// The `scryfall` crate provides the type [`Query`] for specifying search
-/// expressions. For advanced search, use [`SearchOptions`] to specify sorting,
+/// The `scryfall` crate provides the type [`Query`][self::query::Query] for
+/// specifying search expressions. For advanced search, use
+/// [`SearchOptions`][self::advanced::SearchOptions] to specify sorting,
 /// unique rollup, and other options.
 ///
 /// The `Search` trait is implemented for `&str` and `String` as well,
-/// supporting custom searches using [scryfall.com syntax][https://scryfall.com/docs/syntax].
+/// supporting custom searches using [Scryfall syntax](https://scryfall.com/docs/syntax).
 pub trait Search {
     /// Write this search as the query for the given `Url`.
     fn write_query(&self, url: &mut Url) -> crate::Result<()>;
@@ -271,7 +272,7 @@ mod tests {
         let card = Card::search_random_new(Query::And(vec![
             power(eq(NumProperty::Toughness)),
             pow_tou(eq(NumProperty::Cmc)),
-            not(prop(Property::IsFunny)),
+            not(Property::IsFunny),
         ]))
         .unwrap();
 

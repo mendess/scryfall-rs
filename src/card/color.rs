@@ -47,7 +47,8 @@ impl Default for Color {
 }
 
 /// Definition of a cards colors. This can be used in conjunction with
-/// the `search` module as a [`ColorParam`][crate::search::ColorParam].
+/// the `search` module as a
+/// [`ColorValue`][crate::search::param::value::ColorValue].
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
 pub struct Colors(u8);
 
@@ -306,7 +307,8 @@ impl From<Color> for Colors {
 }
 
 /// Multicolored card. This can be used as a
-/// [`ColorParam`][crate::search::ColorParam] for searching Scryfall.
+/// [`ColorValue`][crate::search::param::value::ColorValue] for searching
+/// Scryfall.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Multicolored;
 

@@ -193,7 +193,7 @@ pub trait ParamValue: fmt::Debug + fmt::Display {
     /// Convert this value into a [`Param`] with the specified `kind`.
     fn into_param(self, kind: ValueKind) -> Param
     where
-        Self: 'static + Sized,
+        Self: Sized,
     {
         Param::value(kind, self)
     }
@@ -327,7 +327,7 @@ pub trait TextOrRegexValue: ParamValue {}
 impl<T: TextValue> TextOrRegexValue for T {}
 
 /// `Regex` is a newtype for String, indicating that the string represents a
-/// regular expression and should be surrounded by slashes instead of qutoes.
+/// regular expression and should be surrounded by slashes instead of quotes.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Regex(pub String);
 
@@ -342,10 +342,10 @@ impl ParamValue for Regex {}
 impl TextOrRegexValue for Regex {}
 
 /// A value representing the rarity of a printing. Supports [comparison
-/// operators][compare].
+/// operators][super::compare].
 ///
-/// Parameters with a `RarityValue` argument include [`rarity`] and
-/// [`in_rarity`].
+/// Parameters with a `RarityValue` argument include [`rarity()`] and
+/// [`in_rarity()`].
 ///
 /// This trait is implemented for `String`, `&str`, and the
 /// [`Rarity`][crate::card::Rarity] enum, and supports comparison operators.
@@ -361,7 +361,7 @@ impl<T: 'static + TextValue> RarityValue for Compare<T> {}
 
 /// A value representing the name or code of the set a printing appears in.
 ///
-/// Parameters with a `SetValue` argument include [`set`] and [`in_set`].
+/// Parameters with a `SetValue` argument include [`set()`] and [`in_set()`].
 ///
 /// This trait is implemented for `String`, `&str`, and
 /// [`SetCode`][crate::set::SetCode].
@@ -375,7 +375,7 @@ impl SetValue for crate::set::SetCode {}
 /// A value representing a draft cube from MTGO, such as the
 /// [Vintage Cube](https://scryfall.com/cubes/vintage).
 ///
-/// `CubeValue` is used as the value type for [`cube`].
+/// `CubeValue` is used as the value type for [`cube()`].
 ///
 /// This trait is implemented for `String` and `&str`.
 pub trait CubeValue: ParamValue {}
@@ -384,8 +384,8 @@ impl<T: TextValue> CubeValue for T {}
 
 /// A value representing a constructed format, such as Standard or Commander.
 ///
-/// Parameters with a `FormatValue` argument include [`format`], [`banned`], and
-/// [`restricted`].
+/// Parameters with a `FormatValue` argument include [`format()`], [`banned()`],
+/// and [`restricted()`].
 ///
 /// This trait is implemented for `String` and `&str`, as well as the
 /// [`Format`][crate::format::Format] enum.
@@ -431,7 +431,7 @@ impl FrameValue for crate::card::Frame {}
 
 /// A parameter that represents a date, in `yyyy[-mm[-dd]]` format. A set code
 /// can also be used used to stand in for the date that set was released.
-/// Supports [comparison operators][compare].
+/// Supports [comparison operators][super::compare].
 pub trait DateValue: ParamValue {}
 
 impl<T: 'static + DateValue> DateValue for Compare<T> {}

@@ -1,9 +1,32 @@
+//! This module defines the [`Compare`] type, which represents a comparison
+//! operator and right-hand side of a comparison expression. Certain
+//! [`ParamValue`][crate::search::param::value::ParamValue] subtraits are
+//! implemented for `Compare<T>`, depending on whether Scryfall syntax supports
+//! comparing for that.
+//!
+//! To construct a `Compare` instance, use the helper functions defined in this
+//! module: [`lt`], [`lte`], [`gt`], [`gte`], [`eq`], and [`neq`].
+
 use std::fmt;
 
 use crate::search::param::value::{ParamValue, ValueKind};
 use crate::search::param::Param;
 
 /// An operator and RHS for a comparison expression of a parameter.
+/// To construct an instance, use one of the helper functions from the
+/// [`compare`][self] module: [`lt`], [`lte`], [`gt`], [`gte`], [`eq`], or
+/// [`neq`].
+///
+/// # Example
+///
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// let query = cmc(gte(5)).and(type_line("planeswalker"));
+/// let card = query.random().unwrap();
+///
+/// assert!(card.cmc as u32 >= 5);
+/// assert!(card.type_line.to_lowercase().contains("planeswalker"));
+/// ```
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Compare<T> {
     op: CompareOp,
@@ -16,7 +39,7 @@ impl<T: fmt::Display> fmt::Display for Compare<T> {
     }
 }
 
-impl<T: 'static + ParamValue> ParamValue for Compare<T> {
+impl<T: ParamValue> ParamValue for Compare<T> {
     fn into_param(self, kind: ValueKind) -> Param {
         Param::cmp_value(kind, self.op, self.value)
     }
@@ -51,7 +74,7 @@ macro_rules! compare_fns {
     )*) => {
         $(
             $(#[$($attr)*])*
-            pub fn $meth<T>(x: T) -> Compare<T> {
+            pub fn $meth<T: ParamValue>(x: T) -> Compare<T> {
                 Compare {
                     op: CompareOp::$Variant,
                     value: x,

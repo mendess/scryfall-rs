@@ -6,11 +6,13 @@ use std::fmt;
 use url::Url;
 
 use crate::search::param::Param;
+use crate::search::prelude::{prop, Property};
 use crate::search::Search;
 
 /// A search query, composed of search parameters and boolean operations.
 ///
-/// `Query` functions as an expression tree, such that
+/// `Query` is an expression tree, consisting of `AND` and `OR` lists of other
+/// TODO(msmorgan): finish this
 ///
 /// For information on search parameters, see [`Param`].
 #[derive(Clone, PartialEq, Debug)]
@@ -23,7 +25,12 @@ pub enum Query {
     Not(Box<Query>),
     /// The returned cards must match the specified search `Param`.
     Param(Param),
-    /// A custom query, in valid [Scryfall syntax][https://scryfall.com/docs/syntax].
+    /// A custom query, in valid [Scryfall syntax](https://scryfall.com/docs/syntax).
+    ///
+    /// *Note*: This variant is provided so that users of this crate can use the
+    /// latest search features on scryfall.com without waiting for the crate
+    /// to be updated. If you encounter a situation where this must be used,
+    /// please [file an issue](https://github.com/mendess/scryfall-rs/issues/new).
     Custom(String),
     /// Empty query, used as a default value. Attempting to search with an empty
     /// query will result in a failure response.
@@ -64,8 +71,17 @@ impl From<Param> for Query {
     }
 }
 
+impl From<Property> for Query {
+    fn from(property: Property) -> Self {
+        prop(property)
+    }
+}
+
 macro_rules! impl_and_or {
-    ($($(#[$($attr:meta)*])* $meth:ident($Var:ident),)*) => {
+    ($(
+        $(#[$($attr:meta)*])*
+        $meth:ident($Var:ident),
+    )*) => {
         $(
             $(#[$($attr)*])*
             pub fn $meth(self, other: impl Into<Query>) -> Self {
@@ -87,7 +103,7 @@ macro_rules! impl_and_or {
                 }
             }
         )*
-    }
+    };
 }
 
 impl Query {

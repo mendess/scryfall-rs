@@ -12,6 +12,8 @@ pub enum Property {
     HasColorIndicator,
     /// Cards that have a watermark.
     HasWatermark,
+    /// Find cards that are printed for the first time in paper.
+    NewCard,
     /// Find reprint cards printed at a new rarity for the first time.
     NewRarity,
     /// Find cards being printed with new illustrations.
@@ -81,6 +83,8 @@ pub enum Property {
     IsMasterpiece,
     /// Find cards that have only been in a single set.
     IsUnique,
+    /// Find first printings (digital or paper).
+    IsFirstPrint,
     /// Find reprints.
     IsReprint,
     /// Find cards that were sold in boosters.
@@ -155,7 +159,8 @@ impl fmt::Display for Property {
             "{}:{}",
             match self {
                 Property::HasColorIndicator | Property::HasWatermark => "has",
-                Property::NewArt
+                Property::NewCard
+                | Property::NewArt
                 | Property::NewArtist
                 | Property::NewFlavor
                 | Property::NewFrame
@@ -167,6 +172,7 @@ impl fmt::Display for Property {
             match self {
                 Property::HasColorIndicator => "indicator",
                 Property::HasWatermark => "watermark",
+                Property::NewCard => "card",
                 Property::NewRarity => "rarity",
                 Property::NewArt => "art",
                 Property::NewFlavor => "flavor",
@@ -186,7 +192,7 @@ impl fmt::Display for Property {
                 Property::IsParty => "party",
                 Property::IsModal => "modal",
                 Property::IsVanilla => "vanilla",
-                Property::IsFrenchVanilla => "frenchvanilla",
+                Property::IsFrenchVanilla => "french_vanilla",
                 Property::IsFunny => "funny",
                 Property::IsFull => "full",
                 Property::IsFoil => "foil",
@@ -199,6 +205,7 @@ impl fmt::Display for Property {
                 Property::IsDigital => "digital",
                 Property::IsPromo => "promo",
                 Property::IsSpotlight => "spotlight",
+                Property::IsFirstPrint => "first_print",
                 Property::IsReprint => "reprint",
                 Property::IsMasterpiece => "masterpiece",
                 Property::IsUnique => "unique",
