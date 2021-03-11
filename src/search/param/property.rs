@@ -1,10 +1,11 @@
+//! This module defines the [`Property`] type, which contains all the boolean
+//! properties Scryfall supports for searching cards.
 use std::fmt;
 
 use crate::search::param::Param;
 use crate::search::query::Query;
 
-// TODO(msmorgan): Expand on these docs to explain different types of props.
-/// A property is a boolean flag associated with a card or printing.
+/// A `Property` is a boolean flag associated with a card or printing.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, derive(strum::EnumIter))]
 pub enum Property {
@@ -106,44 +107,59 @@ pub enum Property {
     /// Find cards that were given away in releases.
     SoldInRelease,
 
-    // TODO(msmorgan): Docs and examples for all land families.
-    // TODO(msmorgan): Rename to Bicycle/BiCycle?
-    #[allow(missing_docs)]
-    IsCyclingDualLand,
-    // TODO(msmorgan): Rename to Tricycle/TriCycle?
-    #[allow(missing_docs)]
-    IsCyclingTriLand,
-    #[allow(missing_docs)]
+    /// A cycling dual land, such as [Fetid Pools](https://scryfall.com/card/akh/243).
+    IsBicycleLand,
+    /// A cycling tri land, such as [Ketria Triome](https://scryfall.com/card/iko/250).
+    IsTricycleLand,
+    /// A land that returns other lands to your hand, such as
+    /// [Boros Garrison](https://scryfall.com/card/rav/275).
     IsBounceLand,
-    #[allow(missing_docs)]
+    /// A pain land that can be sacrificed to draw a card, such as
+    /// [Horizon Canopy](https://scryfall.com/card/fut/177).
     IsCanopyLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped unless you control a basic of its color, such
+    /// as [Glacial Fortress](https://scryfall.com/card/m10/226).
     IsCheckLand,
-    #[allow(missing_docs)]
+    /// An original dual land, such as [Tropical Island](https://scryfall.com/card/lea/283).
     IsDualLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped unless you control two or fewer other lands,
+    /// such as [Blackcleave Cliffs](https://scryfall.com/card/som/224).
     IsFastLand,
-    #[allow(missing_docs)]
+    /// A fetch land, such as [Scalding Tarn](https://scryfall.com/card/zen/223).
     IsFetchLand,
-    #[allow(missing_docs)]
+    /// A land that filters mana into other colors, such as
+    /// [Mystic Gate](https://scryfall.com/card/shm/277) or
+    /// [Cascading Cataracts](https://scryfall.com/card/akh/240/cascading-cataracts).
     IsFilterLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped and gains 1 life, such as
+    /// [Jungle Hollow](https://scryfall.com/card/ktk/235).
     IsGainLand,
-    #[allow(missing_docs)]
+    /// A land that costs life for colored mana, such as
+    /// [Caves of Koilos](https://scryfall.com/card/apc/140).
     IsPainLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped and has "Scry 1", such as
+    /// [Temple of Mystery](https://scryfall.com/card/ths/226).
     IsScryLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped unless you reveal a basic from your hand, such
+    /// as [Choked Estuary](https://scryfall.com/card/soi/270).
     IsShadowLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped unless you pay 2 life, such as
+    /// [Breeding Pool](https://scryfall.com/card/dis/172).
     IsShockLand,
-    #[allow(missing_docs)]
+    /// A land that allows you to store up mana for later use, such as
+    /// [Fungal Reaches](https://scryfall.com/card/tsp/273) or
+    /// [Crucible of the Spirit Dragon](https://scryfall.com/card/frf/167).
     IsStorageLand,
-    #[allow(missing_docs)]
+    /// A land that turns into a creature, such as
+    /// [Celestial Colonnade](https://scryfall.com/card/wwk/133),
+    /// [Mutavault](https://scryfall.com/card/mor/148), or
+    /// [Inkmoth Nexus](https://scryfall.com/card/mbs/145).
     IsCreatureLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped and produces three colors, such as
+    /// [Mystic Monastery](https://scryfall.com/card/ktk/236).
     IsTriLand,
-    #[allow(missing_docs)]
+    /// A land that enters tapped unless you control two basics in its
+    /// colors, such as [Canopy Vista](https://scryfall.com/card/bfz/234).
     IsBattleLand,
 
     /// The converted mana cost of this card is an even number.
@@ -218,8 +234,8 @@ impl fmt::Display for Property {
                 Property::SoldInGameDay => "gameday",
                 Property::SoldInPreRelease => "prerelease",
                 Property::SoldInRelease => "release",
-                Property::IsCyclingDualLand => "bicycle_land",
-                Property::IsCyclingTriLand => "tricycle_land",
+                Property::IsBicycleLand => "bicycle_land",
+                Property::IsTricycleLand => "tricycle_land",
                 Property::IsBounceLand => "bounce_land",
                 Property::IsCanopyLand => "canopy_land",
                 Property::IsCheckLand => "check_land",
