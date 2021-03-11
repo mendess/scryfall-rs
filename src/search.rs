@@ -276,8 +276,14 @@ mod tests {
         ]))
         .unwrap();
 
-        let power = card.power.unwrap().parse::<u32>().unwrap();
-        let toughness = card.toughness.unwrap().parse::<u32>().unwrap();
+        let power = card
+            .power
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or_default();
+        let toughness = card
+            .toughness
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or_default();
 
         assert_eq!(power, toughness);
         assert_eq!(power + toughness, card.cmc as u32);
