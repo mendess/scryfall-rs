@@ -81,7 +81,6 @@ macro_rules! color_consts {
     };
 }
 
-// TODO(msmorgan): Add doc aliases for color initials. Order?
 impl Colors {
     color_consts! {
         #[doc = "Colorless."]
@@ -311,7 +310,7 @@ impl From<Color> for Colors {
 /// Scryfall.
 ///
 /// TODO(msmorgan): Example of using this for searching. Should the example be
-/// in the   docs for `ColorValue`?
+///   in the docs for `ColorValue`?
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Multicolored;
 

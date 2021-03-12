@@ -201,62 +201,14 @@ pub trait ParamValue: fmt::Debug + fmt::Display {
     }
 }
 
-/// Color parameters allow querying by specific colors.
-pub trait ColorValue: ParamValue {}
-
-impl<T: 'static + ColorValue> ColorValue for Compare<T> {}
-
-impl ParamValue for crate::card::Color {}
-impl ColorValue for crate::card::Color {}
-
-impl ParamValue for crate::card::Colors {}
-impl ColorValue for crate::card::Colors {}
-
-impl ParamValue for crate::card::Multicolored {}
-impl ColorValue for crate::card::Multicolored {}
-
-// TODO(msmorgan): Should text be a valid ColorValue?
-
-/// Devotion works differently than other color parameters. All the color
-/// symbols must match and the symbols can be hybrid mana.
-pub trait DevotionValue: ParamValue {}
-
-// TODO(msmorgan): Support hybrid mana devotion. `Colors` will not work, since
-//   the syntax is different for hybrid mana. Maybe a new `ManaSymbol` type?
-/// TODO(msmorgan): Docs.
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub struct Devotion(crate::card::Color, usize);
-
-impl fmt::Display for Devotion {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        if self.1 == 0 {
-            // This is invalid syntax, but prevents false positives. The query "devotion:"
-            // returns cards with a name containing "devotion".
-            write!(f, "0")
-        } else {
-            for _ in 0..=self.1 {
-                write!(f, "{{{}}}", self.0)?;
-            }
-            Ok(())
-        }
-    }
-}
-
-impl ParamValue for Devotion {}
-impl DevotionValue for Devotion {}
-
-impl DevotionValue for Compare<Devotion> {}
-
-impl Devotion {
-    /// Constructs a `Devotion` object with the given color and devotion count.
-    pub fn new(color: crate::card::Color, count: usize) -> Self {
-        Devotion(color, count)
-    }
-}
-
 /// A numeric value for a parameter.
 ///
-/// TODO(msmorgan): More.
+/// Searchable parameters which directly use a `NumericValue` argument include
+/// [`color_count()`] and [`collector_number()`]. Other parameters, such as
+/// [`power()`] and [`toughness()`], can be directly compared against one
+/// another. See [`NumericComparableValue`] for more information.
+///
+/// This trait is implemented for all numeric primitive types.
 pub trait NumericValue: ParamValue {}
 
 macro_rules! impl_numeric_values {
@@ -276,10 +228,14 @@ impl_numeric_values!(
     f32, f64,
 );
 
-/// TODO(msmorgan): Docs.
+/// A numeric value for a parameter, supporting [comparison
+/// operators][super::compare].
+///
+/// Parameters with a `NumericComparableValue` include [`power()`],
+/// [`toughness()`],
 pub trait NumericComparableValue: ParamValue {}
 
-impl<T: 'static + NumericComparableValue> NumericComparableValue for Compare<T> {}
+impl<T: NumericComparableValue> NumericComparableValue for Compare<T> {}
 
 impl ParamValue for NumProperty {
     fn into_param(self, kind: ValueKind) -> Param {
@@ -288,7 +244,7 @@ impl ParamValue for NumProperty {
 }
 impl NumericComparableValue for NumProperty {}
 
-/// This is the
+/// This is the base type for
 pub trait TextValue: ParamValue {}
 
 /// Helper struct for a quoted value. The `Display` impl for this struct
@@ -310,7 +266,6 @@ impl ParamValue for Quoted<String> {
         Param::value(kind, self)
     }
 }
-
 impl TextValue for Quoted<String> {}
 
 impl ParamValue for String {
@@ -318,7 +273,6 @@ impl ParamValue for String {
         Quoted(self).into_param(kind)
     }
 }
-
 impl TextValue for String {}
 
 impl ParamValue for &str {
@@ -326,7 +280,6 @@ impl ParamValue for &str {
         self.to_string().into_param(kind)
     }
 }
-
 impl TextValue for &str {}
 
 /// TODO(msmorgan): Docs.
@@ -349,14 +302,79 @@ impl fmt::Display for Regex {
 impl ParamValue for Regex {}
 impl TextOrRegexValue for Regex {}
 
+/// A color value represents one or more colors, or colorless/multicolored.
+/// Supports [comparison operators][super::compare].
+pub trait ColorValue: ParamValue {}
+
+impl<T: ColorValue> ColorValue for Compare<T> {}
+
+impl ParamValue for crate::card::Color {}
+impl ColorValue for crate::card::Color {}
+
+impl ParamValue for crate::card::Colors {}
+impl ColorValue for crate::card::Colors {}
+
+impl ParamValue for crate::card::Multicolored {}
+impl ColorValue for crate::card::Multicolored {}
+
+impl<T: TextValue> ColorValue for T {}
+
+/// Devotion works differently than other color parameters. All the color
+/// symbols must match and the symbols can be hybrid mana.
+pub trait DevotionValue: ParamValue {}
+
+/// TODO(msmorgan): Docs.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub struct Devotion(crate::card::Color, Option<crate::card::Color>, usize);
+
+impl fmt::Display for Devotion {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let count = self.2;
+        if count == 0 {
+            // This is invalid syntax, but prevents false positives. The query "devotion:"
+            // returns cards with a name containing "devotion".
+            write!(f, "0")
+        } else {
+            let color_a = self.0;
+            for _ in 0..=count {
+                match self.1 {
+                    Some(color_b) if color_b != color_a => {
+                        write!(f, "{{{}/{}}}", color_a, color_b)
+                    },
+                    _ => write!(f, "{{{}}}", color_a),
+                }?;
+            }
+            Ok(())
+        }
+    }
+}
+
+impl ParamValue for Devotion {}
+impl DevotionValue for Devotion {}
+
+impl DevotionValue for Compare<Devotion> {}
+
+impl Devotion {
+    /// Constructs a `Devotion` object with the given color and devotion count.
+    pub fn monocolor(color: crate::card::Color, count: usize) -> Self {
+        Devotion(color, None, count)
+    }
+
+    /// Constructs a `Devotion` object representing devotion to two colors with
+    /// the given count.
+    pub fn hybrid(color_a: crate::card::Color, color_b: crate::card::Color, count: usize) -> Self {
+        Devotion(color_a, Some(color_b), count)
+    }
+}
+
 /// A value representing the rarity of a printing. Supports [comparison
 /// operators][super::compare].
 ///
-/// Parameters with a `RarityValue` argument include [`rarity()`] and
-/// [`in_rarity()`].
+/// Parameter functions with a `RarityValue` argument include [`rarity()`]
+/// and [`in_rarity()`].
 ///
 /// This trait is implemented for `String`, `&str`, and the
-/// [`Rarity`][crate::card::Rarity] enum, and supports comparison operators.
+/// [`Rarity`][crate::card::Rarity] enum.
 pub trait RarityValue: ParamValue {}
 
 impl<T: TextValue> RarityValue for T {}
@@ -365,7 +383,7 @@ impl ParamValue for crate::card::Rarity {}
 impl RarityValue for crate::card::Rarity {}
 
 impl RarityValue for Compare<crate::card::Rarity> {}
-impl<T: 'static + TextValue> RarityValue for Compare<T> {}
+impl<T: TextValue> RarityValue for Compare<T> {}
 
 /// A value representing the name or code of the set a printing appears in.
 ///
@@ -441,14 +459,19 @@ impl FrameValue for crate::card::FrameEffect {}
 impl ParamValue for crate::card::Frame {}
 impl FrameValue for crate::card::Frame {}
 
-/// A parameter that represents a date, in `yyyy[-mm[-dd]]` format. A set code
-/// can also be used used to stand in for the date that set was released.
-/// Supports [comparison operators][super::compare].
+/// A parameter that represents a date. A set code can also be used used to
+/// stand for the date that set was released. Supports
+/// [comparison operators][super::compare].
 ///
-/// TODO(msmorgan): More.
+/// `DateValue` is the argument type for [`date()`].
+///
+/// This trait is implemented for [`chrono::NaiveDate`],
+/// [`SetCode`][crate::set::SetCode], and any [`TextValue`] such as `String` or
+/// `&str`. When searching with a string, it must either be a valid set code or
+/// a date in the format `yyyy[-mm[-dd]]`.
 pub trait DateValue: ParamValue {}
 
-impl<T: 'static + DateValue> DateValue for Compare<T> {}
+impl<T: DateValue> DateValue for Compare<T> {}
 
 impl<T: SetValue> DateValue for T {}
 
@@ -463,9 +486,11 @@ impl ParamValue for chrono::NaiveDate {
 impl DateValue for chrono::NaiveDate {}
 
 /// A parameter that specifies a game that the card appears in.
-/// Valid for any `TextValue` and for [`Game`][crate::card::Game].
 ///
-/// TODO(msmorgan): Docs.
+/// `GameValue` is the argument type for [`game()`] and [`in_game()`].
+///
+/// This trait is implemented for the [`Game`][crate::card::Game] enum, and for
+/// all [`TextValue`] types, such as `String` and `&str`.
 pub trait GameValue: ParamValue {}
 
 impl<T: TextValue> GameValue for T {}
@@ -542,7 +567,7 @@ param_fns! {
     #[doc = "Was the card printed in this set?"]
     in_set => InSet: SetValue,
     #[doc = "The card's collector number."]
-    number => Number: NumericValue,
+    collector_number => Number: NumericValue,
     #[doc = "The block of this card. Works with any set grouped in the same block."]
     block => Block: SetValue,
     #[doc = "The type of set this printing is in."]

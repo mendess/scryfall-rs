@@ -109,6 +109,7 @@ pub mod prelude {
         border_color,
         cheapest,
         cmc,
+        collector_number,
         color,
         color_count,
         color_identity,
@@ -134,7 +135,6 @@ pub mod prelude {
         loyalty,
         mana,
         name,
-        number,
         oracle_text,
         paper_print_count,
         paper_set_count,
@@ -154,7 +154,6 @@ pub mod prelude {
         usd_foil,
         watermark,
         year,
-        Devotion,
         NumProperty,
         Regex,
     };
