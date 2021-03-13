@@ -55,6 +55,7 @@ impl fmt::Display for Query {
         };
 
         use itertools::Itertools;
+        // If `exprs` is empty, the output is '()', which will be ignored.
         write!(f, "({})", exprs.iter().format(sep))
     }
 }
@@ -121,5 +122,36 @@ pub fn not(query: impl Into<Query>) -> Query {
         Query::Not(q) => *q,
         Query::Empty => Query::Empty,
         q => Query::Not(Box::new(q)),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::search::prelude::*;
+
+    #[test]
+    fn even_power() -> crate::Result<()> {
+        // Scryfall doesn't support "power:even", so let's do it manually.
+        let normal_creatures = type_line("Creature").and(not(Property::IsFunny));
+
+        let highest_power: u32 = SearchOptions::new()
+            .query(normal_creatures.clone())
+            .sort(SortOrder::Power, SortDirection::Descending)
+            .search()?
+            .next()
+            .unwrap()?
+            .power
+            .and_then(|pow| pow.parse().ok())
+            .unwrap_or(0);
+
+        let query = normal_creatures
+            .clone()
+            .and(Query::Or((0..=highest_power).map(|pow| power(pow)).collect()));
+
+        // There are at least 1000 cards with even power.
+        assert!(query.search().unwrap().size_hint().0 > 1000);
+
+        Ok(())
     }
 }
