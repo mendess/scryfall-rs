@@ -429,6 +429,13 @@ impl Card {
         Uri::from(url).fetch_iter()
     }
 
+    /// TODO(msmorgan): Docs.
+    pub fn search_all(query: impl crate::search::Search) -> crate::Result<Vec<Card>> {
+        let mut url = CARDS_URL.join("search/")?;
+        query.write_query(&mut url)?;
+        Uri::from(url).fetch_all()
+    }
+
     /// Fetches a random card matching a search query.
     ///
     /// # Examples

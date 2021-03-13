@@ -1,5 +1,7 @@
 //! Scryfall provides an overall categorization for each Set in the set_type
 //! property.
+use std::fmt;
+
 use serde::{Deserialize, Serialize};
 
 /// Scryfall provides an overall categorization for each Set in the set_type
@@ -50,4 +52,35 @@ pub enum SetType {
     /// A set made up of gold-bordered, oversize, or trophy cards that are not
     /// legal
     Memorabilia,
+}
+
+impl fmt::Display for SetType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                SetType::Core => "core",
+                SetType::Expansion => "expansion",
+                SetType::Masters => "masters",
+                SetType::Masterpiece => "masterpiece",
+                SetType::FromTheVault => "from_the_vault",
+                SetType::Spellbook => "spellbook",
+                SetType::PremiumDeck => "premium_deck",
+                SetType::DuelDeck => "duel_deck",
+                SetType::DraftInnovation => "draft_innovation",
+                SetType::TreasureChest => "treasure_chest",
+                SetType::Commander => "commander",
+                SetType::Planechase => "planechase",
+                SetType::Archenemy => "archenemy",
+                SetType::Vanguard => "vanguard",
+                SetType::Funny => "funny",
+                SetType::Starter => "starter",
+                SetType::GiftBox => "gift_box",
+                SetType::Promo => "promo",
+                SetType::Token => "token",
+                SetType::Memorabilia => "memorabilia",
+            }
+        )
+    }
 }

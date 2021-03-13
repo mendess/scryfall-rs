@@ -1,7 +1,7 @@
 use clap::Clap;
 use scryfall::card::Game;
 use scryfall::card_searcher::{GameParam, SearchBuilder};
-use scryfall::search::advanced::{SortDirection, SortMethod, UniqueStrategy};
+use scryfall::search::advanced::{SortDirection, SortOrder, UniqueStrategy};
 
 #[derive(Clap)]
 struct Opts {
@@ -14,7 +14,7 @@ fn main() -> scryfall::Result<()> {
     let mut builder = SearchBuilder::new();
     builder
         .with_unique_strategy(UniqueStrategy::Prints)
-        .sorting_by(SortMethod::Usd)
+        .sorting_by(SortOrder::Usd)
         .with_sort_direction(SortDirection::Descending)
         .param(format!("!\"{}\"", opts.card_name))
         .param(GameParam::InGame(Game::Paper));

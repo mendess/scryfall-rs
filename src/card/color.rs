@@ -308,9 +308,6 @@ impl From<Color> for Colors {
 /// Multicolored card. This can be used as a
 /// [`ColorValue`][crate::search::param::value::ColorValue] for searching
 /// Scryfall.
-///
-/// TODO(msmorgan): Example of using this for searching. Should the example be
-///   in the docs for `ColorValue`?
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Multicolored;
 

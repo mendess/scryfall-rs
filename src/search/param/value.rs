@@ -304,6 +304,13 @@ impl TextOrRegexValue for Regex {}
 
 /// A color value represents one or more colors, or colorless/multicolored.
 /// Supports [comparison operators][super::compare].
+///
+/// `ColorValue` is the argument type for the functions [`color()`] and
+/// [`color_identity()`].
+///
+/// This type is implemented for [`Color`][crate::card::Color],
+/// [`Colors`][crate::card::Colors], [`Multicolored`][crate::card::
+/// Multicolored], and all [`TextValue`] types.
 pub trait ColorValue: ParamValue {}
 
 impl<T: ColorValue> ColorValue for Compare<T> {}
@@ -323,7 +330,7 @@ impl<T: TextValue> ColorValue for T {}
 /// symbols must match and the symbols can be hybrid mana.
 pub trait DevotionValue: ParamValue {}
 
-/// TODO(msmorgan): Docs.
+/// A representation of a permanent's devotion to one or two colors.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Devotion(crate::card::Color, Option<crate::card::Color>, usize);
 
@@ -375,6 +382,26 @@ impl Devotion {
 ///
 /// This trait is implemented for `String`, `&str`, and the
 /// [`Rarity`][crate::card::Rarity] enum.
+///
+/// # Example
+///
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// use scryfall::card::Rarity;
+/// # fn main() -> scryfall::Result<()> {
+/// // Get the most expensive Common card, in USD.
+/// let card = SearchOptions::new()
+///     .query(rarity(Rarity::Common).and(cheapest("usd")))
+///     .sort(SortOrder::Usd, SortDirection::Descending)
+///     .unique(UniqueStrategy::Cards)
+///     .search()?
+///     .next()
+///     .unwrap()?;
+///
+/// assert!(card.prices.usd.is_some());
+/// # Ok(())
+/// # }
+/// ```
 pub trait RarityValue: ParamValue {}
 
 impl<T: TextValue> RarityValue for T {}
@@ -391,6 +418,18 @@ impl<T: TextValue> RarityValue for Compare<T> {}
 ///
 /// This trait is implemented for `String`, `&str`, and
 /// [`SetCode`][crate::set::SetCode].
+///
+/// # Example
+///
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// // Get a random Abzan card from Khans of Tarkir.
+/// let card = set("ktk").and(name("abzan")).random()?;
+/// assert!(card.name.to_lowercase().contains("abzan"));
+/// # Ok(())
+/// # }
+/// ```
 pub trait SetValue: ParamValue {}
 
 impl<T: TextValue> SetValue for T {}
@@ -415,6 +454,22 @@ impl<T: TextValue> CubeValue for T {}
 ///
 /// This trait is implemented for `String` and `&str`, as well as the
 /// [`Format`][crate::format::Format] enum.
+///
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// use scryfall::format::Format;
+/// // Find a card that's restricted in Vintage whose name contains 'recall'.
+/// let card = restricted(Format::Vintage)
+///     .and(name("recall"))
+///     .search_all()?
+///     .into_iter()
+///     .next()
+///     .unwrap();
+/// assert_eq!(card.name, "Ancestral Recall");
+/// # Ok(())
+/// # }
+/// ```
 pub trait FormatValue: ParamValue {}
 
 impl<T: TextValue> FormatValue for T {}
@@ -431,24 +486,40 @@ pub trait CurrencyValue: ParamValue {}
 
 impl<T: TextValue> CurrencyValue for T {}
 
-/// A value representing a type of Magic set, such as
-/// TODO(msmorgan): More.
+/// A value representing a type of Magic set, such as a core set or a duel deck.
+///
+/// `SetTypeValue` is used as the argument type for [`set_type()`] and
+/// [`in_set_type()`].
+///
+/// This trait is implemented for the [`SetType`][crate::set::SetType] enum
+/// and all [`TextValue`] types.
 pub trait SetTypeValue: ParamValue {}
+
+impl ParamValue for crate::set::SetType {}
+impl SetTypeValue for crate::set::SetType {}
 
 impl<T: TextValue> SetTypeValue for T {}
 
-/// TODO(msmorgan): Docs.
+/// A value representing a border color, such as black, white, or silver.
+///
+/// `BorderColorValue` is used as the argument type for [`border_color()`].
+///
+/// This trait is implemented for the [`BorderColor`][crate::card::BorderColor]
+/// and all [`TextValue`] types.
 pub trait BorderColorValue: ParamValue {}
 
 impl<T: TextValue> BorderColorValue for T {}
 
 impl ParamValue for crate::card::BorderColor {}
-
 impl BorderColorValue for crate::card::BorderColor {}
 
 /// A value representing card frames and frame effects.
 ///
-/// TODO(msmorgan): More.
+/// `FrameValue` is the argument type for [`frame()`] and [`frame_effect()`].
+///
+/// This trait is implemented for the enums [`Frame`][crate::card::Frame]
+/// and [`FrameEffect`][crate::card::FrameEffect], as well as all [`TextValue`]
+/// types.
 pub trait FrameValue: ParamValue {}
 
 impl<T: TextValue> FrameValue for T {}
@@ -478,7 +549,7 @@ impl<T: SetValue> DateValue for T {}
 impl ParamValue for chrono::NaiveDate {
     fn into_param(self, kind: ValueKind) -> Param
     where
-        Self: 'static + Sized,
+        Self: Sized,
     {
         Param::value(kind, self.format("%Y-%m-%d").to_string())
     }
@@ -510,7 +581,7 @@ macro_rules! param_fns {
         $($rest:tt)*
     ) => {
         $(#[$($attr)*])*
-        pub fn $func(value: impl 'static + $Constraint) -> Query {
+        pub fn $func(value: impl $Constraint) -> Query {
             Query::Param(value.into_param(ValueKind(ValueKindImpl::$Kind)))
         }
 
@@ -523,7 +594,7 @@ macro_rules! param_fns {
         $($rest:tt)*
     ) => {
         $(#[$($attr)*])*
-        pub fn $func(value: impl 'static + NumericComparableValue) -> Query {
+        pub fn $func(value: impl NumericComparableValue) -> Query {
             Query::Param(value.into_param(ValueKind(
                 ValueKindImpl::NumericComparable(NumProperty::$Kind),
             )))
@@ -554,7 +625,7 @@ param_fns! {
     keyword => Keyword: TextValue,
     #[doc = "The mana cost of this card."]
     mana => Mana: ColorValue,
-    #[doc = "The devotion granted by this permanent."]
+    #[doc = "The devotion granted by this permanent. See [`Devotion`]."]
     devotion => Devotion: DevotionValue,
     #[doc = "The colors of mana produced by this card."]
     produces => Produces: ColorValue,

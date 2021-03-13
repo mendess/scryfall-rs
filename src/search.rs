@@ -44,29 +44,28 @@ pub trait Search {
     }
 
     /// Convenience method for passing this object to [`Card::search`].
-    fn search(&self) -> crate::Result<ListIter<Card>>
-    where
-        Self: Sized,
-    {
+    fn search(&self) -> crate::Result<ListIter<Card>> {
         Card::search_new(self)
     }
 
+    /// Convenience method for passing this object to [`Card::search_all`].
+    fn search_all(&self) -> crate::Result<Vec<Card>> {
+        Card::search_all(self)
+    }
+
     /// Convenience method for passing this object to [`Card::search_random`].
-    fn random(&self) -> crate::Result<Card>
-    where
-        Self: Sized,
-    {
+    fn random(&self) -> crate::Result<Card> {
         Card::search_random_new(self)
     }
 }
 
-impl<T: Search> Search for &T {
+impl<T: Search + ?Sized> Search for &T {
     fn write_query(&self, url: &mut Url) -> crate::Result<()> {
         <T as Search>::write_query(*self, url)
     }
 }
 
-impl<T: Search> Search for &mut T {
+impl<T: Search + ?Sized> Search for &mut T {
     fn write_query(&self, url: &mut Url) -> crate::Result<()> {
         <T as Search>::write_query(*self, url)
     }
@@ -98,7 +97,7 @@ impl Search for String {
 /// use scryfall::search::prelude::*;
 /// ```
 pub mod prelude {
-    pub use super::advanced::{SearchOptions, SortDirection, SortMethod, UniqueStrategy};
+    pub use super::advanced::{SearchOptions, SortDirection, SortOrder, UniqueStrategy};
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
     pub use super::param::property::{prop, Property};
     pub use super::param::value::{
@@ -160,8 +159,6 @@ pub mod prelude {
     pub use super::param::Param;
     pub use super::query::{not, Query};
     pub use super::Search;
-    pub use crate::card::{BorderColor, Frame, FrameEffect, Game, Rarity};
-    pub use crate::set::{SetCode, SetType};
 }
 
 #[cfg(test)]
@@ -198,7 +195,7 @@ mod tests {
             SearchOptions::new()
                 .query(keyword("storm"))
                 .unique(UniqueStrategy::Art)
-                .sorted(SortMethod::Usd, SortDirection::Ascending)
+                .sorted(SortOrder::Usd, SortDirection::Ascending)
                 .extras(true)
                 .multilingual(true)
                 .variations(true)
@@ -231,7 +228,7 @@ mod tests {
         search
             .query(exact("Black Lotus"))
             .unique(UniqueStrategy::Prints)
-            .sorted(SortMethod::Released, SortDirection::Ascending);
+            .sorted(SortOrder::Released, SortDirection::Ascending);
 
         eprintln!("{}", search.query_string().unwrap());
 
@@ -249,6 +246,8 @@ mod tests {
 
     #[test]
     fn rarity_comparison() {
+        use crate::card::Rarity;
+
         // The cards with "Bonus" rarity (power nine in vma).
         let cards = SearchOptions::new()
             .query(rarity(gt(Rarity::Mythic)))

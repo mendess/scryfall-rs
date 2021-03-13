@@ -24,7 +24,7 @@ use static_assertions::assert_impl_all;
 use crate::card::{BorderColor, Card, Colors, Frame, FrameEffect, Game, Rarity};
 use crate::format::Format;
 use crate::list::ListIter;
-pub use crate::search::advanced::{SortDirection, SortMethod, UniqueStrategy};
+pub use crate::search::advanced::{SortDirection, SortOrder, UniqueStrategy};
 use crate::set::SetCode;
 
 /// Search expresses that the implementing type can be turned into a query to
@@ -156,7 +156,7 @@ pub struct SearchBuilder {
     #[serde(skip_serializing_if = "is_default")]
     unique: UniqueStrategy,
     #[serde(skip_serializing_if = "is_default")]
-    order: SortMethod,
+    order: SortOrder,
     #[serde(skip_serializing_if = "is_default")]
     dir: SortDirection,
     page: usize,
@@ -214,7 +214,7 @@ impl SearchBuilder {
     }
 
     /// Change the sorting method used for the results.
-    pub fn sorting_by(&mut self, method: SortMethod) -> &mut Self {
+    pub fn sorting_by(&mut self, method: SortOrder) -> &mut Self {
         self.order = method;
         self
     }

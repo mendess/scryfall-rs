@@ -16,7 +16,7 @@ pub struct SearchOptions {
     #[serde(skip_serializing_if = "is_default")]
     unique: UniqueStrategy,
     #[serde(skip_serializing_if = "is_default")]
-    order: SortMethod,
+    order: SortOrder,
     #[serde(skip_serializing_if = "is_default")]
     dir: SortDirection,
     #[serde(skip_serializing_if = "is_default")]
@@ -84,9 +84,20 @@ impl SearchOptions {
         self
     }
 
-    /// Sets the method and direction to sort returned cards.
-    pub fn sorted(&mut self, sort_by: SortMethod, dir: SortDirection) -> &mut Self {
-        self.order = sort_by;
+    /// Sets the sort order and direction for returned cards.
+    #[inline]
+    pub fn sort(&mut self, order: SortOrder, dir: SortDirection) -> &mut Self {
+        self.order(order).direction(dir)
+    }
+
+    /// Sets the sort order for returned cards.
+    pub fn order(&mut self, order: SortOrder) -> &mut Self {
+        self.order = order;
+        self
+    }
+
+    /// Sets the sort direction for returned cards.
+    pub fn direction(&mut self, dir: SortDirection) -> &mut Self {
         self.dir = dir;
         self
     }
@@ -141,7 +152,7 @@ impl Default for UniqueStrategy {
 /// The order parameter determines how Scryfall should sort the returned cards.
 #[derive(Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(rename_all = "lowercase")]
-pub enum SortMethod {
+pub enum SortOrder {
     /// Sort cards by name, A → Z
     Name,
     /// Sort cards by their set and collector number: AAA/#1 → ZZZ/#999
@@ -172,9 +183,9 @@ pub enum SortMethod {
     Artist,
 }
 
-impl Default for SortMethod {
+impl Default for SortOrder {
     fn default() -> Self {
-        SortMethod::Name
+        SortOrder::Name
     }
 }
 
