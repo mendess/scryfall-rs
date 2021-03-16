@@ -99,7 +99,7 @@ impl Search for String {
 pub mod prelude {
     pub use super::advanced::{SearchOptions, SortDirection, SortOrder, UniqueStrategy};
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
-    pub use super::param::property::{prop, Property};
+    pub use super::param::criteria::{criterion, Criterion};
     pub use super::param::value::{
         artist,
         artist_count,
@@ -195,7 +195,7 @@ mod tests {
             SearchOptions::new()
                 .query(keyword("storm"))
                 .unique(UniqueStrategy::Art)
-                .sorted(SortOrder::Usd, SortDirection::Ascending)
+                .sort(SortOrder::Usd, SortDirection::Ascending)
                 .extras(true)
                 .multilingual(true)
                 .variations(true)
@@ -213,8 +213,8 @@ mod tests {
     fn all_properties_work() {
         use strum::IntoEnumIterator;
 
-        for p in Property::iter() {
-            let query = prop(p);
+        for p in Criterion::iter() {
+            let query = criterion(p);
             query
                 .random()
                 .unwrap_or_else(|_| panic!("Could not get a random card with {}", p));
@@ -228,7 +228,7 @@ mod tests {
         search
             .query(exact("Black Lotus"))
             .unique(UniqueStrategy::Prints)
-            .sorted(SortOrder::Released, SortDirection::Ascending);
+            .sort(SortOrder::Released, SortDirection::Ascending);
 
         eprintln!("{}", search.query_string().unwrap());
 
@@ -270,7 +270,7 @@ mod tests {
         let card = Card::search_random_new(Query::And(vec![
             power(eq(NumProperty::Toughness)),
             pow_tou(eq(NumProperty::Cmc)),
-            not(Property::IsFunny),
+            not(Criterion::IsFunny),
         ]))
         .unwrap();
 

@@ -6,7 +6,7 @@ use std::fmt;
 use url::Url;
 
 use crate::search::param::Param;
-use crate::search::prelude::{prop, Property};
+use crate::search::prelude::{criterion, Criterion};
 use crate::search::Search;
 
 /// A search query, composed of search parameters and boolean operations.
@@ -72,9 +72,9 @@ impl From<Param> for Query {
     }
 }
 
-impl From<Property> for Query {
-    fn from(property: Property) -> Self {
-        prop(property)
+impl From<Criterion> for Query {
+    fn from(property: Criterion) -> Self {
+        criterion(property)
     }
 }
 
@@ -133,7 +133,7 @@ mod tests {
     #[test]
     fn even_power() -> crate::Result<()> {
         // Scryfall doesn't support "power:even", so let's do it manually.
-        let normal_creatures = type_line("Creature").and(not(Property::IsFunny));
+        let normal_creatures = type_line("Creature").and(not(Criterion::IsFunny));
 
         let highest_power: u32 = SearchOptions::new()
             .query(normal_creatures.clone())
@@ -145,9 +145,9 @@ mod tests {
             .and_then(|pow| pow.parse().ok())
             .unwrap_or(0);
 
-        let query = normal_creatures
-            .clone()
-            .and(Query::Or((0..=highest_power).map(|pow| power(pow)).collect()));
+        let query = normal_creatures.clone().and(Query::Or(
+            (0..=highest_power).map(|pow| power(pow)).collect(),
+        ));
 
         // There are at least 1000 cards with even power.
         assert!(query.search().unwrap().size_hint().0 > 1000);

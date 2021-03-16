@@ -1,4 +1,4 @@
-//! This module defines the [`Property`] type, which contains all the boolean
+//! This module defines the [`Criterion`] type, which contains all the boolean
 //! properties Scryfall supports for searching cards.
 //!
 //! TODO(msmorgan): More.
@@ -7,12 +7,12 @@ use std::fmt;
 use crate::search::param::Param;
 use crate::search::query::Query;
 
-/// A `Property` is a boolean flag associated with a card or printing.
+/// A `Criterion` is a boolean flag associated with a card or printing.
 ///
 /// TODO(msmorgan): More.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, derive(strum::EnumIter))]
-pub enum Property {
+pub enum Criterion {
     /// Cards that have a color indicator.
     HasColorIndicator,
     /// Cards that have a watermark.
@@ -172,98 +172,98 @@ pub enum Property {
     OddCmc,
 }
 
-impl fmt::Display for Property {
+impl fmt::Display for Criterion {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
             "{}:{}",
             match self {
-                Property::HasColorIndicator | Property::HasWatermark => "has",
-                Property::NewCard
-                | Property::NewArt
-                | Property::NewArtist
-                | Property::NewFlavor
-                | Property::NewFrame
-                | Property::NewLanguage
-                | Property::NewRarity => "new",
-                Property::EvenCmc | Property::OddCmc => "cmc",
+                Criterion::HasColorIndicator | Criterion::HasWatermark => "has",
+                Criterion::NewCard
+                | Criterion::NewArt
+                | Criterion::NewArtist
+                | Criterion::NewFlavor
+                | Criterion::NewFrame
+                | Criterion::NewLanguage
+                | Criterion::NewRarity => "new",
+                Criterion::EvenCmc | Criterion::OddCmc => "cmc",
                 _ => "is",
             },
             match self {
-                Property::HasColorIndicator => "indicator",
-                Property::HasWatermark => "watermark",
-                Property::NewCard => "card",
-                Property::NewRarity => "rarity",
-                Property::NewArt => "art",
-                Property::NewFlavor => "flavor",
-                Property::NewArtist => "artist",
-                Property::NewFrame => "frame",
-                Property::NewLanguage => "language",
-                Property::IsPhyrexian => "phyrexian",
-                Property::IsHybrid => "hybrid",
-                Property::IsSplit => "split",
-                Property::IsFlip => "flip",
-                Property::IsTransform => "transform",
-                Property::IsMeld => "meld",
-                Property::IsLeveler => "leveler",
-                Property::IsSpell => "spell",
-                Property::IsPermanent => "permanent",
-                Property::IsHistoric => "historic",
-                Property::IsParty => "party",
-                Property::IsModal => "modal",
-                Property::IsVanilla => "vanilla",
-                Property::IsFrenchVanilla => "french_vanilla",
-                Property::IsFunny => "funny",
-                Property::IsFull => "full",
-                Property::IsFoil => "foil",
-                Property::IsNonFoil => "nonfoil",
-                Property::IsCommander => "commander",
-                Property::IsBrawler => "brawler",
-                Property::IsCompanion => "companion",
-                Property::IsReserved => "reserved",
-                Property::IsHiRes => "hires",
-                Property::IsDigital => "digital",
-                Property::IsPromo => "promo",
-                Property::IsSpotlight => "spotlight",
-                Property::IsFirstPrint => "first_print",
-                Property::IsReprint => "reprint",
-                Property::IsMasterpiece => "masterpiece",
-                Property::IsUnique => "unique",
-                Property::SoldInBoosters => "booster",
-                Property::SoldInPwDecks => "planeswalker_deck",
-                Property::SoldInLeague => "league",
-                Property::SoldInBuyABox => "buyabox",
-                Property::SoldInGiftBox => "giftbox",
-                Property::SoldInIntroPack => "intro_pack",
-                Property::SoldInGameDay => "gameday",
-                Property::SoldInPreRelease => "prerelease",
-                Property::SoldInRelease => "release",
-                Property::IsBicycleLand => "bicycle_land",
-                Property::IsTricycleLand => "tricycle_land",
-                Property::IsBounceLand => "bounce_land",
-                Property::IsCanopyLand => "canopy_land",
-                Property::IsCheckLand => "check_land",
-                Property::IsDualLand => "dual",
-                Property::IsFastLand => "fast_land",
-                Property::IsFetchLand => "fetch_land",
-                Property::IsFilterLand => "filter_land",
-                Property::IsGainLand => "gain_land",
-                Property::IsPainLand => "pain_land",
-                Property::IsScryLand => "scry_land",
-                Property::IsShadowLand => "shadow_land",
-                Property::IsShockLand => "shock_land",
-                Property::IsStorageLand => "storage_land",
-                Property::IsCreatureLand => "creature_land",
-                Property::IsTriLand => "tri_land",
-                Property::IsBattleLand => "battle_land",
-                Property::EvenCmc => "even",
-                Property::OddCmc => "odd",
+                Criterion::HasColorIndicator => "indicator",
+                Criterion::HasWatermark => "watermark",
+                Criterion::NewCard => "card",
+                Criterion::NewRarity => "rarity",
+                Criterion::NewArt => "art",
+                Criterion::NewFlavor => "flavor",
+                Criterion::NewArtist => "artist",
+                Criterion::NewFrame => "frame",
+                Criterion::NewLanguage => "language",
+                Criterion::IsPhyrexian => "phyrexian",
+                Criterion::IsHybrid => "hybrid",
+                Criterion::IsSplit => "split",
+                Criterion::IsFlip => "flip",
+                Criterion::IsTransform => "transform",
+                Criterion::IsMeld => "meld",
+                Criterion::IsLeveler => "leveler",
+                Criterion::IsSpell => "spell",
+                Criterion::IsPermanent => "permanent",
+                Criterion::IsHistoric => "historic",
+                Criterion::IsParty => "party",
+                Criterion::IsModal => "modal",
+                Criterion::IsVanilla => "vanilla",
+                Criterion::IsFrenchVanilla => "french_vanilla",
+                Criterion::IsFunny => "funny",
+                Criterion::IsFull => "full",
+                Criterion::IsFoil => "foil",
+                Criterion::IsNonFoil => "nonfoil",
+                Criterion::IsCommander => "commander",
+                Criterion::IsBrawler => "brawler",
+                Criterion::IsCompanion => "companion",
+                Criterion::IsReserved => "reserved",
+                Criterion::IsHiRes => "hires",
+                Criterion::IsDigital => "digital",
+                Criterion::IsPromo => "promo",
+                Criterion::IsSpotlight => "spotlight",
+                Criterion::IsFirstPrint => "first_print",
+                Criterion::IsReprint => "reprint",
+                Criterion::IsMasterpiece => "masterpiece",
+                Criterion::IsUnique => "unique",
+                Criterion::SoldInBoosters => "booster",
+                Criterion::SoldInPwDecks => "planeswalker_deck",
+                Criterion::SoldInLeague => "league",
+                Criterion::SoldInBuyABox => "buyabox",
+                Criterion::SoldInGiftBox => "giftbox",
+                Criterion::SoldInIntroPack => "intro_pack",
+                Criterion::SoldInGameDay => "gameday",
+                Criterion::SoldInPreRelease => "prerelease",
+                Criterion::SoldInRelease => "release",
+                Criterion::IsBicycleLand => "bicycle_land",
+                Criterion::IsTricycleLand => "tricycle_land",
+                Criterion::IsBounceLand => "bounce_land",
+                Criterion::IsCanopyLand => "canopy_land",
+                Criterion::IsCheckLand => "check_land",
+                Criterion::IsDualLand => "dual",
+                Criterion::IsFastLand => "fast_land",
+                Criterion::IsFetchLand => "fetch_land",
+                Criterion::IsFilterLand => "filter_land",
+                Criterion::IsGainLand => "gain_land",
+                Criterion::IsPainLand => "pain_land",
+                Criterion::IsScryLand => "scry_land",
+                Criterion::IsShadowLand => "shadow_land",
+                Criterion::IsShockLand => "shock_land",
+                Criterion::IsStorageLand => "storage_land",
+                Criterion::IsCreatureLand => "creature_land",
+                Criterion::IsTriLand => "tri_land",
+                Criterion::IsBattleLand => "battle_land",
+                Criterion::EvenCmc => "even",
+                Criterion::OddCmc => "odd",
             }
         )
     }
 }
 
-/// Match a card with a specified [`Property`].
-pub fn prop(prop: Property) -> Query {
-    Query::Param(Param::property(prop))
+/// Match a card that meets the specified `criterion`.
+pub fn criterion(criterion: Criterion) -> Query {
+    Query::Param(Param::criterion(criterion))
 }
