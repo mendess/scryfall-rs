@@ -172,11 +172,12 @@ criterion_fns! {
 
     #[doc = "Find cards that are printed for the first time in paper."]
     new_card => New(Card),
-    #[doc = "Find reprint cards printed at a new rarity for the first time."]
+    #[doc = "Find cards printed at a new rarity for the first time (including first prints)."]
     new_rarity => New(Rarity),
-    #[doc = "Find cards being printed with new illustrations."]
+    #[doc = "Find cards being printed with new illustrations (including first prints)."]
     new_art => New(Art),
-    #[doc = "Find cards being illustrated by a particular artist for the first time."]
+    #[doc = "Find cards being illustrated by a particular artist for the first time \
+             (including first prints)."]
     new_artist => New(Artist),
     #[doc = "Find cards being printed with brand-new flavor text using for the first time."]
     new_flavor => New(Flavor),
@@ -270,55 +271,55 @@ criterion_fns! {
     is_bicycle_land => LandFamily(Bicycle),
     #[doc = "A cycling tri land, such as [Ketria Triome](https://scryfall.com/card/iko/250)."]
     is_tricycle_land => LandFamily(Tricycle),
-    #[doc = "A land that returns other lands to your hand, such as"]
-    #[doc = "[Boros Garrison](https://scryfall.com/card/rav/275)."]
+    #[doc = "A land that returns other lands to your hand, such as \
+             [Boros Garrison](https://scryfall.com/card/rav/275)."]
     is_bounce_land => LandFamily(Bounce),
-    #[doc = "A pain land that can be sacrificed to draw a card, such as"]
-    #[doc = "[Horizon Canopy](https://scryfall.com/card/fut/177)."]
+    #[doc = "A pain land that can be sacrificed to draw a card, such as \
+             [Horizon Canopy](https://scryfall.com/card/fut/177)."]
     is_canopy_land => LandFamily(Canopy),
-    #[doc = "A land that enters tapped unless you control a basic of its color, such"]
-    #[doc = "as [Glacial Fortress](https://scryfall.com/card/m10/226)."]
+    #[doc = "A land that enters tapped unless you control a basic of its color, such \
+             as [Glacial Fortress](https://scryfall.com/card/m10/226)."]
     is_check_land => LandFamily(Check),
     #[doc = "An original dual land, such as [Tropical Island](https://scryfall.com/card/lea/283)."]
     is_dual_land => LandFamily(Dual),
-    #[doc = "A land that enters tapped unless you control two or fewer other lands,"]
-    #[doc = "such as [Blackcleave Cliffs](https://scryfall.com/card/som/224)."]
+    #[doc = "A land that enters tapped unless you control two or fewer other lands, \
+             such as [Blackcleave Cliffs](https://scryfall.com/card/som/224)."]
     is_fast_land => LandFamily(Fast),
     #[doc = "A fetch land, such as [Scalding Tarn](https://scryfall.com/card/zen/223)."]
     is_fetch_land => LandFamily(Fetch),
-    #[doc = "A land that filters mana into other colors, such as"]
-    #[doc = "[Mystic Gate](https://scryfall.com/card/shm/277) or"]
-    #[doc = "[Cascading Cataracts](https://scryfall.com/card/akh/240/cascading-cataracts)."]
+    #[doc = "A land that filters mana into other colors, such as \
+             [Mystic Gate](https://scryfall.com/card/shm/277) or \
+             [Cascading Cataracts](https://scryfall.com/card/akh/240/cascading-cataracts)."]
     is_filter_land => LandFamily(Filter),
-    #[doc = "A land that enters tapped and gains 1 life, such as"]
-    #[doc = "[Jungle Hollow](https://scryfall.com/card/ktk/235)."]
+    #[doc = "A land that enters tapped and gains 1 life, such as \
+             [Jungle Hollow](https://scryfall.com/card/ktk/235)."]
     is_gain_land => LandFamily(Gain),
-    #[doc = "A land that costs life for colored mana, such as"]
-    #[doc = "[Caves of Koilos](https://scryfall.com/card/apc/140)."]
+    #[doc = "A land that costs life for colored mana, such as \
+             [Caves of Koilos](https://scryfall.com/card/apc/140)."]
     is_pain_land => LandFamily(Pain),
-    #[doc = "A land that enters tapped and has \"Scry 1\", such as"]
-    #[doc = "[Temple of Mystery](https://scryfall.com/card/ths/226)."]
+    #[doc = "A land that enters tapped and has \"Scry 1\", such as \
+             [Temple of Mystery](https://scryfall.com/card/ths/226)."]
     is_scry_land => LandFamily(Scry),
-    #[doc = "A land that enters tapped unless you reveal a basic from your hand, such"]
-    #[doc = "as [Choked Estuary](https://scryfall.com/card/soi/270)."]
+    #[doc = "A land that enters tapped unless you reveal a basic from your hand, such \
+             as [Choked Estuary](https://scryfall.com/card/soi/270)."]
     is_shadow_land => LandFamily(Shadow),
-    #[doc = "A land that enters tapped unless you pay 2 life, such as"]
-    #[doc = "[Breeding Pool](https://scryfall.com/card/dis/172)."]
+    #[doc = "A land that enters tapped unless you pay 2 life, such as\
+             [Breeding Pool](https://scryfall.com/card/dis/172)."]
     is_shock_land => LandFamily(Shock),
-    #[doc = "A land that allows you to store up mana for later use, such as"]
-    #[doc = "[Fungal Reaches](https://scryfall.com/card/tsp/273) or"]
-    #[doc = "[Crucible of the Spirit Dragon](https://scryfall.com/card/frf/167)."]
+    #[doc = "A land that allows you to store up mana for later use, such as \
+             [Fungal Reaches](https://scryfall.com/card/tsp/273) or \
+             [Crucible of the Spirit Dragon](https://scryfall.com/card/frf/167)."]
     is_storage_land => LandFamily(Storage),
-    #[doc = "A land that turns into a creature, such as"]
-    #[doc = "[Celestial Colonnade](https://scryfall.com/card/wwk/133),"]
-    #[doc = "[Mutavault](https://scryfall.com/card/mor/148), or"]
-    #[doc = "[Inkmoth Nexus](https://scryfall.com/card/mbs/145)."]
+    #[doc = "A land that turns into a creature, such as \
+             [Celestial Colonnade](https://scryfall.com/card/wwk/133), \
+             [Mutavault](https://scryfall.com/card/mor/148), or \
+             [Inkmoth Nexus](https://scryfall.com/card/mbs/145)."]
     is_creature_land => LandFamily(Creature),
-    #[doc = "A land that enters tapped and produces three colors, such as"]
-    #[doc = "[Mystic Monastery](https://scryfall.com/card/ktk/236)."]
+    #[doc = "A land that enters tapped and produces three colors, such as \
+             [Mystic Monastery](https://scryfall.com/card/ktk/236)."]
     is_tri_land => LandFamily(Tri),
-    #[doc = "A land that enters tapped unless you control two basics in its"]
-    #[doc = "colors, such as [Canopy Vista](https://scryfall.com/card/bfz/234)."]
+    #[doc = "A land that enters tapped unless you control two basics in its \
+             colors, such as [Canopy Vista](https://scryfall.com/card/bfz/234)."]
     is_battle_land => LandFamily(Battle),
 
     #[doc = "The converted mana cost of this card is an even number."]
