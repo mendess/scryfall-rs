@@ -99,63 +99,8 @@ impl Search for String {
 pub mod prelude {
     pub use super::advanced::{SearchOptions, SortDirection, SortOrder, UniqueStrategy};
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
-    pub use super::param::criteria::{criterion, Criterion};
-    pub use super::param::value::{
-        artist,
-        artist_count,
-        banned,
-        block,
-        border_color,
-        cheapest,
-        cmc,
-        collector_number,
-        color,
-        color_count,
-        color_identity,
-        color_identity_count,
-        cube,
-        date,
-        devotion,
-        eur,
-        exact,
-        flavor,
-        format,
-        frame,
-        full_oracle_text,
-        game,
-        illustration_count,
-        in_game,
-        in_language,
-        in_rarity,
-        in_set,
-        in_set_type,
-        keyword,
-        language,
-        loyalty,
-        mana,
-        name,
-        oracle_text,
-        paper_print_count,
-        paper_set_count,
-        pow_tou,
-        power,
-        print_count,
-        produces,
-        rarity,
-        restricted,
-        set,
-        set_count,
-        set_type,
-        tix,
-        toughness,
-        type_line,
-        usd,
-        usd_foil,
-        watermark,
-        year,
-        NumProperty,
-        Regex,
-    };
+    pub use super::param::functions::*;
+    pub use super::param::value::NumProperty;
     pub use super::param::Param;
     pub use super::query::{not, Query};
     pub use super::Search;
@@ -208,18 +153,19 @@ mod tests {
         );
     }
 
-    #[test]
-    #[ignore]
-    fn all_properties_work() {
-        use strum::IntoEnumIterator;
-
-        for p in Criterion::iter() {
-            let query = criterion(p);
-            query
-                .random()
-                .unwrap_or_else(|_| panic!("Could not get a random card with {}", p));
-        }
-    }
+    // TODO(msmorgan): Rework this.
+    // #[test]
+    // #[ignore]
+    // fn all_properties_work() {
+    //     use strum::IntoEnumIterator;
+    //
+    //     for p in Criterion::iter() {
+    //         let query = criterion(p);
+    //         query
+    //             .random()
+    //             .unwrap_or_else(|_| panic!("Could not get a random card with {}",
+    // p));     }
+    // }
 
     #[test]
     fn finds_alpha_lotus() {
@@ -270,7 +216,7 @@ mod tests {
         let card = Card::search_random_new(Query::And(vec![
             power(eq(NumProperty::Toughness)),
             pow_tou(eq(NumProperty::Cmc)),
-            not(Criterion::IsFunny),
+            is_funny(false),
         ]))
         .unwrap();
 

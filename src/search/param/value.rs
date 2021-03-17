@@ -4,7 +4,6 @@ use std::fmt;
 
 use crate::search::param::compare::{compare_op_str, Compare, CompareOp};
 use crate::search::param::Param;
-use crate::search::query::Query;
 
 /// The type of parameter that this is. Corresponds to the name before the ':'
 /// or other operator.
@@ -12,25 +11,25 @@ use crate::search::query::Query;
 /// Refer to [the syntax documentation](https://scryfall.com/docs/syntax) for details on the
 /// available parameter types.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub struct ValueKind(ValueKindImpl);
+pub struct ValueKind(pub(super) ValueKindImpl);
 
 impl ValueKind {
-    pub(super) fn fmt_value(
+    pub(super) fn fmt_value(&self, value: &str, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}:{}", self, value)
+    }
+
+    pub(super) fn fmt_comparison(
         &self,
-        op: Option<CompareOp>,
-        value: &dyn fmt::Display,
+        op: CompareOp,
+        value: &str,
         f: &mut fmt::Formatter,
     ) -> fmt::Result {
-        if let (ValueKindImpl::Exact, None) = (&self.0, op) {
-            write!(f, "!{}", value)
-        } else {
-            write!(f, "{}{}{}", self, compare_op_str(op), value)
-        }
+        write!(f, "{}{}{}", self, compare_op_str(Some(op)), value)
     }
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-enum ValueKindImpl {
+pub(super) enum ValueKindImpl {
     Color,
     ColorIdentity,
     Type,
@@ -64,7 +63,6 @@ enum ValueKindImpl {
     Language,
     InLanguage,
     Name,
-    Exact,
     NumericComparable(NumProperty),
 }
 
@@ -182,8 +180,6 @@ impl fmt::Display for ValueKind {
                 | ValueKindImpl::InLanguage => "in",
                 ValueKindImpl::Name => "name",
                 ValueKindImpl::NumericComparable(np) => numeric_property_str(*np),
-                // TODO(msmorgan): Should this just be unreachable?
-                ValueKindImpl::Exact => return Err(fmt::Error::default()),
             }
         )
     }
@@ -573,143 +569,3 @@ impl GameValue for crate::card::Game {}
 pub trait LanguageValue: ParamValue {}
 
 impl<T: TextValue> LanguageValue for T {}
-
-macro_rules! param_fns {
-    (
-        $(#[$($attr:meta)*])*
-        $func:ident => $Kind:ident : $Constraint:ident,
-        $($rest:tt)*
-    ) => {
-        $(#[$($attr)*])*
-        pub fn $func(value: impl $Constraint) -> Query {
-            Query::Param(value.into_param(ValueKind(ValueKindImpl::$Kind)))
-        }
-
-        param_fns!($($rest)*);
-    };
-
-    (
-        $(#[$($attr:meta)*])*
-        $func:ident => NumericComparable($Kind:ident),
-        $($rest:tt)*
-    ) => {
-        $(#[$($attr)*])*
-        pub fn $func(value: impl NumericComparableValue) -> Query {
-            Query::Param(value.into_param(ValueKind(
-                ValueKindImpl::NumericComparable(NumProperty::$Kind),
-            )))
-        }
-
-        param_fns!($($rest)*);
-    };
-
-    () => {};
-}
-
-param_fns! {
-    #[doc = "The color of this card, based on indicator or cost."]
-    color => Color: ColorValue,
-    #[doc = "The number of colors of this card, based on indicator or cost."]
-    color_count => Color: NumericValue,
-    #[doc = "The color identity of this card, for Commander-like formats."]
-    color_identity => ColorIdentity: ColorValue,
-    #[doc = "The number of colors in this card's identity, for Commander-like formats."]
-    color_identity_count => ColorIdentity: NumericValue,
-    #[doc = "The type line of this card."]
-    type_line => Type: TextOrRegexValue,
-    #[doc = "The updated oracle text of this card."]
-    oracle_text => Oracle: TextOrRegexValue,
-    #[doc = "The updated oracle text of this card, including reminder text."]
-    full_oracle_text => FullOracle: TextOrRegexValue,
-    #[doc = "Keyword ability that this card has."]
-    keyword => Keyword: TextValue,
-    #[doc = "The mana cost of this card."]
-    mana => Mana: ColorValue,
-    #[doc = "The devotion granted by this permanent. See [`Devotion`]."]
-    devotion => Devotion: DevotionValue,
-    #[doc = "The colors of mana produced by this card."]
-    produces => Produces: ColorValue,
-    #[doc = "The rarity of this printing."]
-    rarity => Rarity: RarityValue,
-    #[doc = "Has the card ever been printed in this rarity?"]
-    in_rarity => InRarity: RarityValue,
-    #[doc = "The set code of this printing."]
-    set => Set: SetValue,
-    #[doc = "Was the card printed in this set?"]
-    in_set => InSet: SetValue,
-    #[doc = "The card's collector number."]
-    collector_number => Number: NumericValue,
-    #[doc = "The block of this card. Works with any set grouped in the same block."]
-    block => Block: SetValue,
-    #[doc = "The type of set this printing is in."]
-    set_type => SetType: SetTypeValue,
-    #[doc = "Has the card appeared in a set of this type?"]
-    in_set_type => InSetType: SetTypeValue,
-    #[doc = "Does the card appear in this cube on MTGO?"]
-    cube => Cube: CubeValue,
-    #[doc(hidden)]
-    format => Format: FormatValue,
-    #[doc = "The card is banned in this format."]
-    banned => Banned: FormatValue,
-    #[doc = "The card is restricted in this format."]
-    restricted => Restricted: FormatValue,
-    #[doc = "Return the printing that is the cheapest in the specified currency."]
-    cheapest => Cheapest: CurrencyValue,
-    #[doc = "The artist who illustrated this card."]
-    artist => Artist: TextValue,
-    #[doc = "The flavor text of this printing."]
-    flavor => Flavor: TextOrRegexValue,
-    #[doc = "The type of watermark on this printing."]
-    watermark => Watermark: TextValue,
-    #[doc = "The border color of this printing."]
-    border_color => BorderColor: BorderColorValue,
-    #[doc = "The card frame of this printing, related to the year of the print."]
-    frame => Frame: FrameValue,
-    #[doc = "The date this printing was released."]
-    date => Date: DateValue,
-    #[doc = "This printing is available in the specified game."]
-    game => Game: GameValue,
-    #[doc = "This card is available in the specified game."]
-    in_game => InGame: GameValue,
-    #[doc = "This printing is in the specified language."]
-    language => Language: LanguageValue,
-    #[doc = "Has this card ever been printed in the specified language?"]
-    in_language => InLanguage: LanguageValue,
-    #[doc = "The card's name, using fuzzy search."]
-    name => Name: TextOrRegexValue,
-    #[doc = "The card's full, exact name."]
-    exact => Exact: TextValue,
-
-    #[doc = "The card's power, if it is a creature or vehicle. '*' and 'X' count as 0."]
-    power => NumericComparable(Power),
-    #[doc = "The card's toughness, if it is a creature or vehicle. '*' and 'X' count as 0."]
-    toughness => NumericComparable(Toughness),
-    #[doc = "The card's power plus its toughness."]
-    pow_tou => NumericComparable(PowTou),
-    #[doc = "The card's loyalty, if it is a planeswalker. 'X' counts as 0."]
-    loyalty => NumericComparable(Loyalty),
-    #[doc = "The converted mana cost of this card."]
-    cmc => NumericComparable(Cmc),
-    #[doc = "The number of artists credited for this printing."]
-    artist_count => NumericComparable(ArtistCount),
-    #[doc = "The current market price of this card in US Dollars."]
-    usd => NumericComparable(Usd),
-    #[doc = "The current foil market price of this card in US Dollars."]
-    usd_foil => NumericComparable(UsdFoil),
-    #[doc = "The current market price of this card in Euros."]
-    eur => NumericComparable(Eur),
-    #[doc = "The current market price of this card in MTGO tickets."]
-    tix => NumericComparable(Tix),
-    #[doc = "The number of unique art this card has had."]
-    illustration_count => NumericComparable(IllustrationCount),
-    #[doc = "The number of unique prints of this card."]
-    print_count => NumericComparable(PrintCount),
-    #[doc = "The number of sets this card has appeared in."]
-    set_count => NumericComparable(SetCount),
-    #[doc = "The number of unique prints of this card, counting paper only."]
-    paper_print_count => NumericComparable(PaperPrintCount),
-    #[doc = "The number of sets this card has appeared in, counting paper only."]
-    paper_set_count => NumericComparable(PaperSetCount),
-    #[doc = "The year this card was released."]
-    year => NumericComparable(Year),
-}

@@ -41,7 +41,7 @@ impl<T: fmt::Display> fmt::Display for Compare<T> {
 
 impl<T: ParamValue> ParamValue for Compare<T> {
     fn into_param(self, kind: ValueKind) -> Param {
-        Param::cmp_value(kind, self.op, self.value)
+        Param::comparison(kind, self.op, self.value)
     }
 }
 

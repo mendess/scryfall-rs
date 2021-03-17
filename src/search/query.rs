@@ -6,7 +6,6 @@ use std::fmt;
 use url::Url;
 
 use crate::search::param::Param;
-use crate::search::prelude::{criterion, Criterion};
 use crate::search::Search;
 
 /// A search query, composed of search parameters and boolean operations.
@@ -72,12 +71,6 @@ impl From<Param> for Query {
     }
 }
 
-impl From<Criterion> for Query {
-    fn from(property: Criterion) -> Self {
-        criterion(property)
-    }
-}
-
 macro_rules! impl_and_or {
     ($(
         $(#[$($attr:meta)*])*
@@ -133,7 +126,7 @@ mod tests {
     #[test]
     fn even_power() -> crate::Result<()> {
         // Scryfall doesn't support "power:even", so let's do it manually.
-        let normal_creatures = type_line("Creature").and(not(Criterion::IsFunny));
+        let normal_creatures = type_line("Creature").and(is_funny(false));
 
         let highest_power: u32 = SearchOptions::new()
             .query(normal_creatures.clone())

@@ -29,7 +29,8 @@ use self::value::ValueKind;
 use crate::search::Search;
 
 pub mod compare;
-pub mod criteria;
+mod criteria;
+pub(super) mod functions;
 pub mod value;
 
 /// A filter to provide to the search to reduce the cards returned.
@@ -43,36 +44,44 @@ pub struct Param(ParamImpl);
 
 impl Param {
     fn criterion(prop: Criterion) -> Self {
-        Param(ParamImpl::Property(prop))
+        Param(ParamImpl::Criterion(prop))
+    }
+
+    fn exact(value: impl Into<String>) -> Self {
+        Param(ParamImpl::ExactName(value.into()))
     }
 
     fn value(kind: ValueKind, value: impl ToString) -> Self {
-        Param(ParamImpl::Value(kind, None, value.to_string()))
+        Param(ParamImpl::Value(kind, value.to_string()))
     }
 
-    fn cmp_value(kind: ValueKind, op: CompareOp, value: impl ToString) -> Self {
-        Param(ParamImpl::Value(kind, Some(op), value.to_string()))
+    fn comparison(kind: ValueKind, op: CompareOp, value: impl ToString) -> Self {
+        Param(ParamImpl::Comparison(kind, op, value.to_string()))
     }
 }
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 enum ParamImpl {
-    Property(Criterion),
-    Value(ValueKind, Option<CompareOp>, String),
+    Criterion(Criterion),
+    ExactName(String),
+    Value(ValueKind, String),
+    Comparison(ValueKind, CompareOp, String),
 }
 
 impl fmt::Display for Param {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.0 {
-            ParamImpl::Property(prop) => write!(f, "{}", prop),
-            ParamImpl::Value(kind, op, value) => kind.fmt_value(*op, &*value, f),
+            ParamImpl::Criterion(prop) => write!(f, "{}", prop),
+            ParamImpl::ExactName(name) => write!(f, "!\"{}\"", name),
+            ParamImpl::Value(kind, value) => kind.fmt_value(value.as_str(), f),
+            ParamImpl::Comparison(kind, op, value) => kind.fmt_comparison(*op, &*value, f),
         }
     }
 }
 
 impl From<Criterion> for Param {
     fn from(prop: Criterion) -> Self {
-        Param(ParamImpl::Property(prop))
+        Param(ParamImpl::Criterion(prop))
     }
 }
 
