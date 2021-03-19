@@ -2,66 +2,12 @@
 //! properties Scryfall supports for searching cards.
 use std::fmt;
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum Has {
-    /// Cards that have a color indicator.
-    ColorIndicator,
-    /// Cards that have a watermark.
-    Watermark,
-}
+use crate::search::query::Query;
 
-impl fmt::Display for Has {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Has::ColorIndicator => "indicator",
-                Has::Watermark => "watermark",
-            }
-        )
-    }
-}
+pub trait Criterion: Copy + fmt::Debug + fmt::Display + Into<Query> {}
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum New {
-    /// Find cards that are printed for the first time in paper.
-    Card,
-    /// Find reprint cards printed at a new rarity for the first time.
-    Rarity,
-    /// Find cards being printed with new illustrations.
-    Art,
-    /// Find cards being illustrated by a particular artist for the first time.
-    Artist,
-    /// Find cards being printed with brand-new flavor text using for the first
-    /// time.
-    Flavor,
-    /// Find cards printed in a specific frame for the first time.
-    Frame,
-    /// Find the first printing of a card in each language.
-    Language,
-}
-
-impl fmt::Display for New {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                New::Card => "card",
-                New::Rarity => "rarity",
-                New::Art => "art",
-                New::Flavor => "flavor",
-                New::Artist => "artist",
-                New::Frame => "frame",
-                New::Language => "language",
-            }
-        )
-    }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum Is {
+pub enum CardIs {
     /// You can filter cards that contain Phyrexian mana symbols.
     Phyrexian,
     /// You can filter cards that contain hybrid mana symbols.
@@ -100,6 +46,160 @@ pub(super) enum Is {
     Companion,
     /// Find cards on the reserved list.
     Reserved,
+
+    /// Cards that have a color indicator.
+    ColorIndicator,
+    /// Cards that have a watermark.
+    Watermark,
+
+    /// A cycling dual land, such as [Fetid Pools](https://scryfall.com/card/akh/243).
+    BicycleLand,
+    /// A cycling tri land, such as [Ketria Triome](https://scryfall.com/card/iko/250).
+    TricycleLand,
+    /// A land that returns other lands to your hand, such as
+    /// [Boros Garrison](https://scryfall.com/card/rav/275).
+    BounceLand,
+    /// A pain land that can be sacrificed to draw a card, such as
+    /// [Horizon Canopy](https://scryfall.com/card/fut/177).
+    CanopyLand,
+    /// A land that enters tapped unless you control a basic of its color, such
+    /// as [Glacial Fortress](https://scryfall.com/card/m10/226).
+    CheckLand,
+    /// An original dual land, such as [Tropical Island](https://scryfall.com/card/lea/283).
+    DualLand,
+    /// A land that enters tapped unless you control two or fewer other lands,
+    /// such as [Blackcleave Cliffs](https://scryfall.com/card/som/224).
+    FastLand,
+    /// A fetch land, such as [Scalding Tarn](https://scryfall.com/card/zen/223).
+    FetchLand,
+    /// A land that filters mana into other colors, such as
+    /// [Mystic Gate](https://scryfall.com/card/shm/277) or
+    /// [Cascading Cataracts](https://scryfall.com/card/akh/240/cascading-cataracts).
+    FilterLand,
+    /// A land that enters tapped and gains 1 life, such as
+    /// [Jungle Hollow](https://scryfall.com/card/ktk/235).
+    GainLand,
+    /// A land that costs life for colored mana, such as
+    /// [Caves of Koilos](https://scryfall.com/card/apc/140).
+    PainLand,
+    /// A land that enters tapped and has "Scry 1", such as
+    /// [Temple of Mystery](https://scryfall.com/card/ths/226).
+    ScryLand,
+    /// A land that enters tapped unless you reveal a basic from your hand, such
+    /// as [Choked Estuary](https://scryfall.com/card/soi/270).
+    ShadowLand,
+    /// A land that enters tapped unless you pay 2 life, such as
+    /// [Breeding Pool](https://scryfall.com/card/dis/172).
+    ShockLand,
+    /// A land that allows you to store up mana for later use, such as
+    /// [Fungal Reaches](https://scryfall.com/card/tsp/273) or
+    /// [Crucible of the Spirit Dragon](https://scryfall.com/card/frf/167).
+    StorageLand,
+    /// A land that turns into a creature, such as
+    /// [Celestial Colonnade](https://scryfall.com/card/wwk/133),
+    /// [Mutavault](https://scryfall.com/card/mor/148), or
+    /// [Inkmoth Nexus](https://scryfall.com/card/mbs/145).
+    CreatureLand,
+    /// A land that enters tapped and produces three colors, such as
+    /// [Mystic Monastery](https://scryfall.com/card/ktk/236).
+    TriLand,
+    /// A land that enters tapped unless you control two basics in its
+    /// colors, such as [Canopy Vista](https://scryfall.com/card/bfz/234).
+    BattleLand,
+
+    /// The converted mana cost of this card is an even number.
+    EvenCmc,
+    /// The converted mana cost of this card is an odd number.
+    OddCmc,
+}
+
+impl fmt::Display for CardIs {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "{}:{}",
+            match self {
+                CardIs::Watermark | CardIs::ColorIndicator => "has", // Synonym for 'is'.
+                CardIs::EvenCmc | CardIs::OddCmc => "cmc",
+                _ => "is",
+            },
+            match self {
+                CardIs::Phyrexian => "phyrexian",
+                CardIs::Hybrid => "hybrid",
+                CardIs::Split => "split",
+                CardIs::Flip => "flip",
+                CardIs::Transform => "transform",
+                CardIs::Meld => "meld",
+                CardIs::Leveler => "leveler",
+                CardIs::Spell => "spell",
+                CardIs::Permanent => "permanent",
+                CardIs::Historic => "historic",
+                CardIs::Party => "party",
+                CardIs::Modal => "modal",
+                CardIs::Vanilla => "vanilla",
+                CardIs::FrenchVanilla => "french_vanilla",
+                CardIs::Funny => "funny",
+                CardIs::Commander => "commander",
+                CardIs::Brawler => "brawler",
+                CardIs::Companion => "companion",
+                CardIs::Reserved => "reserved",
+
+                CardIs::ColorIndicator => "indicator",
+                CardIs::Watermark => "watermark",
+
+                CardIs::BicycleLand => "bicycle_land",
+                CardIs::TricycleLand => "tricycle_land",
+                CardIs::BounceLand => "bounce_land",
+                CardIs::CanopyLand => "canopy_land",
+                CardIs::CheckLand => "check_land",
+                CardIs::DualLand => "dual",
+                CardIs::FastLand => "fast_land",
+                CardIs::FetchLand => "fetch_land",
+                CardIs::FilterLand => "filter_land",
+                CardIs::GainLand => "gain_land",
+                CardIs::PainLand => "pain_land",
+                CardIs::ScryLand => "scry_land",
+                CardIs::ShadowLand => "shadow_land",
+                CardIs::ShockLand => "shock_land",
+                CardIs::StorageLand => "storage_land",
+                CardIs::CreatureLand => "creature_land",
+                CardIs::TriLand => "tri_land",
+                CardIs::BattleLand => "battle_land",
+
+                CardIs::EvenCmc => "even",
+                CardIs::OddCmc => "odd",
+            }
+        )
+    }
+}
+
+impl From<CardIs> for Query {
+    fn from(criterion: CardIs) -> Self {
+        // TODO(msmorgan): Better solution for this.
+        Query::Custom(criterion.to_string())
+    }
+}
+
+impl Criterion for CardIs {}
+
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+pub enum PrintingIs {
+    /// Find cards that are printed for the first time in paper.
+    NewCard,
+    /// Find reprint cards printed at a new rarity for the first time.
+    NewRarity,
+    /// Find cards being printed with new illustrations.
+    NewArt,
+    /// Find cards being illustrated by a particular artist for the first time.
+    NewArtist,
+    /// Find cards being printed with brand-new flavor text using for the first
+    /// time.
+    NewFlavor,
+    /// Find cards printed in a specific frame for the first time.
+    NewFrame,
+    /// Find the first printing of a card in each language.
+    NewLanguage,
+
     /// Find cards with full art.
     Full,
     /// Find non-foil printings of cards.
@@ -124,217 +224,50 @@ pub(super) enum Is {
     Reprint,
 }
 
-impl fmt::Display for Is {
+impl fmt::Display for PrintingIs {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{}",
+            "{}:{}",
             match self {
-                Is::Phyrexian => "phyrexian",
-                Is::Hybrid => "hybrid",
-                Is::Split => "split",
-                Is::Flip => "flip",
-                Is::Transform => "transform",
-                Is::Meld => "meld",
-                Is::Leveler => "leveler",
-                Is::Spell => "spell",
-                Is::Permanent => "permanent",
-                Is::Historic => "historic",
-                Is::Party => "party",
-                Is::Modal => "modal",
-                Is::Vanilla => "vanilla",
-                Is::FrenchVanilla => "french_vanilla",
-                Is::Funny => "funny",
-                Is::Full => "full",
-                Is::Foil => "foil",
-                Is::NonFoil => "nonfoil",
-                Is::Commander => "commander",
-                Is::Brawler => "brawler",
-                Is::Companion => "companion",
-                Is::Reserved => "reserved",
-                Is::HiRes => "hires",
-                Is::Digital => "digital",
-                Is::Promo => "promo",
-                Is::Spotlight => "spotlight",
-                Is::FirstPrint => "first_print",
-                Is::Reprint => "reprint",
-                Is::Masterpiece => "masterpiece",
-                Is::Unique => "unique",
+                PrintingIs::NewCard
+                | PrintingIs::NewRarity
+                | PrintingIs::NewArt
+                | PrintingIs::NewArtist
+                | PrintingIs::NewFlavor
+                | PrintingIs::NewFrame
+                | PrintingIs::NewLanguage => "new",
+                _ => "is",
+            },
+            match self {
+                PrintingIs::NewCard => "card",
+                PrintingIs::NewRarity => "rarity",
+                PrintingIs::NewArt => "art",
+                PrintingIs::NewArtist => "artist",
+                PrintingIs::NewFlavor => "flavor",
+                PrintingIs::NewFrame => "frame",
+                PrintingIs::NewLanguage => "language",
+                PrintingIs::Full => "full",
+                PrintingIs::Foil => "foil",
+                PrintingIs::NonFoil => "nonfoil",
+                PrintingIs::HiRes => "hires",
+                PrintingIs::Digital => "digital",
+                PrintingIs::Promo => "promo",
+                PrintingIs::Spotlight => "spotlight",
+                PrintingIs::FirstPrint => "first_print",
+                PrintingIs::Reprint => "reprint",
+                PrintingIs::Masterpiece => "masterpiece",
+                PrintingIs::Unique => "unique",
             }
         )
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum SoldIn {
-    /// Find cards that were sold in boosters.
-    Booster,
-    /// Find cards that were sold in planeswalker decks.
-    PlaneswalkerDeck,
-    /// Find cards that were given away in leagues.
-    League,
-    /// Find cards that were given away as buy a box promos.
-    BuyABox,
-    /// Find cards that were given away in gift boxes.
-    GiftBox,
-    /// Find cards that were given away in intro packs.
-    IntroPack,
-    /// Find cards that were given away in game days.
-    GameDay,
-    /// Find cards that were given away in pre-releases.
-    Prerelease,
-    /// Find cards that were given away in releases.
-    Release,
-}
-
-impl fmt::Display for SoldIn {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                SoldIn::Booster => "booster",
-                SoldIn::PlaneswalkerDeck => "planeswalker_deck",
-                SoldIn::League => "league",
-                SoldIn::BuyABox => "buyabox",
-                SoldIn::GiftBox => "giftbox",
-                SoldIn::IntroPack => "intro_pack",
-                SoldIn::GameDay => "gameday",
-                SoldIn::Prerelease => "prerelease",
-                SoldIn::Release => "release",
-            }
-        )
+impl From<PrintingIs> for Query {
+    fn from(criterion: PrintingIs) -> Self {
+        // TODO(msmorgan): Better solution for this.
+        Query::Custom(criterion.to_string())
     }
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum LandFamily {
-    /// A cycling dual land, such as [Fetid Pools](https://scryfall.com/card/akh/243).
-    Bicycle,
-    /// A cycling tri land, such as [Ketria Triome](https://scryfall.com/card/iko/250).
-    Tricycle,
-    /// A land that returns other lands to your hand, such as
-    /// [Boros Garrison](https://scryfall.com/card/rav/275).
-    Bounce,
-    /// A pain land that can be sacrificed to draw a card, such as
-    /// [Horizon Canopy](https://scryfall.com/card/fut/177).
-    Canopy,
-    /// A land that enters tapped unless you control a basic of its color, such
-    /// as [Glacial Fortress](https://scryfall.com/card/m10/226).
-    Check,
-    /// An original dual land, such as [Tropical Island](https://scryfall.com/card/lea/283).
-    Dual,
-    /// A land that enters tapped unless you control two or fewer other lands,
-    /// such as [Blackcleave Cliffs](https://scryfall.com/card/som/224).
-    Fast,
-    /// A fetch land, such as [Scalding Tarn](https://scryfall.com/card/zen/223).
-    Fetch,
-    /// A land that filters mana into other colors, such as
-    /// [Mystic Gate](https://scryfall.com/card/shm/277) or
-    /// [Cascading Cataracts](https://scryfall.com/card/akh/240/cascading-cataracts).
-    Filter,
-    /// A land that enters tapped and gains 1 life, such as
-    /// [Jungle Hollow](https://scryfall.com/card/ktk/235).
-    Gain,
-    /// A land that costs life for colored mana, such as
-    /// [Caves of Koilos](https://scryfall.com/card/apc/140).
-    Pain,
-    /// A land that enters tapped and has "Scry 1", such as
-    /// [Temple of Mystery](https://scryfall.com/card/ths/226).
-    Scry,
-    /// A land that enters tapped unless you reveal a basic from your hand, such
-    /// as [Choked Estuary](https://scryfall.com/card/soi/270).
-    Shadow,
-    /// A land that enters tapped unless you pay 2 life, such as
-    /// [Breeding Pool](https://scryfall.com/card/dis/172).
-    Shock,
-    /// A land that allows you to store up mana for later use, such as
-    /// [Fungal Reaches](https://scryfall.com/card/tsp/273) or
-    /// [Crucible of the Spirit Dragon](https://scryfall.com/card/frf/167).
-    Storage,
-    /// A land that turns into a creature, such as
-    /// [Celestial Colonnade](https://scryfall.com/card/wwk/133),
-    /// [Mutavault](https://scryfall.com/card/mor/148), or
-    /// [Inkmoth Nexus](https://scryfall.com/card/mbs/145).
-    Creature,
-    /// A land that enters tapped and produces three colors, such as
-    /// [Mystic Monastery](https://scryfall.com/card/ktk/236).
-    Tri,
-    /// A land that enters tapped unless you control two basics in its
-    /// colors, such as [Canopy Vista](https://scryfall.com/card/bfz/234).
-    Battle,
-}
-
-impl fmt::Display for LandFamily {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                LandFamily::Bicycle => "bicycle_land",
-                LandFamily::Tricycle => "tricycle_land",
-                LandFamily::Bounce => "bounce_land",
-                LandFamily::Canopy => "canopy_land",
-                LandFamily::Check => "check_land",
-                LandFamily::Dual => "dual",
-                LandFamily::Fast => "fast_land",
-                LandFamily::Fetch => "fetch_land",
-                LandFamily::Filter => "filter_land",
-                LandFamily::Gain => "gain_land",
-                LandFamily::Pain => "pain_land",
-                LandFamily::Scry => "scry_land",
-                LandFamily::Shadow => "shadow_land",
-                LandFamily::Shock => "shock_land",
-                LandFamily::Storage => "storage_land",
-                LandFamily::Creature => "creature_land",
-                LandFamily::Tri => "tri_land",
-                LandFamily::Battle => "battle_land",
-            }
-        )
-    }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum Cmc {
-    /// The converted mana cost of this card is an even number.
-    Even,
-    /// The converted mana cost of this card is an odd number.
-    Odd,
-}
-
-impl fmt::Display for Cmc {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Cmc::Even => "even",
-                Cmc::Odd => "odd",
-            }
-        )
-    }
-}
-
-/// A `Criterion` is a boolean flag associated with a card or printing.
-#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum Criterion {
-    Has(Has),
-    New(New),
-    Is(Is),
-    SoldIn(SoldIn),
-    LandFamily(LandFamily),
-    Cmc(Cmc),
-}
-
-impl fmt::Display for Criterion {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Criterion::Has(has) => write!(f, "has:{}", has),
-            Criterion::New(new) => write!(f, "new:{}", new),
-            Criterion::Is(is) => write!(f, "is:{}", is),
-            Criterion::LandFamily(land_family) => write!(f, "is:{}", land_family),
-            Criterion::SoldIn(sold_in) => write!(f, "is:{}", sold_in),
-            Criterion::Cmc(cmc) => write!(f, "cmc:{}", cmc),
-        }
-    }
-}
+impl Criterion for PrintingIs {}
