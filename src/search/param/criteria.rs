@@ -5,9 +5,36 @@ use std::fmt;
 use crate::search::param::Param;
 use crate::search::query::Query;
 
-/// A search criterion.
+/// A search criterion for filtering cards. Each card is tagged with various
+/// searchable properties, representing boolean parameters. Some of the criteria
+/// are true for each printing of the card (see [`CardIs`]) and others are
+/// specific to certain printings (see [`PrintingIs`]).
 ///
-/// TODO(msmorgan): More.
+/// The `Criterion` type rarely needs to be used directly, since `CardIs` and
+/// `PrintingIs` both implement `Into<`[`Query`]`>`.
+///
+/// # Examples
+///
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// // Find a random card with Phyrexian mana symbols, available in watermarked foil.
+/// let query = Query::And(vec![
+///     CardIs::Phyrexian.into(),
+///     PrintingIs::Watermark.into(),
+///     PrintingIs::Foil.into(),
+/// ]);
+/// let card: scryfall::Card = query.random()?;
+///
+/// assert!(
+///     card.mana_cost.unwrap().contains("/P")
+///         || card.oracle_text.unwrap_or_default().contains("/P")
+/// );
+/// assert!(card.watermark.is_some());
+/// assert!(card.foil);
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[allow(missing_docs)]
 pub enum Criterion {
@@ -76,8 +103,6 @@ pub enum CardIs {
 
     /// Cards that have a color indicator.
     ColorIndicator,
-    /// Cards that have a watermark.
-    Watermark,
 
     /// A cycling dual land, such as [Fetid Pools](https://scryfall.com/card/akh/243).
     BicycleLand,
@@ -149,7 +174,7 @@ impl fmt::Display for CardIs {
             f,
             "{}:{}",
             match self {
-                CardIs::Watermark | CardIs::ColorIndicator => "has", // Synonym for 'is'.
+                CardIs::ColorIndicator => "has", // Synonym for 'is'.
                 CardIs::EvenCmc | CardIs::OddCmc => "cmc",
                 _ => "is",
             },
@@ -175,7 +200,6 @@ impl fmt::Display for CardIs {
                 CardIs::Reserved => "reserved",
 
                 CardIs::ColorIndicator => "indicator",
-                CardIs::Watermark => "watermark",
 
                 CardIs::BicycleLand => "bicycle_land",
                 CardIs::TricycleLand => "tricycle_land",
@@ -230,6 +254,9 @@ pub enum PrintingIs {
     /// Find the first printing of a card in each language.
     NewLanguage,
 
+    /// Printings that have a watermark.
+    Watermark,
+
     /// Find cards with full art.
     Full,
     /// Find non-foil printings of cards.
@@ -267,6 +294,7 @@ impl fmt::Display for PrintingIs {
                 | PrintingIs::NewFlavor
                 | PrintingIs::NewFrame
                 | PrintingIs::NewLanguage => "new",
+                PrintingIs::Watermark => "has", // Synonym for `is`.
                 _ => "is",
             },
             match self {
@@ -277,6 +305,9 @@ impl fmt::Display for PrintingIs {
                 PrintingIs::NewFlavor => "flavor",
                 PrintingIs::NewFrame => "frame",
                 PrintingIs::NewLanguage => "language",
+
+                PrintingIs::Watermark => "watermark",
+
                 PrintingIs::Full => "full",
                 PrintingIs::Foil => "foil",
                 PrintingIs::NonFoil => "nonfoil",
