@@ -99,6 +99,7 @@ impl Search for String {
 pub mod prelude {
     pub use super::advanced::{SearchOptions, SortDirection, SortOrder, UniqueStrategy};
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
+    pub use super::param::criteria::{CardIs, PrintingIs};
     pub use super::param::functions::*;
     pub use super::param::value::NumProperty;
     pub use super::param::Param;
@@ -216,7 +217,7 @@ mod tests {
         let card = Card::search_random_new(Query::And(vec![
             power(eq(NumProperty::Toughness)),
             pow_tou(eq(NumProperty::Cmc)),
-            is_funny(false),
+            not(CardIs::Funny),
         ]))
         .unwrap();
 

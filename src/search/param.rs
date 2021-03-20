@@ -29,7 +29,7 @@ use self::value::ValueKind;
 use crate::search::Search;
 
 pub mod compare;
-mod criteria;
+pub mod criteria;
 pub(super) mod functions;
 pub mod value;
 
@@ -43,8 +43,8 @@ pub mod value;
 pub struct Param(ParamImpl);
 
 impl Param {
-    fn criterion(prop: Criterion) -> Self {
-        Param(ParamImpl::Criterion(prop))
+    fn criterion(criterion: Criterion) -> Self {
+        Param(ParamImpl::Criterion(criterion))
     }
 
     fn exact(value: impl Into<String>) -> Self {

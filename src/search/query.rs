@@ -126,7 +126,7 @@ mod tests {
     #[test]
     fn even_power() -> crate::Result<()> {
         // Scryfall doesn't support "power:even", so let's do it manually.
-        let normal_creatures = type_line("Creature").and(is_funny(false));
+        let normal_creatures = type_line("Creature").and(not(CardIs::Funny));
 
         let highest_power: u32 = SearchOptions::new()
             .query(normal_creatures.clone())

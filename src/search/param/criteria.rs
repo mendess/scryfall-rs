@@ -2,10 +2,37 @@
 //! properties Scryfall supports for searching cards.
 use std::fmt;
 
+use crate::search::param::Param;
 use crate::search::query::Query;
 
-pub trait Criterion: Copy + fmt::Debug + fmt::Display + Into<Query> {}
+/// A search criterion.
+///
+/// TODO(msmorgan): More.
+#[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[allow(missing_docs)]
+pub enum Criterion {
+    Card(CardIs),
+    Printing(PrintingIs),
+}
 
+impl fmt::Display for Criterion {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Criterion::Card(inner) => fmt::Display::fmt(inner, f),
+            Criterion::Printing(inner) => fmt::Display::fmt(inner, f),
+        }
+    }
+}
+
+impl From<Criterion> for Query {
+    fn from(criterion: Criterion) -> Self {
+        Query::Param(Param::criterion(criterion))
+    }
+}
+
+/// A search criterion applying to all printings of a card.
+///
+/// TODO(msmorgan): More.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum CardIs {
     /// You can filter cards that contain Phyrexian mana symbols.
@@ -55,6 +82,7 @@ pub enum CardIs {
     /// A cycling dual land, such as [Fetid Pools](https://scryfall.com/card/akh/243).
     BicycleLand,
     /// A cycling tri land, such as [Ketria Triome](https://scryfall.com/card/iko/250).
+    #[doc(alias = "triome")]
     TricycleLand,
     /// A land that returns other lands to your hand, such as
     /// [Boros Garrison](https://scryfall.com/card/rav/275).
@@ -99,12 +127,14 @@ pub enum CardIs {
     /// [Celestial Colonnade](https://scryfall.com/card/wwk/133),
     /// [Mutavault](https://scryfall.com/card/mor/148), or
     /// [Inkmoth Nexus](https://scryfall.com/card/mbs/145).
+    #[doc(alias = "manland")]
     CreatureLand,
     /// A land that enters tapped and produces three colors, such as
     /// [Mystic Monastery](https://scryfall.com/card/ktk/236).
     TriLand,
     /// A land that enters tapped unless you control two basics in its
     /// colors, such as [Canopy Vista](https://scryfall.com/card/bfz/234).
+    #[doc(alias = "tango")]
     BattleLand,
 
     /// The converted mana cost of this card is an even number.
@@ -174,14 +204,14 @@ impl fmt::Display for CardIs {
 }
 
 impl From<CardIs> for Query {
-    fn from(criterion: CardIs) -> Self {
-        // TODO(msmorgan): Better solution for this.
-        Query::Custom(criterion.to_string())
+    fn from(card: CardIs) -> Self {
+        Criterion::Card(card).into()
     }
 }
 
-impl Criterion for CardIs {}
-
+/// A search criterion applying to a specific printing of a card.
+///
+/// TODO(msmorgan): More.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub enum PrintingIs {
     /// Find cards that are printed for the first time in paper.
@@ -264,10 +294,7 @@ impl fmt::Display for PrintingIs {
 }
 
 impl From<PrintingIs> for Query {
-    fn from(criterion: PrintingIs) -> Self {
-        // TODO(msmorgan): Better solution for this.
-        Query::Custom(criterion.to_string())
+    fn from(printing: PrintingIs) -> Self {
+        Criterion::Printing(printing).into()
     }
 }
-
-impl Criterion for PrintingIs {}
