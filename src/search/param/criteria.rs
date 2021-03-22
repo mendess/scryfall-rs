@@ -1,5 +1,7 @@
 //! This module defines the [`Criterion`] type, which contains all the boolean
-//! properties Scryfall supports for searching cards.
+//! properties Scryfall supports for searching cards. `Criterion` rarely
+//! needs to be used directly, since its operations are also supported by the
+//! inner types [`CardIs`] and [`PrintingIs`].
 use std::fmt;
 
 use crate::search::param::Param;
@@ -57,14 +59,51 @@ impl From<Criterion> for Query {
     }
 }
 
-/// A search criterion applying to all printings of a card.
+/// A search criterion applying to all printings of a card. These criteria
+/// have to do with mana costs, abilities, and other properties of cards
+/// that don't depend on a specific printing, such as
+/// [`Modal`][self::CardIs::Modal], [`Vanilla`][self::CardIs::Vanilla], and
+/// [`Reserved`][self::CardIs::Vanilla].
 ///
-/// TODO(msmorgan): More.
+/// `CardIs` also has a series of variants representing land cycles, including
+/// [`FetchLand`][self::CardIs::FetchLand] and
+/// [`ShockLand`][self::CardIs::ShockLand].
+///
+/// `CardIs` implements `Into<`[`Query`]`>`, so it can be used as an argument to
+/// boolean methods such as [`not`][crate::search::query::not] and
+/// [`Query::and()`].
+///
+/// # Example
+///
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// let party_member = Query::from(CardIs::Party).and(CardIs::Leveler).random()?;
+///
+/// assert!(
+///     party_member.type_line.contains("Cleric")
+///         || party_member.type_line.contains("Rogue")
+///         || party_member.type_line.contains("Warrior")
+///         || party_member.type_line.contains("Wizard"),
+/// );
+/// assert!(party_member.keywords.iter().any(|kw| kw == "Level up"));
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum CardIs {
-    /// You can filter cards that contain Phyrexian mana symbols.
+    /// Find cards that have a color indicator.
+    ColorIndicator,
+
+    /// Find cards with an even converted mana cost (zero is even).
+    EvenCmc,
+    /// Find cards with an odd converted mana cost.
+    OddCmc,
+
+    /// Find cards that contain Phyrexian mana symbols in their cost or text.
     Phyrexian,
-    /// You can filter cards that contain hybrid mana symbols.
+    /// Find cards with a cost containing hybrid mana symbols.
     Hybrid,
     /// Find split cards.
     Split,
@@ -72,11 +111,13 @@ pub enum CardIs {
     Flip,
     /// Find transforming cards.
     Transform,
+    /// Find modal dual-face cards.
+    ModalDfc,
     /// Find cards with meld.
     Meld,
     /// Find leveler cards.
     Leveler,
-    /// Find cards that are cast as spells
+    /// Find cards that are cast as spells.
     Spell,
     /// Find permanent cards.
     Permanent,
@@ -100,9 +141,6 @@ pub enum CardIs {
     Companion,
     /// Find cards on the reserved list.
     Reserved,
-
-    /// Cards that have a color indicator.
-    ColorIndicator,
 
     /// A cycling dual land, such as [Fetid Pools](https://scryfall.com/card/akh/243).
     BicycleLand,
@@ -161,11 +199,6 @@ pub enum CardIs {
     /// colors, such as [Canopy Vista](https://scryfall.com/card/bfz/234).
     #[doc(alias = "tango")]
     BattleLand,
-
-    /// The converted mana cost of this card is an even number.
-    EvenCmc,
-    /// The converted mana cost of this card is an odd number.
-    OddCmc,
 }
 
 impl fmt::Display for CardIs {
@@ -184,6 +217,7 @@ impl fmt::Display for CardIs {
                 CardIs::Split => "split",
                 CardIs::Flip => "flip",
                 CardIs::Transform => "transform",
+                CardIs::ModalDfc => "modal_dfc",
                 CardIs::Meld => "meld",
                 CardIs::Leveler => "leveler",
                 CardIs::Spell => "spell",
@@ -198,8 +232,6 @@ impl fmt::Display for CardIs {
                 CardIs::Brawler => "brawler",
                 CardIs::Companion => "companion",
                 CardIs::Reserved => "reserved",
-
-                CardIs::ColorIndicator => "indicator",
 
                 CardIs::BicycleLand => "bicycle_land",
                 CardIs::TricycleLand => "tricycle_land",
@@ -220,6 +252,8 @@ impl fmt::Display for CardIs {
                 CardIs::TriLand => "tri_land",
                 CardIs::BattleLand => "battle_land",
 
+                CardIs::ColorIndicator => "indicator",
+
                 CardIs::EvenCmc => "even",
                 CardIs::OddCmc => "odd",
             }
@@ -233,47 +267,75 @@ impl From<CardIs> for Query {
     }
 }
 
-/// A search criterion applying to a specific printing of a card.
+/// A search criterion applying to a specific printing of a card. These criteria
+/// have to do with art, frames, foil, and reprints, and other things
+/// that are not true for every printing of a card, including
+/// [`FirstPrint`][self::PrintingIs::FirstPrint],
+/// [`Watermark`][self::PrintingIs::Watermark], and [`NewArt`][self::PrintingIs:
+/// :NewArt].
 ///
-/// TODO(msmorgan): More.
+/// `PrintingIs` implements `Into<`[`Query`]`>`, so it can be used as an
+/// argument to boolean methods such as [`not`][crate::search::query::not] and
+/// [`Query::and()`].
+///
+/// # Example
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// // Find a card with new artwork by an artist that has illustrated the card before.
+/// let artist_redo = not(PrintingIs::NewArtist)
+///     .and(PrintingIs::NewArt)
+///     .random()?;
+///
+/// // There should be at least 2 unique artworks of this card by this artist.
+/// let all_versions = SearchOptions::new()
+///     .query(exact(artist_redo.name.as_str()).and(artist(artist_redo.artist.as_ref().unwrap())))
+///     .unique(UniqueStrategy::Art)
+///     .search_all()?;
+/// assert!(all_versions.len() >= 2);
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, derive(strum::EnumIter))]
 pub enum PrintingIs {
-    /// Find cards that are printed for the first time in paper.
+    /// Find printings that are printed for the first time in paper.
     NewCard,
-    /// Find reprint cards printed at a new rarity for the first time.
+    /// Find printings using a new rarity (including the first print).
     NewRarity,
-    /// Find cards being printed with new illustrations.
+    /// Find printings with new artwork (including the first print).
     NewArt,
-    /// Find cards being illustrated by a particular artist for the first time.
+    /// Find printings with an artist who has not illustrated this card before
+    /// (including the first print).
     NewArtist,
-    /// Find cards being printed with brand-new flavor text using for the first
-    /// time.
+    /// Find printings with new flavor text (including the first print).
     NewFlavor,
-    /// Find cards printed in a specific frame for the first time.
+    /// Find printings with a new frame (including the first print).
     NewFrame,
-    /// Find the first printing of a card in each language.
+    /// Find printings available for the first time in a new language (including
+    /// the first print).
     NewLanguage,
 
-    /// Printings that have a watermark.
+    /// Find printings that have a watermark.
     Watermark,
 
-    /// Find cards with full art.
+    /// Find printings with full art.
     Full,
-    /// Find non-foil printings of cards.
-    NonFoil,
-    /// Find foil printings of cards.
+    /// Find printings that are available in non-foil.
+    Nonfoil,
+    /// Find printings that are available in foil.
     Foil,
-    /// Find cards in `scryfall`'s database with high-resolution images.
+    /// Find printings in Scryfall's database with high-resolution images.
     HiRes,
-    /// Find prints that are only available digitally (MTGO and Arena)
+    /// Find printings that are only available digitally (MTGO and Arena).
     Digital,
-    /// Find promotional cards.
+    /// Find promotional printings.
     Promo,
-    /// Find cards that are Story Spotlights.
+    /// Find printings that are Story Spotlights in their set.
     Spotlight,
-    /// Find cards that are in the Masterpiece Series.
+    /// Find printings that are in the Masterpiece Series.
     Masterpiece,
-    /// Find cards that have only been in a single set.
+    /// Find printings that have only been in a single set.
     Unique,
     /// Find first printings (digital or paper).
     FirstPrint,
@@ -310,7 +372,7 @@ impl fmt::Display for PrintingIs {
 
                 PrintingIs::Full => "full",
                 PrintingIs::Foil => "foil",
-                PrintingIs::NonFoil => "nonfoil",
+                PrintingIs::Nonfoil => "nonfoil",
                 PrintingIs::HiRes => "hires",
                 PrintingIs::Digital => "digital",
                 PrintingIs::Promo => "promo",
@@ -327,5 +389,35 @@ impl fmt::Display for PrintingIs {
 impl From<PrintingIs> for Query {
     fn from(printing: PrintingIs) -> Self {
         Criterion::Printing(printing).into()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::search::prelude::*;
+
+    #[test]
+    #[ignore]
+    fn all_card_is() {
+        use strum::IntoEnumIterator;
+
+        for criterion in CardIs::iter() {
+            Query::from(criterion)
+                .random()
+                .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
+        }
+    }
+
+    #[test]
+    #[ignore]
+    fn all_printing_is() {
+        use strum::IntoEnumIterator;
+
+        for criterion in PrintingIs::iter() {
+            Query::from(criterion)
+                .random()
+                .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
+        }
     }
 }
