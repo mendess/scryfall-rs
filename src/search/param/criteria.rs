@@ -63,7 +63,7 @@ impl From<Criterion> for Query {
 /// have to do with mana costs, abilities, and other properties of cards
 /// that don't depend on a specific printing, such as
 /// [`Modal`][self::CardIs::Modal], [`Vanilla`][self::CardIs::Vanilla], and
-/// [`Reserved`][self::CardIs::Vanilla].
+/// [`Reserved`][self::CardIs::Reserved].
 ///
 /// `CardIs` also has a series of variants representing land cycles, including
 /// [`FetchLand`][self::CardIs::FetchLand] and
@@ -212,6 +212,11 @@ impl fmt::Display for CardIs {
                 _ => "is",
             },
             match self {
+                CardIs::ColorIndicator => "indicator",
+
+                CardIs::EvenCmc => "even",
+                CardIs::OddCmc => "odd",
+
                 CardIs::Phyrexian => "phyrexian",
                 CardIs::Hybrid => "hybrid",
                 CardIs::Split => "split",
@@ -251,11 +256,6 @@ impl fmt::Display for CardIs {
                 CardIs::CreatureLand => "creature_land",
                 CardIs::TriLand => "tri_land",
                 CardIs::BattleLand => "battle_land",
-
-                CardIs::ColorIndicator => "indicator",
-
-                CardIs::EvenCmc => "even",
-                CardIs::OddCmc => "odd",
             }
         )
     }
@@ -271,8 +271,8 @@ impl From<CardIs> for Query {
 /// have to do with art, frames, foil, and reprints, and other things
 /// that are not true for every printing of a card, including
 /// [`FirstPrint`][self::PrintingIs::FirstPrint],
-/// [`Watermark`][self::PrintingIs::Watermark], and [`NewArt`][self::PrintingIs:
-/// :NewArt].
+/// [`Watermark`][self::PrintingIs::Watermark], and
+/// [`NewArt`][self::PrintingIs::NewArt].
 ///
 /// `PrintingIs` implements `Into<`[`Query`]`>`, so it can be used as an
 /// argument to boolean methods such as [`not`][crate::search::query::not] and
@@ -394,14 +394,14 @@ impl From<PrintingIs> for Query {
 
 #[cfg(test)]
 mod tests {
+    use strum::IntoEnumIterator;
+
     use super::*;
-    use crate::search::prelude::*;
+    use crate::search::Search;
 
     #[test]
     #[ignore]
     fn all_card_is() {
-        use strum::IntoEnumIterator;
-
         for criterion in CardIs::iter() {
             Query::from(criterion)
                 .random()
@@ -412,8 +412,6 @@ mod tests {
     #[test]
     #[ignore]
     fn all_printing_is() {
-        use strum::IntoEnumIterator;
-
         for criterion in PrintingIs::iter() {
             Query::from(criterion)
                 .random()
