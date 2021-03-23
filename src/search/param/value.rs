@@ -186,7 +186,7 @@ impl fmt::Display for ValueKind {
     }
 }
 
-/// The base trait for a parameter value. The `into_param` function handles
+/// The base trait for a parameter value. The `into_param` method handles
 /// converting the type into a [`Param`].
 pub trait ParamValue: fmt::Debug + fmt::Display {
     /// Convert this value into a [`Param`] with the specified `kind`.
@@ -229,7 +229,19 @@ impl_numeric_values!(
 /// operators][super::compare].
 ///
 /// Parameters with a `NumericComparableValue` include [`power()`],
-/// [`toughness()`],
+/// [`toughness()`], and [`cmc()`].
+///
+/// Parameters that use this trait can be compared to one another through
+/// the [`NumProperty`] enum. For example, to search for a card with power
+/// greater than its toughness:
+///
+/// ```rust,no_run
+/// use scryfall::search::prelude::*;
+/// let query = power(gt(NumProperty::Toughness));
+/// ```
+///
+/// This trait is implemented by all `NumericValue` types and the `NumProperty`
+/// enum.
 pub trait NumericComparableValue: ParamValue {}
 
 impl<T: NumericComparableValue> NumericComparableValue for Compare<T> {}
@@ -241,14 +253,18 @@ impl ParamValue for NumProperty {
 }
 impl NumericComparableValue for NumProperty {}
 
-/// This is the base type for
+/// A string value for a parameter. Does not support comparison
+/// operations.
+///
+/// Searchable parameters that directly use a `TextValue` argument include
+/// [`watermark()`] and [`keyword()`]. Additionally, many types can
 pub trait TextValue: ParamValue {}
 
 /// Helper struct for a quoted value. The `Display` impl for this struct
-/// surrounds the value in quotes. Representations that contain quotes are
-/// not supported.
+/// surrounds the value in quotes. Representations that already contain
+/// quotes are not supported.
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
-pub struct Quoted<T>(T);
+struct Quoted<T>(T);
 
 impl<T: fmt::Display> fmt::Display for Quoted<T> {
     // TODO(msmorgan): This breaks if the value has quotes in it.
@@ -279,20 +295,46 @@ impl ParamValue for &str {
 }
 impl TextValue for &str {}
 
-/// TODO(msmorgan): Docs.
+/// A string or regular expression value for a parameter. Does not support
+/// comparison operators.
+///
+/// Some searchable properties can be searched with regular expressions.
+/// These properties are [`name()`], [`type_line()`], [`oracle_text()`],
+/// and [`flavor_text()`]. To specify a regular expression, use the
+/// [`Regex`] type from this module.
+///
+/// This trait is implemented for all `TextValue` types and `Regex`.
+///
+/// For more information on supported regular expressions, see the
+/// [official help page](https://scryfall.com/docs/regular-expressions).
 pub trait TextOrRegexValue: ParamValue {}
 
 impl<T: TextValue> TextOrRegexValue for T {}
 
 /// `Regex` is a newtype for String, indicating that the string represents a
-/// regular expression and should be surrounded by slashes instead of quotes.
+/// regular expression and should be surrounded by slashes in the search
+/// query.
+///
+/// For more information on supported regular expressions, see the
+/// [official help page](https://scryfall.com/docs/regular-expressions).
+///
+/// # Example
+///
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// let cards_named_fog = name(r#"^fog$"#).search_all()?;
+/// assert_eq!(cards_named_fog.len(), 1);
+/// assert_eq!(cards_named_fog[0].name, "Fog");
+/// # Ok(())
+/// # }
+/// ```
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Regex(pub String);
 
 impl fmt::Display for Regex {
-    // TODO(msmorgan): Escapes.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "/{}/", self.0)
+        write!(f, "/{}/", self.0.replace('/', "\\/"))
     }
 }
 
@@ -306,8 +348,9 @@ impl TextOrRegexValue for Regex {}
 /// [`color_identity()`].
 ///
 /// This type is implemented for [`Color`][crate::card::Color],
-/// [`Colors`][crate::card::Colors], [`Multicolored`][crate::card::
-/// Multicolored], and all [`TextValue`] types.
+/// [`Colors`][crate::card::Colors],
+/// [`Multicolored`][crate::card:: Multicolored],
+/// and all [`TextValue`] types.
 pub trait ColorValue: ParamValue {}
 
 impl<T: ColorValue> ColorValue for Compare<T> {}
@@ -323,11 +366,28 @@ impl ColorValue for crate::card::Multicolored {}
 
 impl<T: TextValue> ColorValue for T {}
 
-/// Devotion works differently than other color parameters. All the color
-/// symbols must match and the symbols can be hybrid mana.
+/// A value representing an amount of devotion to one or two colors. Supports
+/// [comparison operations][super::compare].
+///
+/// The only parameter that takes a `DevotionValue` is [`devotion()`].
+///
+/// This trait is implemented by the [`Devotion`] type from this module.
+///
+/// # Example
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// use scryfall::card::Color;
+/// let five_red_devotion = devotion(Devotion::monocolor(Color::Red, 5)).random()?;
+/// assert!(five_red_devotion.cmc >= 5.0);
+/// # Ok(())
+/// # }
+/// ```
 pub trait DevotionValue: ParamValue {}
 
-/// A representation of a permanent's devotion to one or two colors.
+/// A representation of a permanent's devotion to one or two colors. Use the
+/// constructors [`monocolor`][Devotion::monocolor()] and
+/// [`hybrid`][Devotion::hybrid()] to create values of this type.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Devotion(crate::card::Color, Option<crate::card::Color>, usize);
 
@@ -566,7 +626,14 @@ impl<T: TextValue> GameValue for T {}
 impl ParamValue for crate::card::Game {}
 impl GameValue for crate::card::Game {}
 
-/// TODO(msmorgan): Docs.
+/// A parameter that represents a written language that a card
+/// is printed in. For a full list of supported languages,
+/// refer to the [official docs](https://scryfall.com/docs/api/languages).
+///
+/// `LanguageValue` is used as an argument to [`language()`] and
+/// [`in_language()`].
+///
+/// This trait is implemented for all `TextValue` types.
 pub trait LanguageValue: ParamValue {}
 
 impl<T: TextValue> LanguageValue for T {}

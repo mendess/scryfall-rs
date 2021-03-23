@@ -152,7 +152,9 @@ pub mod prelude {
         usd_foil,
         watermark,
         year,
+        Devotion,
         NumProperty,
+        Regex,
     };
     pub use super::param::{exact, Param};
     pub use super::query::{not, Query};
@@ -205,20 +207,6 @@ mod tests {
                 .contains("storm")
         );
     }
-
-    // TODO(msmorgan): Rework this.
-    // #[test]
-    // #[ignore]
-    // fn all_properties_work() {
-    //     use strum::IntoEnumIterator;
-    //
-    //     for p in Criterion::iter() {
-    //         let query = criterion(p);
-    //         query
-    //             .random()
-    //             .unwrap_or_else(|_| panic!("Could not get a random card with {}",
-    // p));     }
-    // }
 
     #[test]
     fn finds_alpha_lotus() {
