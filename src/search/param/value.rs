@@ -12,7 +12,7 @@ use crate::search::param::Param;
 /// Refer to [the syntax documentation](https://scryfall.com/docs/syntax) for details on the
 /// available parameter types.
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub struct ValueKind(pub(super) ValueKindImpl);
+pub struct ValueKind(ValueKindImpl);
 
 impl ValueKind {
     pub(super) fn fmt_value(&self, value: &str, f: &mut fmt::Formatter) -> fmt::Result {
@@ -30,7 +30,7 @@ impl ValueKind {
 }
 
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
-pub(super) enum ValueKindImpl {
+enum ValueKindImpl {
     Color,
     ColorIdentity,
     Type,
