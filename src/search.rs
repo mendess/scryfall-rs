@@ -72,7 +72,7 @@ impl<T: Search + ?Sized> Search for &mut T {
 }
 
 #[inline]
-fn write_query_string(query: &(impl ToString + ?Sized), url: &mut Url) -> crate::Result<()> {
+fn write_query_string<S: ToString + ?Sized>(query: &S, url: &mut Url) -> crate::Result<()> {
     url.query_pairs_mut()
         .append_pair("q", query.to_string().as_str());
     Ok(())
@@ -100,9 +100,61 @@ pub mod prelude {
     pub use super::advanced::{SearchOptions, SortDirection, SortOrder, UniqueStrategy};
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
     pub use super::param::criteria::{CardIs, PrintingIs};
-    pub use super::param::functions::*;
-    pub use super::param::value::NumProperty;
-    pub use super::param::Param;
+    pub use super::param::value::{
+        artist,
+        artist_count,
+        banned,
+        block,
+        border_color,
+        cheapest,
+        cmc,
+        collector_number,
+        color,
+        color_count,
+        color_identity,
+        color_identity_count,
+        cube,
+        date,
+        devotion,
+        eur,
+        flavor,
+        format,
+        frame,
+        full_oracle_text,
+        game,
+        illustration_count,
+        in_game,
+        in_language,
+        in_rarity,
+        in_set,
+        in_set_type,
+        keyword,
+        language,
+        loyalty,
+        mana,
+        name,
+        oracle_text,
+        paper_print_count,
+        paper_set_count,
+        pow_tou,
+        power,
+        print_count,
+        produces,
+        rarity,
+        restricted,
+        set,
+        set_count,
+        set_type,
+        tix,
+        toughness,
+        type_line,
+        usd,
+        usd_foil,
+        watermark,
+        year,
+        NumProperty,
+    };
+    pub use super::param::{exact, Param};
     pub use super::query::{not, Query};
     pub use super::Search;
 }

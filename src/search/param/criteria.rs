@@ -86,7 +86,7 @@ impl From<Criterion> for Query {
 ///         || party_member.type_line.contains("Warrior")
 ///         || party_member.type_line.contains("Wizard"),
 /// );
-/// assert!(party_member.keywords.iter().any(|kw| kw == "Level up"));
+/// assert!(party_member.keywords.iter().any(|kw| kw == "Level Up"));
 /// # Ok(())
 /// # }
 /// ```
@@ -289,7 +289,10 @@ impl From<CardIs> for Query {
 ///
 /// // There should be at least 2 unique artworks of this card by this artist.
 /// let all_versions = SearchOptions::new()
-///     .query(exact(artist_redo.name.as_str()).and(artist(artist_redo.artist.as_ref().unwrap())))
+///     .query(
+///         exact(artist_redo.name.as_str())
+///             .and(artist(artist_redo.artist.as_ref().unwrap().as_str())),
+///     )
 ///     .unique(UniqueStrategy::Art)
 ///     .search_all()?;
 /// assert!(all_versions.len() >= 2);

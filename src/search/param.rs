@@ -26,11 +26,11 @@ use url::Url;
 use self::compare::CompareOp;
 use self::criteria::Criterion;
 use self::value::ValueKind;
+use crate::search::query::Query;
 use crate::search::Search;
 
 pub mod compare;
 pub mod criteria;
-pub(super) mod functions;
 pub mod value;
 
 /// A filter to provide to the search to reduce the cards returned.
@@ -41,6 +41,24 @@ pub mod value;
 /// TODO(msmorgan): More.
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Param(ParamImpl);
+
+impl fmt::Display for Param {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(&self.0, f)
+    }
+}
+
+impl From<Criterion> for Param {
+    fn from(criterion: Criterion) -> Self {
+        Param::criterion(criterion)
+    }
+}
+
+impl Search for Param {
+    fn write_query(&self, url: &mut Url) -> crate::Result<()> {
+        super::write_query_string(self, url)
+    }
+}
 
 impl Param {
     fn criterion(criterion: Criterion) -> Self {
@@ -68,9 +86,9 @@ enum ParamImpl {
     Comparison(ValueKind, CompareOp, String),
 }
 
-impl fmt::Display for Param {
+impl fmt::Display for ParamImpl {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match &self.0 {
+        match self {
             ParamImpl::Criterion(prop) => write!(f, "{}", prop),
             ParamImpl::ExactName(name) => write!(f, "!\"{}\"", name),
             ParamImpl::Value(kind, value) => kind.fmt_value(value.as_str(), f),
@@ -79,14 +97,7 @@ impl fmt::Display for Param {
     }
 }
 
-impl From<Criterion> for Param {
-    fn from(prop: Criterion) -> Self {
-        Param(ParamImpl::Criterion(prop))
-    }
-}
-
-impl Search for Param {
-    fn write_query(&self, url: &mut Url) -> crate::Result<()> {
-        super::write_query_string(self, url)
-    }
+/// Matches a card whose name is exactly `name`.
+pub fn exact(name: impl Into<String>) -> Query {
+    Query::Param(Param::exact(name))
 }
