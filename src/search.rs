@@ -7,6 +7,16 @@
 //! provided by this module, and additionally implemented for string
 //! types allowing for custom queries.
 //!
+//! # Prelude
+//!
+//! For convenience, this crate provides the [`search::prelude`][prelude]
+//! module, which includes all the types and functions used by `search`.
+//! To use the prelude, import all of its members as in the following example.
+//!
+//! ```rust,no_run
+//! use scryfall::search::prelude::*;
+//! ```
+//!
 //! # Queries
 //!
 //! The [`Query`][self::query::Query] object provides a mechanism for

@@ -1,4 +1,5 @@
-//! This module provides facilities for advanced search ot
+//! This module provides facilities for advanced search.
+//! See the [`SearchOptions`] type for more details.
 
 use serde::{Serialize, Serializer};
 use url::Url;
