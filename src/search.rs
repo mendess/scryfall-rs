@@ -55,7 +55,7 @@ pub trait Search {
 
     /// Convenience method for passing this object to [`Card::search`].
     fn search(&self) -> crate::Result<ListIter<Card>> {
-        Card::search_new(self)
+        Card::search(self)
     }
 
     /// Convenience method for passing this object to [`Card::search_all`].
@@ -65,7 +65,7 @@ pub trait Search {
 
     /// Convenience method for passing this object to [`Card::search_random`].
     fn random(&self) -> crate::Result<Card> {
-        Card::search_random_new(self)
+        Card::search_random(self)
     }
 }
 
@@ -230,7 +230,7 @@ mod tests {
         eprintln!("{}", search.query_string().unwrap());
 
         assert_eq!(
-            Card::search_new(&search)
+            Card::search(&search)
                 .unwrap()
                 .next()
                 .unwrap()
@@ -264,7 +264,7 @@ mod tests {
 
     #[test]
     fn numeric_property_comparison() {
-        let card = Card::search_random_new(Query::And(vec![
+        let card = Card::search_random(Query::And(vec![
             power(eq(NumProperty::Toughness)),
             pow_tou(eq(NumProperty::Cmc)),
             not(CardIs::Funny),
@@ -283,7 +283,7 @@ mod tests {
         assert_eq!(power, toughness);
         assert_eq!(power + toughness, card.cmc as u32);
 
-        let card = Card::search_new(pow_tou(gt(NumProperty::Year)))
+        let card = Card::search(pow_tou(gt(NumProperty::Year)))
             .unwrap()
             .map(|c| c.unwrap())
             .collect::<Vec<_>>();
