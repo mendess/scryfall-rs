@@ -10,10 +10,33 @@ use crate::search::Search;
 
 /// A search query, composed of search parameters and boolean operations.
 ///
-/// `Query` is an expression tree, consisting of `AND` and `OR` lists of other
-/// TODO(msmorgan): finish this
+/// `Query` is an expression tree, supporting `AND`, `OR`, and `NOT` operations,
+/// with the [`And`][Query::And], [`Or`][Query::Or], and [`Not`][Query::Not]
+/// variants respectively. Leaf variants are [`Param`][`Query::Param`] and
+/// [`Custom`][Query::Custom].
 ///
-/// For information on search parameters, see [`Param`].
+/// # Examples
+/// ```rust
+/// # use scryfall::search::prelude::*;
+/// # fn main() -> scryfall::Result<()> {
+/// use scryfall::card::Rarity;
+/// let one_odd_eldrazi = Query::And(vec![
+///     Query::Or(vec![power(9), toughness(9)]),
+///     Query::Custom("t:eldrazi".to_string()),
+///     set("bfz"),             // A `Param` variant.
+///     rarity(Rarity::Mythic), // A `Param` variant.
+///     CardIs::OddCmc.into(),
+/// ])
+/// .search()?
+/// .next()
+/// .unwrap()?;
+/// assert_eq!(one_odd_eldrazi.name, "Void Winnower");
+/// # Ok(())
+/// # }
+/// ```
+///
+/// For information on search parameters, see the
+/// [`param`][crate::search::param] module.
 #[derive(Clone, PartialEq, Debug)]
 pub enum Query {
     /// The returned cards must match all of the sub-queries.
@@ -31,14 +54,11 @@ pub enum Query {
     /// to be updated. If you encounter a situation where this must be used,
     /// please [file an issue](https://github.com/mendess/scryfall-rs/issues/new).
     Custom(String),
-    /// Empty query, used as a default value. Attempting to search with an empty
-    /// query will result in a failure response.
-    Empty,
 }
 
 impl Default for Query {
     fn default() -> Self {
-        Query::Empty
+        Query::And(vec![])
     }
 }
 
@@ -50,7 +70,6 @@ impl fmt::Display for Query {
             Query::Not(expr) => return write!(f, "-{}", expr),
             Query::Param(param) => return write!(f, "{}", param),
             Query::Custom(expr) => return write!(f, "({})", expr),
-            Query::Empty => return write!(f, ""),
         };
 
         use itertools::Itertools;
@@ -80,7 +99,6 @@ macro_rules! impl_and_or {
             $(#[$($attr)*])*
             pub fn $meth(self, other: impl Into<Query>) -> Self {
                 match (self, other.into()) {
-                    (Query::Empty, q) | (q, Query::Empty) => q,
                     (Query::$Var(mut a_list), Query::$Var(mut b_list)) => {
                         a_list.append(&mut b_list);
                         Query::$Var(a_list)
@@ -113,7 +131,6 @@ impl Query {
 pub fn not(query: impl Into<Query>) -> Query {
     match query.into() {
         Query::Not(q) => *q,
-        Query::Empty => Query::Empty,
         q => Query::Not(Box::new(q)),
     }
 }

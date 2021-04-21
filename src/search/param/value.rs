@@ -1,4 +1,12 @@
-//! TODO(msmorgan): Module docs.
+//! This module defines the types for searching with parameters that can take
+//! a value argument. The type [`ValueKind`] defines the parameter that is
+//! being searched for, and cannot be constructed directly. Instead, use helper
+//! functions such as [`oracle_text()`], [`artist()`], or [`toughness()`].
+//!
+//! The helper functions are generic and are constrained by [`ParamValue`] and
+//! its sub-traits, in order to allow more flexibility in their use.
+//! See [`TextValue`], [`NumericValue`], and [`ColorValue`] for examples of how
+//! this works.
 
 use std::fmt;
 
@@ -323,7 +331,7 @@ impl<T: TextValue> TextOrRegexValue for T {}
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
-/// let cards_named_fog = name(r#"^fog$"#).search_all()?;
+/// let cards_named_fog = name(Regex::from(r"^fog$")).search_all()?;
 /// assert_eq!(cards_named_fog.len(), 1);
 /// assert_eq!(cards_named_fog[0].name, "Fog");
 /// # Ok(())
@@ -335,6 +343,12 @@ pub struct Regex(pub String);
 impl fmt::Display for Regex {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "/{}/", self.0.replace('/', "\\/"))
+    }
+}
+
+impl<T: AsRef<str>> From<T> for Regex {
+    fn from(string: T) -> Self {
+        Regex(string.as_ref().to_string())
     }
 }
 
@@ -400,7 +414,7 @@ impl fmt::Display for Devotion {
             write!(f, "0")
         } else {
             let color_a = self.0;
-            for _ in 0..=count {
+            for _ in 0..count {
                 match self.1 {
                     Some(color_b) if color_b != color_a => {
                         write!(f, "{{{}/{}}}", color_a, color_b)

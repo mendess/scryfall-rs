@@ -429,7 +429,19 @@ impl Card {
         Uri::from(url).fetch_iter()
     }
 
-    /// TODO(msmorgan): Docs.
+    /// Returns all cards that match a query, as a `Vec`. If there is more than
+    /// one page of cards, this will involve multiple requests to Scryfall
+    /// to get all the cards.
+    /// ```rust
+    /// # use scryfall::search::prelude::*;
+    /// # fn main() -> scryfall::Result<()> {
+    /// use scryfall::search::prelude::*;
+    /// use scryfall::Card;
+    /// let all_six_sixes = Card::search_all(power(6).and(toughness(6)))?;
+    /// assert!(all_six_sixes.iter().any(|c| &c.name == "Colossal Dreadmaw"));
+    /// # Ok(())
+    /// # }
+    /// ```
     pub fn search_all(query: impl crate::search::Search) -> crate::Result<Vec<Card>> {
         let mut url = CARDS_URL.join("search/")?;
         query.write_query(&mut url)?;

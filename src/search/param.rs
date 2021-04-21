@@ -35,10 +35,14 @@ pub mod value;
 
 /// A filter to provide to the search to reduce the cards returned.
 ///
+/// A `Param` can be an [exact card name][exact()], a [`Criterion`], or a
+/// comparison of parameter values.
+///
+/// Usually `Param` does not need to be used directly, but instead is wrapped
+/// in a [`Query`] so it can be combined with other `Param`s.
+///
 /// For more information on available parameters, refer to the
 /// [official docs](https://scryfall.com/docs/syntax).
-///
-/// TODO(msmorgan): More.
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Param(ParamImpl);
 
@@ -61,12 +65,12 @@ impl Search for Param {
 }
 
 impl Param {
-    fn criterion(criterion: Criterion) -> Self {
-        Param(ParamImpl::Criterion(criterion))
-    }
-
     fn exact(value: impl Into<String>) -> Self {
         Param(ParamImpl::ExactName(value.into()))
+    }
+
+    fn criterion(criterion: Criterion) -> Self {
+        Param(ParamImpl::Criterion(criterion))
     }
 
     fn value(kind: ValueKind, value: impl ToString) -> Self {
@@ -80,8 +84,8 @@ impl Param {
 
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 enum ParamImpl {
-    Criterion(Criterion),
     ExactName(String),
+    Criterion(Criterion),
     Value(ValueKind, String),
     Comparison(ValueKind, CompareOp, String),
 }
