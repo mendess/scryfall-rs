@@ -8,7 +8,7 @@
 //! All types whose name ends in `Param` are parameters that can be passed to
 //! the builder.
 //!
-//! [`SortMethod`], [`SortDirection`] and [`UniqueStrategy`] are options that
+//! \[`SortMethod`], \[`SortDirection`] and \[`UniqueStrategy`] are options that
 //! can be set on the builder.
 //!
 //!

@@ -586,7 +586,7 @@ impl BorderColorValue for crate::card::BorderColor {}
 
 /// A value representing card frames and frame effects.
 ///
-/// `FrameValue` is the argument type for [`frame()`] and [`frame_effect()`].
+/// `FrameValue` is the argument type for [`frame()`].
 ///
 /// This trait is implemented for the enums [`Frame`][crate::card::Frame]
 /// and [`FrameEffect`][crate::card::FrameEffect], as well as all [`TextValue`]
@@ -722,7 +722,7 @@ mod functions {
         #[doc = "The artist who illustrated this card."]
         artist => Artist: TextValue,
         #[doc = "The flavor text of this printing."]
-        flavor => Flavor: TextOrRegexValue,
+        flavor_text => Flavor: TextOrRegexValue,
         #[doc = "The type of watermark on this printing."]
         watermark => Watermark: TextValue,
         #[doc = "The border color of this printing."]

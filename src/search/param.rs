@@ -9,11 +9,11 @@
 //! by Scryfall. Each of these represents a boolean property that the
 //! card either has or does not. Searching by a criterion will only match
 //! cards that have the flag. For example,
-//! ['is:firstprint'][self::criteria::Criterion::IsFirstPrint] matches only
+//! ['is:firstprint'][self::criteria::PrintingIs::FirstPrint] matches only
 //! the first printing of a card, and
-//! ['has:watermark'][self::criteria::Criterion::HasWatermark] matches printings
+//! ['has:watermark'][self::criteria::PrintingIs::Watermark] matches printings
 //! which have a watermark. For a list of all available criteria, see the
-//! [`Criterion`] enum.
+//! [`criteria`] module.
 //!
 //! The rest of the search parameters are comprised of a name and a value, such
 //! as ['name:lightning'][self::value::name] or

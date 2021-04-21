@@ -127,7 +127,7 @@ pub mod prelude {
         date,
         devotion,
         eur,
-        flavor,
+        flavor_text,
         format,
         frame,
         full_oracle_text,
