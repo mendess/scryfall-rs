@@ -1,5 +1,4 @@
 use std::io;
-use std::io::BufReader;
 
 /// An implementation of `Read` that transforms JSON input where the outermost
 /// structure is an array. The enclosing brackets and commas are removed,
@@ -13,8 +12,8 @@ pub(crate) struct ArrayStreamReader<T> {
 }
 
 impl<T: io::Read> ArrayStreamReader<T> {
-    pub(crate) fn new_buffered(inner: T) -> BufReader<Self> {
-        BufReader::new(ArrayStreamReader {
+    pub(crate) fn new_buffered(inner: T) -> io::BufReader<Self> {
+        io::BufReader::new(ArrayStreamReader {
             inner,
             depth: None,
             inside_string: false,
@@ -41,9 +40,9 @@ impl<T: io::Read> io::Read for ArrayStreamReader<T> {
         let mut tmp = vec![0u8; buf.len()];
 
         // The outer loop is here in case every byte was skipped, which can happen
-        // easily if
-        // `buf.len()` is 1. In this situation, the operation is retried until either no
-        // bytes are read from the inner stream, or at least 1 byte is written to `buf`.
+        // easily if `buf.len()` is 1. In this situation, the operation is retried
+        // until either no bytes are read from the inner stream, or at least 1 byte
+        // is written to `buf`.
         loop {
             let byte_count = self.inner.read(&mut tmp)?;
             if byte_count == 0 {
@@ -74,7 +73,7 @@ impl<T: io::Read> io::Read for ArrayStreamReader<T> {
                     match b {
                         _ if self.escape_next => self.escape_next = false,
                         b'\\' => self.escape_next = true,
-                        b'"' if !self.escape_next => self.inside_string = false,
+                        b'"' => self.inside_string = false,
                         _ => {},
                     }
                     continue;

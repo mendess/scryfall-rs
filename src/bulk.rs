@@ -143,7 +143,7 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
         let de = serde_json::Deserializer::from_reader(ArrayStreamReader::new_buffered(
             self.get_reader()?,
         ));
-        Ok(de.into_iter().map(|item| item.map_err(|e| e.into())))
+        Ok(de.into_iter().map(|item| item.map_err(Into::into)))
     }
 
     /// Downloads this file, saving it to `path`. Overwrites the file if it
@@ -237,21 +237,21 @@ mod tests {
 
         use crate::ruling::Ruling;
         let s = r#"[
-                      {
-                        "object": "ruling",
-                        "oracle_id": "0004ebd0-dfd6-4276-b4a6-de0003e94237",
-                        "source": "wotc",
-                        "published_at": "2004-10-04",
-                        "comment": "If there are two of these on the battlefield, they do not add together. The result is that only two permanents can be untapped."
-                      },
-                      {
-                        "object": "ruling",
-                        "oracle_id": "0007c283-5b7a-4c00-9ca1-b455c8dff8c3",
-                        "source": "wotc",
-                        "published_at": "2019-08-23",
-                        "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
-                      }
-                   ]"#;
+            {
+                "object": "ruling",
+                "oracle_id": "0004ebd0-dfd6-4276-b4a6-de0003e94237",
+                "source": "wotc",
+                "published_at": "2004-10-04",
+                "comment": "If there are two of these on the battlefield, they do not add together. The result is that only two permanents can be untapped."
+            },
+            {
+                "object": "ruling",
+                "oracle_id": "0007c283-5b7a-4c00-9ca1-b455c8dff8c3",
+                "source": "wotc",
+                "published_at": "2019-08-23",
+                "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
+            }
+        ]"#;
         Deserializer::from_reader(super::ArrayStreamReader::new_buffered(s.as_bytes()))
             .into_iter()
             .map(|r: serde_json::Result<Ruling>| r.unwrap())
