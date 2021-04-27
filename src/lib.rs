@@ -38,18 +38,19 @@
 //! ```
 //!
 //! ## Advanced Search
+//!
 //! One of the main features of `scryfall` is its advanced search.
-//! For this the [`card_searcher`] module provides a type safe api
-//! to interact and query the search engine.
-
+//! For this the [`search`] module provides a type safe api
+//! to interact and query the search engine. For advanced features like
+//! sorting and collation, see [`search::advanced`].
 pub mod bulk;
 pub mod card;
-pub mod card_searcher;
 pub mod catalog;
 pub mod error;
 pub mod format;
 pub mod list;
 pub mod ruling;
+pub mod search;
 pub mod set;
 pub mod uri;
 mod util;
@@ -60,6 +61,7 @@ pub type Result<T> = std::result::Result<T, error::Error>;
 
 pub use card::Card;
 pub use catalog::Catalog;
+pub use error::Error;
 pub use ruling::Ruling;
 pub use set::Set;
 
@@ -70,7 +72,7 @@ mod tests {
     use rayon::prelude::*;
     use serde_json::{from_str, to_string};
 
-    use crate::card_searcher::{SearchBuilder, StringParam};
+    use crate::search::prelude::*;
     use crate::set::{Set, SetCode};
 
     #[test]
@@ -100,12 +102,10 @@ mod tests {
             .map(Result::unwrap)
             .take(30)
             .par_bridge()
-            .for_each(|set| {
-                let set_cards = SearchBuilder::new()
-                    .param(StringParam::Set(set.code))
-                    .search();
+            .for_each(|s| {
+                let set_cards = set(s.code).search();
                 if let Err(e) = set_cards {
-                    panic!("Could not search for cards in '{}' - {}", set.name, e);
+                    panic!("Could not search for cards in '{}' - {}", s.name, e);
                 }
             })
     }

@@ -18,6 +18,10 @@ pub enum Error {
     #[error("Error deserializing json: {0}")]
     JsonError(#[from] SerdeError),
 
+    /// Couldn't write URL query params.
+    #[error("Error writing URL query: {0}")]
+    UrlEncodedError(#[from] serde_urlencoded::ser::Error),
+
     /// A URL could not be parsed.
     #[error("Error parsing URL: {0}")]
     UrlParseError(#[from] UrlParseError),

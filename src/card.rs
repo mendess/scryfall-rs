@@ -25,7 +25,7 @@ use uuid::Uuid;
 
 pub use self::border_color::BorderColor;
 pub use self::card_faces::CardFace;
-pub use self::color::{Color, Colors};
+pub use self::color::{Color, Colors, Multicolored};
 pub use self::frame::Frame;
 pub use self::frame_effect::FrameEffect;
 pub use self::game::Game;
@@ -35,10 +35,10 @@ pub use self::preview::Preview;
 pub use self::price::Price;
 pub use self::rarity::Rarity;
 pub use self::related_card::RelatedCard;
-use crate::card_searcher::Search;
 use crate::format::Format;
 use crate::list::{List, ListIter};
 use crate::ruling::Ruling;
+use crate::search::Search;
 use crate::set::{Set, SetCode, SetType};
 use crate::uri::Uri;
 use crate::util::CARDS_URL;
@@ -376,50 +376,52 @@ impl Card {
     ///         .all(|x| x.name.to_lowercase().contains("lightning"))
     /// )
     /// ```
+    ///
     /// ```rust
-    /// use std::convert::TryFrom;
-    ///
-    /// use scryfall::card::Card;
-    /// use scryfall::card_searcher::NumericParam::CollectorNumber;
-    /// use scryfall::card_searcher::StringParam::Set;
-    /// use scryfall::card_searcher::{Search, SearchBuilder};
-    /// use scryfall::set::SetCode;
-    ///
-    /// assert!(
-    ///     SearchBuilder::new()
-    ///         .param(CollectorNumber(123))
-    ///         .param(Set(SetCode::try_from("war").expect("Not a valid set code")))
-    ///         .search()
-    ///         .unwrap()
-    ///         .map(Result::unwrap)
-    ///         .all(|card| card.name == "Demolish")
-    /// )
+    /// # use scryfall::search::prelude::*;
+    /// # fn main() -> scryfall::Result<()> {
+    /// use scryfall::Card;
+    /// let mut demolish = Card::search(set("war").and(collector_number(123)))?.map(Result::unwrap);
+    /// assert!(demolish.all(|card| &card.name == "Demolish"));
+    /// # Ok(())
+    /// # }
     /// ```
-    /// ```rust
-    /// use scryfall::card::Card;
-    /// use scryfall::card_searcher::{ComparisonExpr, Search, SearchBuilder, StringParam};
-    /// use scryfall::error::Error;
     ///
-    /// let error = SearchBuilder::new()
-    ///     .param(StringParam::Power(
-    ///         ComparisonExpr::AtLeast,
-    ///         "pow".to_string(),
-    ///     ))
-    ///     .search()
-    ///     .unwrap_err();
-    ///
-    /// match error {
-    ///     Error::ScryfallError(e) => {
-    ///         assert!(e.details.contains("All of your terms were ignored"));
-    ///         assert!(e.warnings.len() > 0);
-    ///     },
-    ///     other => panic!("Wrong error type: {0} {0:?}", other),
-    /// };
+    /// ```
+    /// # use scryfall::search::prelude::*;
+    /// use scryfall::{Card, Error};
+    /// let error = Card::search(power(gte(NumProperty::Power))).unwrap_err();
+    /// if let Error::ScryfallError(e) = error {
+    ///     assert!(e.details.contains("All of your terms were ignored"));
+    ///     assert!(e.warnings.len() > 0);
+    /// }
+    /// # else {
+    /// #     panic!("Wrong error type: {0} {0:?}", error)
+    /// # }
     /// ```
     pub fn search(query: impl Search) -> crate::Result<ListIter<Card>> {
         let mut url = CARDS_URL.join("search/")?;
-        url.set_query(Some(&query.to_query()));
+        query.write_query(&mut url)?;
         Uri::from(url).fetch_iter()
+    }
+
+    /// Returns all cards that match a query, as a `Vec`. If there is more than
+    /// one page of cards, this will involve multiple requests to Scryfall
+    /// to get all the cards.
+    /// ```rust
+    /// # use scryfall::search::prelude::*;
+    /// # fn main() -> scryfall::Result<()> {
+    /// use scryfall::search::prelude::*;
+    /// use scryfall::Card;
+    /// let all_six_sixes = Card::search_all(power(6).and(toughness(6)))?;
+    /// assert!(all_six_sixes.iter().any(|c| &c.name == "Colossal Dreadmaw"));
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn search_all(query: impl Search) -> crate::Result<Vec<Card>> {
+        let mut url = CARDS_URL.join("search/")?;
+        query.write_query(&mut url)?;
+        Uri::from(url).fetch_all()
     }
 
     /// Fetches a random card matching a search query.
@@ -435,7 +437,7 @@ impl Card {
     /// ```
     pub fn search_random(query: impl Search) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("random/")?;
-        url.set_query(Some(&query.to_query()));
+        query.write_query(&mut url)?;
         Uri::from(url).fetch()
     }
 

@@ -16,16 +16,15 @@ pub enum Game {
 
 impl std::fmt::Display for Game {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use Game::*;
         write!(
             f,
             "{}",
             match self {
-                Paper => "paper",
-                Arena => "arena",
-                Mtgo => "mtgo",
-                Astral => "astral",
-                Sega => "sega",
+                Game::Paper => "paper",
+                Game::Arena => "arena",
+                Game::Mtgo => "mtgo",
+                Game::Astral => "astral",
+                Game::Sega => "sega",
             }
         )
     }

@@ -1,12 +1,6 @@
 use clap::Clap;
 use scryfall::card::Game;
-use scryfall::card_searcher::{
-    GameParam,
-    SearchBuilder,
-    SortDirection,
-    SortMethod,
-    UniqueStrategy,
-};
+use scryfall::search::prelude::*;
 
 #[derive(Clap)]
 struct Opts {
@@ -16,22 +10,19 @@ struct Opts {
 fn main() -> scryfall::Result<()> {
     let opts: Opts = Opts::parse();
 
-    let mut builder = SearchBuilder::new();
-    builder
-        .with_unique_strategy(UniqueStrategy::Prints)
-        .sorting_by(SortMethod::Usd)
-        .with_sort_direction(SortDirection::Descending)
-        .param(format!("!\"{}\"", opts.card_name))
-        .param(GameParam::InGame(Game::Paper));
+    let mut search_options = SearchOptions::new();
+    search_options
+        .unique(UniqueStrategy::Prints)
+        .sort(SortOrder::Usd, SortDirection::Descending)
+        .query(exact(opts.card_name).and(in_game(Game::Paper)));
 
-    println!("{}", serde_urlencoded::to_string(&builder).unwrap());
+    println!("{}", serde_urlencoded::to_string(&search_options).unwrap());
 
-    let cards = builder
+    let cards = search_options
         .search()?
         .filter_map(|card| card.ok())
         .filter(|card| {
-            card.prices.usd.is_some()
-                || (!card.nonfoil && card.prices.usd_foil.is_some())
+            card.prices.usd.is_some() || (!card.nonfoil && card.prices.usd_foil.is_some())
         });
 
     for card in cards {
