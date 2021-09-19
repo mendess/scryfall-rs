@@ -23,6 +23,8 @@ pub enum Format {
     Gladiator,
     Brawl,
     Premodern,
+    HistoricBrawl,
+    PauperCommander,
 }
 
 impl fmt::Display for Format {
@@ -47,6 +49,8 @@ impl fmt::Display for Format {
                 Gladiator => "gladiator",
                 Brawl => "brawl",
                 Premodern => "premodern",
+                HistoricBrawl => "historicbrawl",
+                PauperCommander => "paupercommander",
             }
         )
     }
