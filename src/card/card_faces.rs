@@ -67,7 +67,7 @@ pub struct CardFace {
     pub toughness: Option<String>,
 
     /// The type line of this particular face.
-    pub type_line: String,
+    pub type_line: Option<String>,
 
     /// The watermark on this particulary card face, if any.
     pub watermark: Option<String>,
