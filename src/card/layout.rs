@@ -31,6 +31,8 @@ pub enum Layout {
     Meld,
     /// Cards with Level Up.
     Leveler,
+    /// Class-type enchantment cards
+    Class,
     /// Saga-type cards.
     Saga,
     /// Cards with an Adventure spell part.
