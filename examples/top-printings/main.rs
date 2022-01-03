@@ -1,20 +1,14 @@
-use clap::Clap;
 use scryfall::card::Game;
 use scryfall::search::prelude::*;
 
-#[derive(Clap)]
-struct Opts {
-    card_name: String,
-}
-
 fn main() -> scryfall::Result<()> {
-    let opts: Opts = Opts::parse();
+    let card_name = std::env::args().nth(1).expect("expected a card name param");
 
     let mut search_options = SearchOptions::new();
     search_options
         .unique(UniqueStrategy::Prints)
         .sort(SortOrder::Usd, SortDirection::Descending)
-        .query(exact(opts.card_name).and(in_game(Game::Paper)));
+        .query(exact(card_name).and(in_game(Game::Paper)));
 
     println!("{}", serde_urlencoded::to_string(&search_options).unwrap());
 
