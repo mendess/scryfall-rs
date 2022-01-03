@@ -25,6 +25,7 @@ pub enum Format {
     Premodern,
     HistoricBrawl,
     PauperCommander,
+    Alchemy,
 }
 
 impl fmt::Display for Format {
@@ -51,6 +52,7 @@ impl fmt::Display for Format {
                 Premodern => "premodern",
                 HistoricBrawl => "historicbrawl",
                 PauperCommander => "paupercommander",
+                Alchemy => "alchemy",
             }
         )
     }
