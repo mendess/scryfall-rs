@@ -226,7 +226,7 @@ pub struct Card {
     pub border_color: BorderColor,
 
     /// The Scryfall ID for the card back design present on this card.
-    pub card_back_id: Uuid,
+    pub card_back_id: Option<Uuid>,
 
     /// This card’s collector number. Note that collector numbers can contain
     /// non-numeric characters, such as letters or `★`.
