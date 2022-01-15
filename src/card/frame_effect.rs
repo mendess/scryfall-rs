@@ -45,6 +45,8 @@ pub enum FrameEffect {
     Etched,
     /// The cards have the snowy frame effect.
     Snow,
+    /// The cards have the Lesson frame effect.
+    Lesson,
 
     /// A full art frame. Undocumented and unsupported for search.
     FullArt,
@@ -53,6 +55,8 @@ pub enum FrameEffect {
     /// The waxing and waning moon transform marks. Undocumented and unsupported
     /// for search.
     WaxingAndWaningMoonDfc,
+    /// The booster card frame. Undocumented and unsupported for search.
+    Booster,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -80,10 +84,12 @@ impl std::fmt::Display for FrameEffect {
                 Companion => "companion",
                 Etched => "etched",
                 Snow => "snow",
+                Lesson => "lesson",
 
                 FullArt => "fullart",
                 Nyxborn => "nyxborn",
                 WaxingAndWaningMoonDfc => "waxingandwaningmoondfc",
+                Booster => "booster",
             }
         )
     }
