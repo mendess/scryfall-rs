@@ -1,6 +1,6 @@
 [package]
 name = "scryfall"
-version = "0.10.1"
+version = "0.10.2"
 authors = ["Mendess2526 <pedro.mendes.26@gmail.com>"]
 edition = "2018"
 description = "A wrapper around the scryfall magic the gathering api"
