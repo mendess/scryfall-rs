@@ -95,7 +95,7 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
             /// The full temp path where this file will be downloaded with `load`. The
             /// file name has the form "&lt;type&gt;-&lt;date&gt;.json".
             fn cache_path(&self) -> std::path::PathBuf {
-                use heck::KebabCase;
+                use heck::ToKebabCase;
                 std::env::temp_dir().join(format!(
                     "{}-{}.json",
                     self.bulk_type.to_kebab_case(),

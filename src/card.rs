@@ -569,7 +569,7 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn card(scryfall_id: Uuid) -> crate::Result<Card> {
+    pub fn scryfall_id(scryfall_id: Uuid) -> crate::Result<Card> {
         Uri::from(CARDS_URL.join(&scryfall_id.to_string())?).fetch()
     }
 }

@@ -155,8 +155,8 @@ mod tests {
             .and_then(|pow| pow.parse().ok())
             .unwrap_or(0);
 
-        let query = normal_creatures.clone().and(Query::Or(
-            (0..=highest_power).map(|pow| power(pow)).collect(),
+        let query = normal_creatures.and(Query::Or(
+            (0..=highest_power).map(power).collect(),
         ));
 
         // There are at least 1000 cards with even power.
