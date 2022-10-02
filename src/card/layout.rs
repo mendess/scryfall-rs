@@ -56,5 +56,5 @@ pub enum Layout {
     /// Art Series collectable double-faced cards.
     ArtSeries,
     /// A Magic card with two sides that are unrelated.
-    DoubleSided,
+    ReversibleCard,
 }
