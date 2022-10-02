@@ -47,6 +47,14 @@ pub enum FrameEffect {
     Snow,
     /// The cards have the Lesson frame effect.
     Lesson,
+    /// The cards have the Shattered Glass frame effect.
+    ShatteredGlass,
+    /// The cards have More Than Meets the Eye™ marks.
+    ConvertDfc,
+    /// The cards have fan transforming marks.
+    FanDfc,
+    /// The cards have the Upside Down transforming marks.
+    UpsideDownDfc,
 
     /// A full art frame. Undocumented and unsupported for search.
     FullArt,
@@ -87,6 +95,10 @@ impl std::fmt::Display for FrameEffect {
                 Etched => "etched",
                 Snow => "snow",
                 Lesson => "lesson",
+                ShatteredGlass => "shatteredglass",
+                ConvertDfc => "convertdfc",
+                FanDfc => "fandfc",
+                UpsideDownDfc => "upsidedowndfc",
 
                 FullArt => "fullart",
                 Nyxborn => "nyxborn",

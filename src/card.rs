@@ -564,7 +564,7 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::card("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".parse().unwrap()) {
+    /// match Card::scryfall_id("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".parse().unwrap()) {
     ///     Ok(card) => assert_eq!(card.name, "Cowed by Wisdom"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
