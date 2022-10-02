@@ -23,10 +23,16 @@ pub enum Color {
     Green = 1 << 4,
 
     /// **Do not use this!**
-    /// This variant makes no sense and should not exist, yet the tests fail without it.
+    /// This variant makes no sense and should not exist, yet some cards use it.
     /// Probably an upstream unintentional breaking change with Scryfall, such as broken data.
     #[serde(rename = "2")]
     Two = 1 << 5,
+
+    /// **Do not use this!**
+    /// This variant makes no sense and should not exist, yet some cards use it.
+    /// Probably an upstream unintentional breaking change with Scryfall, such as broken data.
+    #[serde(rename = "T")]
+    T = 1 << 6,
 }
 
 impl fmt::Display for Color {
@@ -42,6 +48,7 @@ impl fmt::Display for Color {
                 Color::Red => "R",
                 Color::Green => "G",
                 Color::Two => "2",
+                Color::T => "T",
             }
         )
     }
