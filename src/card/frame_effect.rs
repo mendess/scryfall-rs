@@ -33,8 +33,8 @@ pub enum FrameEffect {
     OriginPwDfc,
     /// The moon and Eldrazi transform marks.
     MoonEldraziDfc,
-    /// The waxing and waning crescent moon transform marks.
-    MoonReverseMoonDfc,
+    /// The waxing and waning moon transform marks.
+    WaxingAndWaningMoonDfc,
     /// A custom Showcase frame.
     Showcase,
     /// An extended art frame.
@@ -56,16 +56,15 @@ pub enum FrameEffect {
     /// The cards have the Upside Down transforming marks.
     UpsideDownDfc,
 
+    /// The waxing and waning crescent moon transform marks.
+    MoonReverseMoonDfc,
     /// A full art frame. Undocumented and unsupported for search.
     FullArt,
     /// A nyxborn card frame. Undocumented and unsupported for search.
     Nyxborn,
-    /// The waxing and waning moon transform marks. Undocumented and unsupported
-    /// for search.
-    WaxingAndWaningMoonDfc,
     /// The booster card frame. Undocumented and unsupported for search.
     Booster,
-    ///
+    /// A textless card frame. Undocumented and unsupported for search.
     Textless,
 }
 
