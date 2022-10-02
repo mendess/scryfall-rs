@@ -21,6 +21,12 @@ pub enum Color {
     Red = 1 << 3,
     #[serde(rename = "G")]
     Green = 1 << 4,
+
+    /// **Do not use this!**
+    /// This variant makes no sense and should not exist, yet the tests fail without it.
+    /// Probably an upstream unintentional breaking change with Scryfall, such as broken data.
+    #[serde(rename = "2")]
+    Two = 1 << 5,
 }
 
 impl fmt::Display for Color {
@@ -35,6 +41,7 @@ impl fmt::Display for Color {
                 Color::Black => "B",
                 Color::Red => "R",
                 Color::Green => "G",
+                Color::Two => "2",
             }
         )
     }
