@@ -79,12 +79,13 @@ impl From<Criterion> for Query {
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
 /// let party_member = Query::from(CardIs::Party).and(CardIs::Leveler).random()?;
+/// let type_line = party_member.type_line.unwrap();
 ///
 /// assert!(
-///     party_member.type_line.contains("Cleric")
-///         || party_member.type_line.contains("Rogue")
-///         || party_member.type_line.contains("Warrior")
-///         || party_member.type_line.contains("Wizard"),
+///     type_line.contains("Cleric")
+///         || type_line.contains("Rogue")
+///         || type_line.contains("Warrior")
+///         || type_line.contains("Wizard"),
 /// );
 /// assert!(party_member.keywords.iter().any(|kw| kw == "Level Up"));
 /// # Ok(())

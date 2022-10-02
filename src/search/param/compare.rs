@@ -24,8 +24,8 @@ use crate::search::param::Param;
 /// let query = cmc(gte(5)).and(type_line("planeswalker"));
 /// let card = query.random().unwrap();
 ///
-/// assert!(card.cmc as u32 >= 5);
-/// assert!(card.type_line.to_lowercase().contains("planeswalker"));
+/// assert!(card.cmc.unwrap() as u32 >= 5);
+/// assert!(card.type_line.unwrap().to_lowercase().contains("planeswalker"));
 /// ```
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Compare<T> {

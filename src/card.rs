@@ -105,7 +105,8 @@ pub struct Card {
     /// A unique ID for this card’s oracle identity. This value is consistent
     /// across reprinted card editions, and unique among different cards with
     /// the same name (tokens, Unstable variants, etc).
-    pub oracle_id: Uuid,
+    /// If a card is reversible, the individual faces will have the `oracle_id` instead.
+    pub oracle_id: Option<Uuid>,
 
     /// A link to where you can begin paginating all re/prints for this card on
     /// Scryfall’s API.
@@ -133,7 +134,8 @@ pub struct Card {
 
     /// The card’s converted mana cost. Note that some funny cards have
     /// fractional mana costs.
-    pub cmc: f32,
+    /// If a card is reversible, the individual faces will have the `cmc` instead.
+    pub cmc: Option<f32>,
 
     /// This card’s color identity.
     pub color_identity: Vec<Color>,
@@ -209,7 +211,8 @@ pub struct Card {
     pub toughness: Option<String>,
 
     /// The type line of this card.
-    pub type_line: String,
+    /// If a card is reversible, the individual faces will have the `oracle_id` instead.
+    pub type_line: Option<String>,
     // =========================
     // endregion Gameplay Fields
     //
@@ -431,7 +434,7 @@ impl Card {
     /// # use scryfall::Card;
     /// # fn main() -> scryfall::Result<()> {
     /// let card = Card::search_random("t:Merfolk")?;
-    /// assert!(card.type_line.contains("Merfolk"));
+    /// assert!(card.type_line.unwrap().contains("Merfolk"));
     /// # Ok(())
     /// # }
     /// ```

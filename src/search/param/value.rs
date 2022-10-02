@@ -393,7 +393,7 @@ impl<T: TextValue> ColorValue for T {}
 /// # fn main() -> scryfall::Result<()> {
 /// use scryfall::card::Color;
 /// let five_red_devotion = devotion(Devotion::monocolor(Color::Red, 5)).random()?;
-/// assert!(five_red_devotion.cmc >= 5.0);
+/// assert!(five_red_devotion.cmc.unwrap() >= 5.0);
 /// # Ok(())
 /// # }
 /// ```

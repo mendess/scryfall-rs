@@ -111,60 +111,13 @@ pub mod prelude {
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
     pub use super::param::criteria::{CardIs, PrintingIs};
     pub use super::param::value::{
-        artist,
-        artist_count,
-        banned,
-        block,
-        border_color,
-        cheapest,
-        cmc,
-        collector_number,
-        color,
-        color_count,
-        color_identity,
-        color_identity_count,
-        cube,
-        date,
-        devotion,
-        eur,
-        flavor_text,
-        format,
-        frame,
-        full_oracle_text,
-        game,
-        illustration_count,
-        in_game,
-        in_language,
-        in_rarity,
-        in_set,
-        in_set_type,
-        keyword,
-        language,
-        loyalty,
-        mana,
-        name,
-        oracle_text,
-        paper_print_count,
-        paper_set_count,
-        pow_tou,
-        power,
-        print_count,
-        produces,
-        rarity,
-        restricted,
-        set,
-        set_count,
-        set_type,
-        tix,
-        toughness,
-        type_line,
-        usd,
-        usd_foil,
-        watermark,
-        year,
-        Devotion,
-        NumProperty,
-        Regex,
+        artist, artist_count, banned, block, border_color, cheapest, cmc, collector_number, color,
+        color_count, color_identity, color_identity_count, cube, date, devotion, eur, flavor_text,
+        format, frame, full_oracle_text, game, illustration_count, in_game, in_language, in_rarity,
+        in_set, in_set_type, keyword, language, loyalty, mana, name, oracle_text,
+        paper_print_count, paper_set_count, pow_tou, power, print_count, produces, rarity,
+        restricted, set, set_count, set_type, tix, toughness, type_line, usd, usd_foil, watermark,
+        year, Devotion, NumProperty, Regex,
     };
     pub use super::param::{exact, Param};
     pub use super::query::{not, Query};
@@ -201,21 +154,19 @@ mod tests {
     fn random_works_with_search_options() {
         // `SearchOptions` can set more query params than the "cards/random" API method
         // accepts. Scryfall should ignore these and return a random card.
-        assert!(
-            SearchOptions::new()
-                .query(keyword("storm"))
-                .unique(UniqueStrategy::Art)
-                .sort(SortOrder::Usd, SortDirection::Ascending)
-                .extras(true)
-                .multilingual(true)
-                .variations(true)
-                .random()
-                .unwrap()
-                .oracle_text
-                .unwrap()
-                .to_lowercase()
-                .contains("storm")
-        );
+        assert!(SearchOptions::new()
+            .query(keyword("storm"))
+            .unique(UniqueStrategy::Art)
+            .sort(SortOrder::Usd, SortDirection::Ascending)
+            .extras(true)
+            .multilingual(true)
+            .variations(true)
+            .random()
+            .unwrap()
+            .oracle_text
+            .unwrap()
+            .to_lowercase()
+            .contains("storm"));
     }
 
     #[test]
@@ -254,12 +205,10 @@ mod tests {
 
         assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
 
-        assert!(
-            cards
-                .into_iter()
-                .map(|c| c.unwrap())
-                .all(|c| c.rarity > Rarity::Mythic)
-        );
+        assert!(cards
+            .into_iter()
+            .map(|c| c.unwrap())
+            .all(|c| c.rarity > Rarity::Mythic));
     }
 
     #[test]
@@ -281,7 +230,7 @@ mod tests {
             .unwrap_or_default();
 
         assert_eq!(power, toughness);
-        assert_eq!(power + toughness, card.cmc as u32);
+        assert_eq!(power + toughness, card.cmc.unwrap() as u32);
 
         let card = Card::search(pow_tou(gt(NumProperty::Year)))
             .unwrap()
