@@ -13,6 +13,7 @@ mod layout;
 mod legality;
 mod preview;
 mod price;
+mod produced_mana;
 mod rarity;
 mod related_card;
 
@@ -33,6 +34,7 @@ pub use self::layout::Layout;
 pub use self::legality::Legality;
 pub use self::preview::Preview;
 pub use self::price::Price;
+pub use self::produced_mana::{ProducedMana, UnfinityMana};
 pub use self::rarity::Rarity;
 pub use self::related_card::RelatedCard;
 use crate::format::Format;
@@ -199,7 +201,7 @@ pub struct Card {
     pub power: Option<String>,
 
     /// Colors of mana that this card could produce.
-    pub produced_mana: Option<Vec<Color>>,
+    pub produced_mana: Option<Vec<ProducedMana>>,
 
     /// True if this card is on the Reserved List.
     pub reserved: bool,
