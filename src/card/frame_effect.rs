@@ -66,6 +66,8 @@ pub enum FrameEffect {
     Booster,
     /// A textless card frame. Undocumented and unsupported for search.
     Textless,
+    /// Is a story spotlight card
+    StorySpotlight,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -104,6 +106,7 @@ impl std::fmt::Display for FrameEffect {
                 WaxingAndWaningMoonDfc => "waxingandwaningmoondfc",
                 Booster => "booster",
                 Textless => "textless",
+                StorySpotlight => "storyspotlight",
             }
         )
     }
