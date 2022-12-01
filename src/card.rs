@@ -107,7 +107,7 @@ pub struct Card {
     /// A unique ID for this card’s oracle identity. This value is consistent
     /// across reprinted card editions, and unique among different cards with
     /// the same name (tokens, Unstable variants, etc).
-    pub oracle_id: Uuid,
+    pub oracle_id: Option<Uuid>,
 
     /// A link to where you can begin paginating all re/prints for this card on
     /// Scryfall’s API.
@@ -135,7 +135,7 @@ pub struct Card {
 
     /// The card’s converted mana cost. Note that some funny cards have
     /// fractional mana costs.
-    pub cmc: f32,
+    pub cmc: Option<f32>,
 
     /// This card’s color identity.
     pub color_identity: Vec<Color>,
@@ -211,7 +211,7 @@ pub struct Card {
     pub toughness: Option<String>,
 
     /// The type line of this card.
-    pub type_line: String,
+    pub type_line: Option<String>,
     // =========================
     // endregion Gameplay Fields
     //
