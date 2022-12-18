@@ -70,7 +70,7 @@ impl Ruling {
     ///         .any(|r| r.comment.ends_with("Yes, this is a bit weird."))
     /// );
     /// ```
-    pub fn multiverse_id(id: usize) -> crate::Result<ListIter<Self>> {
+    pub async fn multiverse_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join("multiverse/")?
@@ -78,6 +78,7 @@ impl Ruling {
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns rulings for a card with the given MTGO ID (also known as the
@@ -94,7 +95,7 @@ impl Ruling {
     ///         .any(|r| r.comment.ends_with("You read the whole contract, right?"))
     /// );
     /// ```
-    pub fn mtgo_id(id: usize) -> crate::Result<ListIter<Self>> {
+    pub async fn mtgo_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join("mtgo/")?
@@ -102,6 +103,7 @@ impl Ruling {
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns rulings for a card with the given Magic: The Gathering Arena ID.
@@ -118,7 +120,7 @@ impl Ruling {
     ///         })
     /// );
     /// ```
-    pub fn arena_id(id: usize) -> crate::Result<ListIter<Self>> {
+    pub async fn arena_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join("arena/")?
@@ -126,6 +128,7 @@ impl Ruling {
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns a List of rulings for the card with the given set code and
@@ -141,13 +144,14 @@ impl Ruling {
     ///         .any(|r| r.comment == "Yes, your opponent can’t even. We know.")
     /// );
     /// ```
-    pub fn set_and_number(set: &str, number: u32) -> crate::Result<ListIter<Self>> {
+    pub async fn set_and_number(set: &str, number: u32) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join(&format!("{}/{}/", set, number))?
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns a List of rulings for a card with the given Scryfall ID.
@@ -162,7 +166,9 @@ impl Ruling {
     ///         .any(|r| r.comment == "It must flip like a coin and not like a Frisbee.")
     /// );
     /// ```
-    pub fn uuid(id: Uuid) -> crate::Result<ListIter<Self>> {
-        Uri::from(CARDS_URL.join(&format!("{}/", id))?.join(API_RULING)?).fetch_iter()
+    pub async fn uuid(id: Uuid) -> crate::Result<ListIter<Self>> {
+        Uri::from(CARDS_URL.join(&format!("{}/", id))?.join(API_RULING)?)
+            .fetch_iter()
+            .await
     }
 }

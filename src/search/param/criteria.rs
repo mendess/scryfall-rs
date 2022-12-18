@@ -405,20 +405,30 @@ mod tests {
     #[test]
     #[ignore]
     fn all_card_is() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
         for criterion in CardIs::iter() {
-            Query::from(criterion)
-                .random()
-                .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
+            handle.block_on(async move {
+                Query::from(criterion)
+                    .random()
+                    .await
+                    .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
+            })
         }
     }
 
     #[test]
     #[ignore]
     fn all_printing_is() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
         for criterion in PrintingIs::iter() {
-            Query::from(criterion)
-                .random()
-                .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
+            handle.block_on(async move {
+                Query::from(criterion)
+                    .random()
+                    .await
+                    .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
+            })
         }
     }
 }

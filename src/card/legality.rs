@@ -57,7 +57,7 @@ mod tests {
         ];
 
         for ((a, b), order) in &matrix {
-            assert_eq!(&a.partial_cmp(&b), order);
+            assert_eq!(&a.partial_cmp(b), order);
         }
     }
 }

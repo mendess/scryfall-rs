@@ -63,28 +63,28 @@ impl<T: DeserializeOwned> Uri<T> {
     /// let bolt = uri.fetch().unwrap();
     /// assert_eq!(bolt.mana_cost, Some("{R}".to_string()));
     /// ```
-    pub fn fetch(&self) -> crate::Result<T> {
-        match self.fetch_raw() {
-            Ok(response) => match response.status() {
-                200..=299 => Ok(serde_json::from_reader(response.into_reader())?),
+    pub async fn fetch(&self) -> crate::Result<T> {
+        match self.fetch_raw().await {
+            Ok(response) => match response.status().as_u16() {
+                200..=299 => Ok(response.json().await?),
                 status => Err(Error::HttpError(StatusCode::from(status))),
             },
             Err(e) => Err(e),
         }
     }
 
-    pub(crate) fn fetch_raw(&self) -> crate::Result<ureq::Response> {
-        match CLIENT.with(|client| client.request_url("GET", &self.url).call()) {
-            Ok(response) => Ok(response),
-            Err(ureq::Error::Status(400..=599, response)) => Err(Error::ScryfallError(
-                serde_json::from_reader(response.into_reader())?,
-            )),
-            Err(err) => Err(Error::UreqError(err.into(), self.url.to_string())),
+    pub(crate) async fn fetch_raw(&self) -> crate::Result<reqwest::Response> {
+        match reqwest::get(self.url.clone()).await {
+            Ok(response) => match response.status().as_u16() {
+                400..=599 => Err(Error::ScryfallError(response.json().await?)),
+                _ => Ok(response),
+            },
+            Err(e) => Err(Error::ReqwestError(e.into(), self.url.to_string())),
         }
     }
 }
 
-impl<T: DeserializeOwned> Uri<List<T>> {
+impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
     /// Lazily iterate over items from all pages of a list. Following pages are
     /// requested once the previous page has been exhausted.
     ///
@@ -104,8 +104,8 @@ impl<T: DeserializeOwned> Uri<List<T>> {
     ///         .is_some()
     /// );
     /// ```
-    pub fn fetch_iter(&self) -> crate::Result<ListIter<T>> {
-        Ok(self.fetch()?.into_iter())
+    pub async fn fetch_iter(&self) -> crate::Result<ListIter<T>> {
+        Ok(self.fetch().await?.into_list_iter())
     }
 
     /// Eagerly fetch items from all pages of a list. If any of the pages fail
@@ -123,13 +123,13 @@ impl<T: DeserializeOwned> Uri<List<T>> {
     ///         .unwrap();
     /// assert_eq!(uri.fetch_all().unwrap().len(), 76);
     /// ```
-    pub fn fetch_all(&self) -> crate::Result<Vec<T>> {
+    pub async fn fetch_all(&self) -> crate::Result<Vec<T>> {
         let mut items = vec![];
-        let mut next_page = Some(self.fetch()?);
+        let mut next_page = Some(self.fetch().await?);
         while let Some(page) = next_page {
             items.extend(page.data.into_iter());
             next_page = match page.next_page {
-                Some(uri) => Some(uri.fetch()?),
+                Some(uri) => Some(uri.fetch().await?),
                 None => None,
             };
         }

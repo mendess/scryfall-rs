@@ -69,7 +69,8 @@ pub use set::Set;
 mod tests {
     use std::convert::TryFrom;
 
-    use rayon::prelude::*;
+    use futures::stream::StreamExt;
+
     use serde_json::{from_str, to_string};
 
     use crate::search::prelude::*;
@@ -89,24 +90,40 @@ mod tests {
     #[test]
     #[ignore]
     fn all_sets() {
-        for set in Set::all().unwrap().map(Result::unwrap) {
-            assert!(set.code.get().len() >= 3);
-        }
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
+        handle.block_on(async move {
+            Set::all()
+                .await
+                .unwrap()
+                .into_stream()
+                .map(Result::unwrap)
+                .for_each(|set| async move {
+                    assert!(set.code.get().len() >= 3);
+                })
+                .await
+        });
     }
 
     #[test]
     #[ignore]
     fn latest_cards() {
-        Set::all()
-            .unwrap()
-            .map(Result::unwrap)
-            .take(30)
-            .par_bridge()
-            .for_each(|s| {
-                let set_cards = set(s.code).search();
-                if let Err(e) = set_cards {
-                    panic!("Could not search for cards in '{}' - {}", s.name, e);
-                }
-            })
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
+        handle.block_on(async move {
+            Set::all()
+                .await
+                .unwrap()
+                .into_stream()
+                .map(Result::unwrap)
+                .take(30)
+                .for_each_concurrent(None, |s| async move {
+                    let set_cards = set(s.code).search().await;
+                    if let Err(e) = set_cards {
+                        panic!("Could not search for cards in '{}' - {}", s.name, e);
+                    }
+                })
+                .await
+        })
     }
 }

@@ -101,10 +101,10 @@ impl Set {
     /// let sets = Set::all().unwrap().into_inner().collect::<Vec<_>>();
     /// assert!(sets.len() > 0);
     /// ```
-    pub fn all() -> crate::Result<ListIter<Set>> {
+    pub async fn all() -> crate::Result<ListIter<Set>> {
         let mut url = SETS_URL.clone();
         url.query_pairs_mut().append_pair("page", "1");
-        Uri::from(url).fetch_iter()
+        Uri::from(url).fetch_iter().await
     }
 
     /// Returns a `Set` with the given set code.
@@ -116,9 +116,10 @@ impl Set {
     /// use scryfall::set::Set;
     /// assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
     /// ```
-    pub fn code(code: &str) -> crate::Result<Set> {
+    pub async fn code(code: &str) -> crate::Result<Set> {
         Uri::from(SETS_URL.join(&percent_encode(code.as_bytes(), NON_ALPHANUMERIC).to_string())?)
             .fetch()
+            .await
     }
 
     /// Returns a `Set` with the given `tcgplayer_id`.
@@ -131,13 +132,14 @@ impl Set {
     /// use scryfall::set::Set;
     /// assert_eq!(Set::tcgplayer(1909).unwrap().name, "Amonkhet Invocations")
     /// ```
-    pub fn tcgplayer<T: std::fmt::Display>(code: T) -> crate::Result<Set> {
+    pub async fn tcgplayer<T: std::fmt::Display>(code: T) -> crate::Result<Set> {
         Uri::from(
             SETS_URL
                 .join("tcgplayer/")?
                 .join(&percent_encode(code.to_string().as_bytes(), NON_ALPHANUMERIC).to_string())?,
         )
         .fetch()
+        .await
     }
 
     /// Returns a Set with the given Scryfall `uuid`.
@@ -152,12 +154,12 @@ impl Set {
     ///     "Ultimate Masters"
     /// )
     /// ```
-    pub fn uuid(uuid: Uuid) -> crate::Result<Set> {
-        Uri::from(SETS_URL.join(&uuid.to_string())?).fetch()
+    pub async fn uuid(uuid: Uuid) -> crate::Result<Set> {
+        Uri::from(SETS_URL.join(&uuid.to_string())?).fetch().await
     }
 
     /// Returns an iterator over the cards of the set.
-    pub fn cards(&self) -> crate::Result<ListIter<Card>> {
-        self.search_uri.fetch_iter()
+    pub async fn cards(&self) -> crate::Result<ListIter<Card>> {
+        self.search_uri.fetch_iter().await
     }
 }

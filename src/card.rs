@@ -362,8 +362,8 @@ impl Card {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn random() -> crate::Result<Card> {
-        Uri::from(CARDS_URL.join("random/")?).fetch()
+    pub async fn random() -> crate::Result<Card> {
+        Uri::from(CARDS_URL.join("random/")?).fetch().await
     }
 
     /// Returns a [`ListIter`] of the cards that match the search terms.
@@ -401,10 +401,10 @@ impl Card {
     /// #     panic!("Wrong error type: {0} {0:?}", error)
     /// # }
     /// ```
-    pub fn search(query: impl Search) -> crate::Result<ListIter<Card>> {
+    pub async fn search(query: impl Search) -> crate::Result<ListIter<Card>> {
         let mut url = CARDS_URL.join("search/")?;
         query.write_query(&mut url)?;
-        Uri::from(url).fetch_iter()
+        Uri::from(url).fetch_iter().await
     }
 
     /// Returns all cards that match a query, as a `Vec`. If there is more than
@@ -420,10 +420,10 @@ impl Card {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn search_all(query: impl Search) -> crate::Result<Vec<Card>> {
+    pub async fn search_all(query: impl Search) -> crate::Result<Vec<Card>> {
         let mut url = CARDS_URL.join("search/")?;
         query.write_query(&mut url)?;
-        Uri::from(url).fetch_all()
+        Uri::from(url).fetch_all().await
     }
 
     /// Fetches a random card matching a search query.
@@ -437,10 +437,10 @@ impl Card {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn search_random(query: impl Search) -> crate::Result<Card> {
+    pub async fn search_random(query: impl Search) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("random/")?;
         query.write_query(&mut url)?;
-        Uri::from(url).fetch()
+        Uri::from(url).fetch().await
     }
 
     /// Return a card with the exact name.
@@ -459,10 +459,10 @@ impl Card {
     /// use scryfall::error::Error;
     /// assert!(Card::named("Name that doesn't exist").is_err())
     /// ```
-    pub fn named(name: &str) -> crate::Result<Card> {
+    pub async fn named(name: &str) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("named")?;
         url.query_pairs_mut().append_pair("exact", name);
-        Uri::from(url).fetch()
+        Uri::from(url).fetch().await
     }
 
     /// Return a card using the scryfall fuzzy finder.
@@ -475,10 +475,10 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn named_fuzzy(query: &str) -> crate::Result<Card> {
+    pub async fn named_fuzzy(query: &str) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("named")?;
         url.query_pairs_mut().append_pair("fuzzy", query);
-        Uri::from(url).fetch()
+        Uri::from(url).fetch().await
     }
 
     /// Fetch a card by its set and number.
@@ -491,8 +491,10 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn set_and_number(set_code: &str, number: usize) -> crate::Result<Card> {
-        Uri::from(CARDS_URL.join(&format!("{}/{}", set_code, number))?).fetch()
+    pub async fn set_and_number(set_code: &str, number: usize) -> crate::Result<Card> {
+        Uri::from(CARDS_URL.join(&format!("{}/{}", set_code, number))?)
+            .fetch()
+            .await
     }
 
     /// Fetch a card by its multiverse id.
@@ -505,13 +507,14 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn multiverse(multiverse_id: usize) -> crate::Result<Card> {
+    pub async fn multiverse(multiverse_id: usize) -> crate::Result<Card> {
         Uri::from(
             CARDS_URL
                 .join("multiverse/")?
                 .join(&multiverse_id.to_string())?,
         )
         .fetch()
+        .await
     }
 
     /// Fetch a card by its mtgo id.
@@ -524,8 +527,10 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn mtgo(mtgo_id: usize) -> crate::Result<Card> {
-        Uri::from(CARDS_URL.join("mtgo/")?.join(&mtgo_id.to_string())?).fetch()
+    pub async fn mtgo(mtgo_id: usize) -> crate::Result<Card> {
+        Uri::from(CARDS_URL.join("mtgo/")?.join(&mtgo_id.to_string())?)
+            .fetch()
+            .await
     }
 
     /// Fetch a card by its arena id.
@@ -538,8 +543,10 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn arena(arena_id: usize) -> crate::Result<Card> {
-        Uri::from(CARDS_URL.join("arena/")?.join(&arena_id.to_string())?).fetch()
+    pub async fn arena(arena_id: usize) -> crate::Result<Card> {
+        Uri::from(CARDS_URL.join("arena/")?.join(&arena_id.to_string())?)
+            .fetch()
+            .await
     }
 
     /// Fetch a card by its tcgplayer id.
@@ -552,13 +559,14 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn tcgplayer(tcgplayer_id: usize) -> crate::Result<Card> {
+    pub async fn tcgplayer(tcgplayer_id: usize) -> crate::Result<Card> {
         Uri::from(
             CARDS_URL
                 .join("tcgplayer/")?
                 .join(&tcgplayer_id.to_string())?,
         )
         .fetch()
+        .await
     }
 
     /// Fetch a card by its Uuid.
@@ -571,7 +579,9 @@ impl Card {
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// ```
-    pub fn scryfall_id(scryfall_id: Uuid) -> crate::Result<Card> {
-        Uri::from(CARDS_URL.join(&scryfall_id.to_string())?).fetch()
+    pub async fn scryfall_id(scryfall_id: Uuid) -> crate::Result<Card> {
+        Uri::from(CARDS_URL.join(&scryfall_id.to_string())?)
+            .fetch()
+            .await
     }
 }
