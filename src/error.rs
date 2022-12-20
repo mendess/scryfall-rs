@@ -7,7 +7,6 @@ use itertools::Itertools;
 use reqwest::Error as ReqwestError;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
-use ureq::Error as UreqError;
 use url::ParseError as UrlParseError;
 
 /// The errors that may occur when interacting with the scryfall API.
@@ -26,10 +25,6 @@ pub enum Error {
     /// A URL could not be parsed.
     #[error("Error parsing URL: {0}")]
     UrlParseError(#[from] UrlParseError),
-
-    /// Something went wrong when making the HTTP request.
-    #[error("Error making request: {0}")]
-    UreqError(Box<UreqError>, String),
 
     /// Something went wrong when making the HTTP request.
     #[error("Error making request: {0}")]

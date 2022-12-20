@@ -20,6 +20,7 @@ use crate::search::Search;
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
 /// use scryfall::card::Rarity;
+/// # tokio_test::block_on(async {
 /// let one_odd_eldrazi = Query::And(vec![
 ///     Query::Or(vec![power(9), toughness(9)]),
 ///     Query::Custom("t:eldrazi".to_string()),
@@ -27,11 +28,14 @@ use crate::search::Search;
 ///     rarity(Rarity::Mythic), // A `Param` variant.
 ///     CardIs::OddCmc.into(),
 /// ])
-/// .search()?
-/// .next()
+/// .search()
+/// .await?
+/// .stream_next()
+/// .await
 /// .unwrap()?;
 /// assert_eq!(one_odd_eldrazi.name, "Void Winnower");
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 ///
@@ -155,7 +159,6 @@ mod tests {
                 .search()
                 .await?
                 .into_stream()
-                .boxed()
                 .next()
                 .await
                 .unwrap()?

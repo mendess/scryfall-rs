@@ -98,8 +98,10 @@ impl Set {
     /// # Examples
     /// ```rust
     /// use scryfall::set::Set;
-    /// let sets = Set::all().unwrap().into_inner().collect::<Vec<_>>();
+    /// # tokio_test::block_on(async {
+    /// let sets = Set::all().await.unwrap().into_inner().collect::<Vec<_>>();
     /// assert!(sets.len() > 0);
+    /// # })
     /// ```
     pub async fn all() -> crate::Result<ListIter<Set>> {
         let mut url = SETS_URL.clone();
@@ -114,7 +116,9 @@ impl Set {
     /// # Examples
     /// ```rust
     /// use scryfall::set::Set;
-    /// assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
+    /// # tokio_test::block_on(async {
+    /// assert_eq!(Set::code("mmq").await.unwrap().name, "Mercadian Masques")
+    /// # })
     /// ```
     pub async fn code(code: &str) -> crate::Result<Set> {
         Uri::from(SETS_URL.join(&percent_encode(code.as_bytes(), NON_ALPHANUMERIC).to_string())?)
@@ -130,7 +134,9 @@ impl Set {
     ///
     /// ```rust
     /// use scryfall::set::Set;
-    /// assert_eq!(Set::tcgplayer(1909).unwrap().name, "Amonkhet Invocations")
+    /// # tokio_test::block_on(async {
+    /// assert_eq!(Set::tcgplayer(1909).await.unwrap().name, "Amonkhet Invocations")
+    /// # })
     /// ```
     pub async fn tcgplayer<T: std::fmt::Display>(code: T) -> crate::Result<Set> {
         Uri::from(
@@ -147,12 +153,15 @@ impl Set {
     /// # Examples
     /// ```rust
     /// use scryfall::set::Set;
+    /// # tokio_test::block_on(async {
     /// assert_eq!(
     ///     Set::uuid("2ec77b94-6d47-4891-a480-5d0b4e5c9372".parse().unwrap())
+    ///         .await
     ///         .unwrap()
     ///         .name,
     ///     "Ultimate Masters"
     /// )
+    /// # })
     /// ```
     pub async fn uuid(uuid: Uuid) -> crate::Result<Set> {
         Uri::from(SETS_URL.join(&uuid.to_string())?).fetch().await

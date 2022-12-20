@@ -203,7 +203,6 @@ mod tests {
                     .await
                     .unwrap()
                     .into_stream()
-                    .boxed()
                     .next()
                     .await
                     .unwrap()

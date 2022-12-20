@@ -357,9 +357,11 @@ impl Card {
     /// ```rust
     /// # use scryfall::card::Card;
     /// # fn main() -> scryfall::Result<()> {
-    /// let card = Card::random()?;
+    /// # tokio_test::block_on(async {
+    /// let card = Card::random().await?;
     /// println!("{}", &card.name);
     /// # Ok(())
+    /// # })
     /// # }
     /// ```
     pub async fn random() -> crate::Result<Card> {
@@ -371,28 +373,39 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
+    /// use futures::stream::{self, StreamExt};
+    /// use futures::future;
     /// assert!(
-    ///     Card::search("lightning")
+    /// # tokio_test::block_on(async {
+    ///     Card::search("lightning").await
     ///         .unwrap()
+    ///         .into_stream()
     ///         .map(Result::unwrap)
-    ///         .all(|x| x.name.to_lowercase().contains("lightning"))
+    ///         .all(|x| future::ready(x.name.to_lowercase().contains("lightning")))
+    ///         .await
+    /// # })
     /// )
     /// ```
     ///
     /// ```rust
     /// # use scryfall::search::prelude::*;
+    /// # use futures::stream::{self, StreamExt};
+    /// # use futures::future;
     /// # fn main() -> scryfall::Result<()> {
     /// use scryfall::Card;
-    /// let mut demolish = Card::search(set("war").and(collector_number(123)))?.map(Result::unwrap);
-    /// assert!(demolish.all(|card| &card.name == "Demolish"));
+    /// # tokio_test::block_on(async {
+    /// let mut demolish = Card::search(set("war").and(collector_number(123))).await?.into_stream().map(Result::unwrap);
+    /// assert!(demolish.all(|card| future::ready(&card.name == "Demolish")).await);
     /// # Ok(())
+    /// # })
     /// # }
     /// ```
     ///
     /// ```
     /// # use scryfall::search::prelude::*;
     /// use scryfall::{Card, Error};
-    /// let error = Card::search(power(gte(NumProperty::Power))).unwrap_err();
+    /// # tokio_test::block_on(async {
+    /// let error = Card::search(power(gte(NumProperty::Power))).await.unwrap_err();
     /// if let Error::ScryfallError(e) = error {
     ///     assert!(e.details.contains("All of your terms were ignored"));
     ///     assert!(e.warnings.len() > 0);
@@ -400,6 +413,7 @@ impl Card {
     /// # else {
     /// #     panic!("Wrong error type: {0} {0:?}", error)
     /// # }
+    /// })
     /// ```
     pub async fn search(query: impl Search) -> crate::Result<ListIter<Card>> {
         let mut url = CARDS_URL.join("search/")?;
@@ -415,9 +429,11 @@ impl Card {
     /// # fn main() -> scryfall::Result<()> {
     /// use scryfall::search::prelude::*;
     /// use scryfall::Card;
-    /// let all_six_sixes = Card::search_all(power(6).and(toughness(6)))?;
+    /// # tokio_test::block_on(async {
+    /// let all_six_sixes = Card::search_all(power(6).and(toughness(6))).await?;
     /// assert!(all_six_sixes.iter().any(|c| &c.name == "Colossal Dreadmaw"));
     /// # Ok(())
+    /// # })
     /// # }
     /// ```
     pub async fn search_all(query: impl Search) -> crate::Result<Vec<Card>> {
@@ -432,9 +448,11 @@ impl Card {
     /// ```rust
     /// # use scryfall::Card;
     /// # fn main() -> scryfall::Result<()> {
-    /// let card = Card::search_random("t:Merfolk")?;
-    /// assert!(card.type_line.contains("Merfolk"));
+    /// # tokio_test::block_on(async {
+    /// let card = Card::search_random("t:Merfolk").await?;
+    /// assert!(card.type_line.unwrap().contains("Merfolk"));
     /// # Ok(())
+    /// # })
     /// # }
     /// ```
     pub async fn search_random(query: impl Search) -> crate::Result<Card> {
@@ -448,16 +466,20 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::named("Lightning Bolt") {
+    /// # tokio_test::block_on(async {
+    /// match Card::named("Lightning Bolt").await {
     ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     ///
     /// ```rust
     /// # use scryfall::card::Card;
     /// use scryfall::error::Error;
-    /// assert!(Card::named("Name that doesn't exist").is_err())
+    /// # tokio_test::block_on(async {
+    /// assert!(Card::named("Name that doesn't exist").await.is_err())
+    /// # })
     /// ```
     pub async fn named(name: &str) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("named")?;
@@ -470,10 +492,12 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::named_fuzzy("Light Bolt") {
+    /// # tokio_test::block_on(async {
+    /// match Card::named_fuzzy("Light Bolt").await {
     ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     pub async fn named_fuzzy(query: &str) -> crate::Result<Card> {
         let mut url = CARDS_URL.join("named")?;
@@ -486,10 +510,12 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::set_and_number("vma", 4) {
+    /// # tokio_test::block_on(async {
+    /// match Card::set_and_number("vma", 4).await {
     ///     Ok(card) => assert_eq!(card.name, "Black Lotus"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     pub async fn set_and_number(set_code: &str, number: usize) -> crate::Result<Card> {
         Uri::from(CARDS_URL.join(&format!("{}/{}", set_code, number))?)
@@ -501,11 +527,13 @@ impl Card {
     ///
     /// # Examples
     /// ```rust
+    /// # tokio_test::block_on(async {
     /// use scryfall::card::Card;
-    /// match Card::multiverse(409574) {
+    /// match Card::multiverse(409574).await {
     ///     Ok(card) => assert_eq!(card.name, "Strip Mine"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     pub async fn multiverse(multiverse_id: usize) -> crate::Result<Card> {
         Uri::from(
@@ -522,10 +550,12 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::mtgo(54957) {
+    /// # tokio_test::block_on(async {
+    /// match Card::mtgo(54957).await {
     ///     Ok(card) => assert_eq!(card.name, "Ghost Quarter"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     pub async fn mtgo(mtgo_id: usize) -> crate::Result<Card> {
         Uri::from(CARDS_URL.join("mtgo/")?.join(&mtgo_id.to_string())?)
@@ -538,10 +568,12 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::arena(67330) {
+    /// # tokio_test::block_on(async {
+    /// match Card::arena(67330).await {
     ///     Ok(card) => assert_eq!(card.name, "Yargle, Glutton of Urborg"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     pub async fn arena(arena_id: usize) -> crate::Result<Card> {
         Uri::from(CARDS_URL.join("arena/")?.join(&arena_id.to_string())?)
@@ -554,10 +586,12 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::tcgplayer(67330) {
+    /// # tokio_test::block_on(async {
+    /// match Card::tcgplayer(67330).await {
     ///     Ok(card) => assert_eq!(card.name, "Fathom Mage"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     pub async fn tcgplayer(tcgplayer_id: usize) -> crate::Result<Card> {
         Uri::from(
@@ -574,10 +608,12 @@ impl Card {
     /// # Examples
     /// ```rust
     /// use scryfall::card::Card;
-    /// match Card::scryfall_id("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".parse().unwrap()) {
+    /// # tokio_test::block_on(async {
+    /// match Card::scryfall_id("0b81b329-4ef5-4b55-9fe7-9ed69477e96b".parse().unwrap()).await {
     ///     Ok(card) => assert_eq!(card.name, "Cowed by Wisdom"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
+    /// # })
     /// ```
     pub async fn scryfall_id(scryfall_id: Uuid) -> crate::Result<Card> {
         Uri::from(CARDS_URL.join(&scryfall_id.to_string())?)

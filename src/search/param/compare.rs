@@ -21,11 +21,13 @@ use crate::search::param::Param;
 ///
 /// ```rust
 /// # use scryfall::search::prelude::*;
+/// # tokio_test::block_on(async {
 /// let query = cmc(gte(5)).and(type_line("planeswalker"));
-/// let card = query.random().unwrap();
+/// let card = query.random().await.unwrap();
 ///
-/// assert!(card.cmc as u32 >= 5);
-/// assert!(card.type_line.to_lowercase().contains("planeswalker"));
+/// assert!(card.cmc.unwrap() as u32 >= 5);
+/// assert!(card.type_line.unwrap().to_lowercase().contains("planeswalker"));
+/// # })
 /// ```
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]
 pub struct Compare<T> {

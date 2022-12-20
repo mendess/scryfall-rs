@@ -34,7 +34,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::card_names().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::card_names().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn card_names() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("card-names")?).fetch().await
@@ -48,7 +50,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::artist_names().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::artist_names().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn artist_names() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("artist-names")?).fetch().await
@@ -62,7 +66,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::word_bank().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::word_bank().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn word_bank() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("word-bank")?).fetch().await
@@ -74,7 +80,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::creature_types().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::creature_types().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn creature_types() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("creature-types")?).fetch().await
@@ -87,7 +95,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::planeswalker_types().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::planeswalker_types().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn planeswalker_types() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("planeswalker-types")?)
@@ -101,7 +111,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::land_types().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::land_types().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn land_types() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("land-types")?).fetch().await
@@ -113,7 +125,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::artifact_types().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::artifact_types().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn artifact_types() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("artifact-types")?).fetch().await
@@ -126,7 +140,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::enchantment_types().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::enchantment_types().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn enchantment_types() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("enchantment-types")?)
@@ -140,7 +156,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::spell_types().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::spell_types().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn spell_types() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("spell-types")?).fetch().await
@@ -153,7 +171,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::powers().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::powers().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn powers() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("powers")?).fetch().await
@@ -166,7 +186,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::toughnesses().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::toughnesses().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn toughnesses() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("toughnesses")?).fetch().await
@@ -179,7 +201,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::loyalties().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::loyalties().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn loyalties() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("loyalties")?).fetch().await
@@ -191,7 +215,9 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// use scryfall::catalog::Catalog;
-    /// assert!(Catalog::watermarks().unwrap().data.len() > 0)
+    /// # tokio_test::block_on(async {
+    /// assert!(Catalog::watermarks().await.unwrap().data.len() > 0)
+    /// # })
     /// ```
     pub async fn watermarks() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("watermarks")?).fetch().await
@@ -203,14 +229,16 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// # use scryfall::catalog::Catalog;
+    /// # tokio_test::block_on(async {
     /// assert!(
-    ///     Catalog::keyword_abilities()
+    ///     Catalog::keyword_abilities().await
     ///         .unwrap()
     ///         .data
     ///         .iter()
     ///         .find(|a| a.as_str() == "Haste")
     ///         .is_some()
     /// );
+    /// # });
     /// ```
     pub async fn keyword_abilities() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("keyword-abilities")?)
@@ -224,14 +252,16 @@ impl Catalog {
     /// # Examples
     /// ```rust
     /// # use scryfall::catalog::Catalog;
+    /// # tokio_test::block_on(async {
     /// assert!(
-    ///     Catalog::keyword_actions()
+    ///     Catalog::keyword_actions().await
     ///         .unwrap()
     ///         .data
     ///         .iter()
     ///         .find(|a| a.as_str() == "Scry")
     ///         .is_some()
     /// );
+    /// # })
     /// ```
     pub async fn keyword_actions() -> crate::Result<Self> {
         Uri::from(CATALOG_URL.join("keyword-actions")?)
@@ -246,12 +276,14 @@ impl Catalog {
     /// ```rust
     /// # use scryfall::catalog::Catalog;
     /// assert!(
-    ///     Catalog::ability_words()
+    /// # tokio_test::block_on(async {
+    ///     Catalog::ability_words().await
     ///         .unwrap()
     ///         .data
     ///         .iter()
     ///         .find(|a| a.as_str() == "Landfall")
     ///         .is_some()
+    /// # })
     /// );
     /// ```
     pub async fn ability_words() -> crate::Result<Self> {

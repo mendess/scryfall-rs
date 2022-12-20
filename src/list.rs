@@ -94,11 +94,13 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
     /// # Example
     /// ```rust
     /// # use scryfall::Set;
-    /// let page_1 = Set::code("inn").unwrap().cards().unwrap();
-    /// let mut page_2 = page_1.next_page().unwrap().unwrap();
+    ///  # tokio_test::block_on(async {
+    /// let page_1 = Set::code("inn").await.unwrap().cards().await.unwrap();
+    /// let mut page_2 = page_1.next_page().await.unwrap().unwrap();
     /// assert_eq!(
     ///     page_2
-    ///         .next()
+    ///         .stream_next()
+    ///         .await
     ///         .unwrap()
     ///         .unwrap()
     ///         .collector_number
@@ -106,6 +108,7 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
     ///         .unwrap(),
     ///     page_1.into_inner().len() + 1
     /// );
+    /// # })
     /// ```
     pub async fn next_page(&self) -> crate::Result<Option<Self>> {
         if let Some(uri) = self.next_uri.as_ref() {
@@ -122,8 +125,11 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
         }
     }
 
+    /// Asynchronously returns next element of the stream
+    /// Will automatically handle pagination
+    /// Returns None if the Stream is exausted, Result otherwise
     #[async_recursion]
-    async fn stream_next(&mut self) -> Option<crate::Result<T>> {
+    pub async fn stream_next(&mut self) -> Option<crate::Result<T>> {
         match self.inner.next() {
             Some(next) => {
                 self.remaining = self.remaining.map(|r| r - 1);
@@ -145,11 +151,11 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
     }
 
     /// Creates a Stream from a ListIter
-    pub fn into_stream(self) -> impl Stream<Item = crate::Result<T>> {
-        stream::unfold(self, |mut state| async move {
+    pub fn into_stream(self) -> impl Stream<Item = crate::Result<T>> + Unpin {
+        Box::pin(stream::unfold(self, |mut state| async move {
             let item = state.stream_next().await;
             item.map(|val| (val, state))
-        })
+        }))
     }
 
     /// Returns approximate size of Listiter
@@ -174,12 +180,14 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
     /// # Examples
     /// ```rust
     /// # use scryfall::Card;
-    /// let card_names = Card::search("stormcrow")
+    /// # tokio_test::block_on(async {
+    /// let card_names = Card::search("stormcrow").await
     ///     .unwrap()
     ///     .into_inner()
     ///     .map(|c| c.name)
     ///     .collect::<Vec<_>>();
     /// assert_eq!(card_names, ["Mindstorm Crown", "Storm Crow"]);
+    /// # })
     /// ```
     pub fn into_inner(self) -> vec::IntoIter<T> {
         self.inner
@@ -216,10 +224,10 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> PageIter<T> {
     }
 
     /// Creates a Stream from a PageIter
-    pub fn into_stream(self) -> impl Stream<Item = List<T>> {
-        stream::unfold(self, |mut state| async move {
+    pub fn into_stream(self) -> impl Stream<Item = List<T>> + Unpin {
+        Box::pin(stream::unfold(self, |mut state| async move {
             let item = state.stream_next().await;
             item.map(|val| (val, state))
-        })
+        }))
     }
 }
