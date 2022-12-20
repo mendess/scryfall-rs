@@ -79,7 +79,7 @@ pub struct BulkDataFile<T> {
     pub updated_at: DateTime<Utc>,
 
     /// The size of this file in integer bytes.
-    pub compressed_size: usize,
+    pub compressed_size: Option<usize>,
 
     /// The MIME type of this file.
     pub content_type: String,
