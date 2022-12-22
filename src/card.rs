@@ -388,6 +388,22 @@ impl Card {
     /// ```
     ///
     /// ```rust
+    /// use scryfall::card::Card;
+    /// use futures::stream::{self, StreamExt};
+    /// use futures::future;
+    /// assert!(
+    /// # tokio_test::block_on(async {
+    ///     Card::search("lightning").await
+    ///         .unwrap()
+    ///         .into_stream_buffered(10)
+    ///         .map(Result::unwrap)
+    ///         .all(|x| future::ready(x.name.to_lowercase().contains("lightning")))
+    ///         .await
+    /// # })
+    /// )
+    /// ```
+    ///
+    /// ```rust
     /// # use scryfall::search::prelude::*;
     /// # use futures::stream::{self, StreamExt};
     /// # use futures::future;
@@ -395,6 +411,20 @@ impl Card {
     /// use scryfall::Card;
     /// # tokio_test::block_on(async {
     /// let mut demolish = Card::search(set("war").and(collector_number(123))).await?.into_stream().map(Result::unwrap);
+    /// assert!(demolish.all(|card| future::ready(&card.name == "Demolish")).await);
+    /// # Ok(())
+    /// # })
+    /// # }
+    /// ```
+    ///
+    /// ```rust
+    /// # use scryfall::search::prelude::*;
+    /// # use futures::stream::{self, StreamExt};
+    /// # use futures::future;
+    /// # fn main() -> scryfall::Result<()> {
+    /// use scryfall::Card;
+    /// # tokio_test::block_on(async {
+    /// let mut demolish = Card::search(set("war").and(collector_number(123))).await?.into_stream_buffered(10).map(Result::unwrap);
     /// assert!(demolish.all(|card| future::ready(&card.name == "Demolish")).await);
     /// # Ok(())
     /// # })

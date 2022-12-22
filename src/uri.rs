@@ -112,6 +112,31 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
     /// );
     /// # })
     /// ```
+    ///
+    /// ```rust
+    /// # use std::convert::TryFrom;
+    /// #
+    /// # use scryfall::Card;
+    /// # use scryfall::list::List;
+    /// # use scryfall::uri::Uri;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
+    /// let uri = Uri::<List<Card>>::try_from("https://api.scryfall.com/cards/search?q=zurgo").unwrap();
+    /// assert!(
+    ///     uri.fetch_iter()
+    ///         .await
+    ///         .unwrap()
+    ///         .into_stream_buffered(10)
+    ///         .map(Result::unwrap)
+    ///         .filter(|c| future::ready(c.name.contains("Bellstriker")))
+    ///         .collect::<Vec<_>>()
+    ///         .await
+    ///         .len()
+    ///          > 0
+    /// );
+    /// # })
+    /// ```
     pub async fn fetch_iter(&self) -> crate::Result<ListIter<T>> {
         Ok(self.fetch().await?.into_list_iter())
     }

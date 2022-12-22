@@ -32,7 +32,6 @@ uuid = { version = "1", features = ["serde"] }
 static_assertions = "1"
 reqwest = {version = "0.11.13", features = ["json" ,"blocking"] }
 futures = "0.3.25"
-async-recursion = "1.0.0"
 async-trait = "0.1.59"
 
 [dev-dependencies]

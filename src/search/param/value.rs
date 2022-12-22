@@ -472,7 +472,7 @@ impl Devotion {
 ///     .unique(UniqueStrategy::Cards)
 ///     .search()
 ///     .await?
-///     .stream_next()
+///     .next()
 ///     .await
 ///     .unwrap()?;
 ///

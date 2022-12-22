@@ -113,6 +113,24 @@ mod tests {
 
     #[test]
     #[ignore]
+    fn all_sets_buffered() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
+        handle.block_on(async move {
+            Set::all()
+                .await
+                .unwrap()
+                .into_stream_buffered(10)
+                .map(Result::unwrap)
+                .for_each(|set| async move {
+                    assert!(set.code.get().len() >= 3);
+                })
+                .await
+        });
+    }
+
+    #[test]
+    #[ignore]
     fn latest_cards() {
         let runtime = tokio::runtime::Runtime::new().unwrap();
         let handle = runtime.handle();
@@ -121,6 +139,28 @@ mod tests {
                 .await
                 .unwrap()
                 .into_stream()
+                .map(Result::unwrap)
+                .take(30)
+                .for_each_concurrent(None, |s| async move {
+                    let set_cards = set(s.code).search().await;
+                    if let Err(e) = set_cards {
+                        println!("Could not search for cards in '{}' - {}", s.name, e);
+                    }
+                })
+                .await
+        })
+    }
+
+    #[test]
+    #[ignore]
+    fn latest_cards_buffered() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
+        handle.block_on(async move {
+            Set::all()
+                .await
+                .unwrap()
+                .into_stream_buffered(10)
                 .map(Result::unwrap)
                 .take(30)
                 .for_each_concurrent(None, |s| async move {

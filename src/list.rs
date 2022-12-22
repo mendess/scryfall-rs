@@ -6,8 +6,7 @@
 //! of a `List`. If the list is paginated, the `ListIter` will request each page
 //! lazily.
 
-use async_recursion::async_recursion;
-use futures::{stream, Stream};
+use futures::{future, stream, Future, Stream, StreamExt};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use std::vec;
@@ -87,7 +86,7 @@ pub struct ListIter<T> {
     remaining: Option<usize>,
 }
 
-impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
+impl<T: DeserializeOwned + Send + Sync + Unpin + 'static> ListIter<T> {
     /// Gets a `ListIter` for the next page of objects by requesting it from the
     /// API.
     ///
@@ -96,10 +95,10 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
     /// # use scryfall::Set;
     ///  # tokio_test::block_on(async {
     /// let page_1 = Set::code("inn").await.unwrap().cards().await.unwrap();
-    /// let mut page_2 = page_1.next_page().await.unwrap().unwrap();
+    /// let mut page_2 = Box::new(page_1.next_page().await.unwrap().unwrap());
     /// assert_eq!(
     ///     page_2
-    ///         .stream_next()
+    ///         .next()
     ///         .await
     ///         .unwrap()
     ///         .unwrap()
@@ -128,8 +127,7 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
     /// Asynchronously returns next element of the stream
     /// Will automatically handle pagination
     /// Returns None if the Stream is exausted, Result otherwise
-    #[async_recursion]
-    pub async fn stream_next(&mut self) -> Option<crate::Result<T>> {
+    pub async fn next(&mut self) -> Option<crate::Result<T>> {
         match self.inner.next() {
             Some(next) => {
                 self.remaining = self.remaining.map(|r| r - 1);
@@ -138,7 +136,13 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
             None => match self.next_page().await {
                 Ok(Some(new_iter)) => {
                     *self = new_iter;
-                    self.stream_next().await
+                    match self.inner.next() {
+                        Some(next) => {
+                            self.remaining = self.remaining.map(|r| r - 1);
+                            Some(Ok(next))
+                        },
+                        None => None,
+                    }
                 },
                 Ok(None) => None,
                 Err(e) => {
@@ -150,12 +154,71 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> ListIter<T> {
         }
     }
 
+    async fn stream_next(&mut self) -> Option<impl Future<Output = crate::Result<T>>> {
+        match self.inner.next() {
+            Some(next) => {
+                self.remaining = self.remaining.map(|r| r - 1);
+                Some(future::ready(Ok(next)))
+            },
+            None => match self.next_page().await {
+                Ok(Some(new_iter)) => {
+                    *self = new_iter;
+                    match self.inner.next() {
+                        Some(next) => {
+                            self.remaining = self.remaining.map(|r| r - 1);
+                            Some(future::ready(Ok(next)))
+                        },
+                        None => None,
+                    }
+                },
+                Ok(None) => None,
+                Err(e) => {
+                    self.next_uri = None;
+                    self.remaining = Some(0);
+                    Some(future::ready(Err(e)))
+                },
+            },
+        }
+    }
+
     /// Creates a Stream from a ListIter
     pub fn into_stream(self) -> impl Stream<Item = crate::Result<T>> + Unpin {
         Box::pin(stream::unfold(self, |mut state| async move {
             let item = state.stream_next().await;
-            item.map(|val| (val, state))
+            if let Some(val) = item {
+                Some((val.await, state))
+            } else {
+                None
+            }
         }))
+    }
+
+    /// Creates a Stream from a ListIter that is buffered by n items
+    pub fn into_stream_buffered(
+        self,
+        buf_factor: usize,
+    ) -> impl Stream<Item = crate::Result<T>> + Unpin {
+        Box::pin(
+            stream::unfold(self, |mut state| async move {
+                let item = state.stream_next().await;
+                item.map(|val| (val, state))
+            })
+            .buffered(buf_factor),
+        )
+    }
+
+    /// Creates a Stream from a ListIter that is buffered by n items in a non-deterministic order
+    pub fn into_stream_buffered_unordered(
+        self,
+        buf_factor: usize,
+    ) -> impl Stream<Item = crate::Result<T>> + Unpin {
+        Box::pin(
+            stream::unfold(self, |mut state| async move {
+                let item = state.stream_next().await;
+                item.map(|val| (val, state))
+            })
+            .buffer_unordered(buf_factor),
+        )
     }
 
     /// Returns approximate size of Listiter
@@ -202,7 +265,7 @@ pub struct PageIter<T> {
 }
 
 impl<T: DeserializeOwned + Send + Sync + Unpin> PageIter<T> {
-    async fn stream_next(&mut self) -> Option<List<T>> {
+    async fn next(&mut self) -> Option<List<T>> {
         if let Some(curr) = self.curr.take() {
             self.curr = match &curr.next_page {
                 Some(uri) => match uri.fetch().await {
@@ -223,11 +286,58 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> PageIter<T> {
         }
     }
 
+    async fn stream_next(&mut self) -> Option<impl Future<Output = List<T>>> {
+        if let Some(curr) = self.curr.take() {
+            self.curr = match &curr.next_page {
+                Some(uri) => match uri.fetch().await {
+                    Ok(page) => {
+                        self.page_num += 1;
+                        Some(page)
+                    },
+                    Err(e) => {
+                        eprintln!("Error fetching page {} - {}", self.page_num + 1, e);
+                        None
+                    },
+                },
+                None => None,
+            };
+            Some(future::ready(curr))
+        } else {
+            None
+        }
+    }
+
     /// Creates a Stream from a PageIter
     pub fn into_stream(self) -> impl Stream<Item = List<T>> + Unpin {
         Box::pin(stream::unfold(self, |mut state| async move {
-            let item = state.stream_next().await;
-            item.map(|val| (val, state))
+            if let Some(val) = state.stream_next().await {
+                Some((val.await, state))
+            } else {
+                None
+            }
         }))
+    }
+
+    /// Creates a Stream from a PageIter
+    pub fn into_stream_buffered(self, buf_factor: usize) -> impl Stream<Item = List<T>> + Unpin {
+        Box::pin(
+            stream::unfold(self, |mut state| async move {
+                state.stream_next().await.map(|val| (val, state))
+            })
+            .buffered(buf_factor),
+        )
+    }
+
+    /// Creates a Stream from a PageIter
+    pub fn into_stream_buffered_unordered(
+        self,
+        buf_factor: usize,
+    ) -> impl Stream<Item = List<T>> + Unpin {
+        Box::pin(
+            stream::unfold(self, |mut state| async move {
+                state.stream_next().await.map(|val| (val, state))
+            })
+            .buffer_unordered(buf_factor),
+        )
     }
 }

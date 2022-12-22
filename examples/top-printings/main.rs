@@ -19,7 +19,7 @@ async fn main() -> scryfall::Result<()> {
     let cards: Vec<Card> = search_options
         .search()
         .await?
-        .into_stream()
+        .into_stream_buffered(10)
         .filter_map(|card| async move { card.ok() })
         .filter(|card| {
             future::ready(
