@@ -265,27 +265,6 @@ pub struct PageIter<T> {
 }
 
 impl<T: DeserializeOwned + Send + Sync + Unpin> PageIter<T> {
-    async fn next(&mut self) -> Option<List<T>> {
-        if let Some(curr) = self.curr.take() {
-            self.curr = match &curr.next_page {
-                Some(uri) => match uri.fetch().await {
-                    Ok(page) => {
-                        self.page_num += 1;
-                        Some(page)
-                    },
-                    Err(e) => {
-                        eprintln!("Error fetching page {} - {}", self.page_num + 1, e);
-                        None
-                    },
-                },
-                None => None,
-            };
-            Some(curr)
-        } else {
-            None
-        }
-    }
-
     async fn stream_next(&mut self) -> Option<impl Future<Output = List<T>>> {
         if let Some(curr) = self.curr.take() {
             self.curr = match &curr.next_page {
