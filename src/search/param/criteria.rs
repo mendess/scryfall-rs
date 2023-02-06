@@ -20,13 +20,14 @@ use crate::search::query::Query;
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
+/// # tokio_test::block_on(async {
 /// // Find a random card with Phyrexian mana symbols, available in watermarked foil.
 /// let query = Query::And(vec![
 ///     CardIs::Phyrexian.into(),
 ///     PrintingIs::Watermark.into(),
 ///     PrintingIs::Foil.into(),
 /// ]);
-/// let card: scryfall::Card = query.random()?;
+/// let card: scryfall::Card = query.random().await?;
 ///
 /// assert!(
 ///     card.mana_cost.unwrap().contains("/P")
@@ -35,6 +36,7 @@ use crate::search::query::Query;
 /// assert!(card.watermark.is_some());
 /// assert!(card.foil);
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -78,16 +80,18 @@ impl From<Criterion> for Query {
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
-/// let party_member = Query::from(CardIs::Party).and(CardIs::Leveler).random()?;
-///
+/// # tokio_test::block_on(async {
+/// let party_member = Query::from(CardIs::Party).and(CardIs::Leveler).random().await?;
+/// let tl = party_member.type_line.unwrap();
 /// assert!(
-///     party_member.type_line.contains("Cleric")
-///         || party_member.type_line.contains("Rogue")
-///         || party_member.type_line.contains("Warrior")
-///         || party_member.type_line.contains("Wizard"),
+///     tl.contains("Cleric")
+///         || tl.contains("Rogue")
+///         || tl.contains("Warrior")
+///         || tl.contains("Wizard"),
 /// );
 /// assert!(party_member.keywords.iter().any(|kw| kw == "Level Up"));
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -282,10 +286,12 @@ impl From<CardIs> for Query {
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
+/// # tokio_test::block_on(async {
 /// // Find a card with new artwork by an artist that has illustrated the card before.
 /// let artist_redo = not(PrintingIs::NewArtist)
 ///     .and(PrintingIs::NewArt)
-///     .random()?;
+///     .random()
+///     .await?;
 ///
 /// // There should be at least 2 unique artworks of this card by this artist.
 /// let all_versions = SearchOptions::new()
@@ -294,9 +300,11 @@ impl From<CardIs> for Query {
 ///             .and(artist(artist_redo.artist.as_ref().unwrap().as_str())),
 ///     )
 ///     .unique(UniqueStrategy::Art)
-///     .search_all()?;
+///     .search_all()
+///     .await?;
 /// assert!(all_versions.len() >= 2);
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 #[derive(Copy, Clone, Eq, PartialEq, Hash, Debug)]
@@ -405,20 +413,30 @@ mod tests {
     #[test]
     #[ignore]
     fn all_card_is() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
         for criterion in CardIs::iter() {
-            Query::from(criterion)
-                .random()
-                .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
+            handle.block_on(async move {
+                Query::from(criterion)
+                    .random()
+                    .await
+                    .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
+            })
         }
     }
 
     #[test]
     #[ignore]
     fn all_printing_is() {
+        let runtime = tokio::runtime::Runtime::new().unwrap();
+        let handle = runtime.handle();
         for criterion in PrintingIs::iter() {
-            Query::from(criterion)
-                .random()
-                .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
+            handle.block_on(async move {
+                Query::from(criterion)
+                    .random()
+                    .await
+                    .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
+            })
         }
     }
 }

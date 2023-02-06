@@ -22,6 +22,7 @@
 //! The [`Query`][self::query::Query] object provides a mechanism for
 //! constructing simple and complex Scryfall queries.
 //! complex queries to Scryfall.
+use async_trait::async_trait;
 use url::Url;
 
 use crate::list::ListIter;
@@ -42,6 +43,7 @@ pub mod query;
 ///
 /// The `Search` trait is implemented for `&str` and `String` as well,
 /// supporting custom searches using [Scryfall syntax](https://scryfall.com/docs/syntax).
+#[async_trait]
 pub trait Search {
     /// Write this search as the query for the given `Url`.
     fn write_query(&self, url: &mut Url) -> crate::Result<()>;
@@ -54,18 +56,18 @@ pub trait Search {
     }
 
     /// Convenience method for passing this object to [`Card::search`].
-    fn search(&self) -> crate::Result<ListIter<Card>> {
-        Card::search(self)
+    async fn search(&self) -> crate::Result<ListIter<Card>> {
+        Card::search(self).await
     }
 
     /// Convenience method for passing this object to [`Card::search_all`].
-    fn search_all(&self) -> crate::Result<Vec<Card>> {
-        Card::search_all(self)
+    async fn search_all(&self) -> crate::Result<Vec<Card>> {
+        Card::search_all(self).await
     }
 
     /// Convenience method for passing this object to [`Card::search_random`].
-    fn random(&self) -> crate::Result<Card> {
-        Card::search_random(self)
+    async fn random(&self) -> crate::Result<Card> {
+        Card::search_random(self).await
     }
 }
 
@@ -111,60 +113,13 @@ pub mod prelude {
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
     pub use super::param::criteria::{CardIs, PrintingIs};
     pub use super::param::value::{
-        artist,
-        artist_count,
-        banned,
-        block,
-        border_color,
-        cheapest,
-        cmc,
-        collector_number,
-        color,
-        color_count,
-        color_identity,
-        color_identity_count,
-        cube,
-        date,
-        devotion,
-        eur,
-        flavor_text,
-        format,
-        frame,
-        full_oracle_text,
-        game,
-        illustration_count,
-        in_game,
-        in_language,
-        in_rarity,
-        in_set,
-        in_set_type,
-        keyword,
-        language,
-        loyalty,
-        mana,
-        name,
-        oracle_text,
-        paper_print_count,
-        paper_set_count,
-        pow_tou,
-        power,
-        print_count,
-        produces,
-        rarity,
-        restricted,
-        set,
-        set_count,
-        set_type,
-        tix,
-        toughness,
-        type_line,
-        usd,
-        usd_foil,
-        watermark,
-        year,
-        Devotion,
-        NumProperty,
-        Regex,
+        artist, artist_count, banned, block, border_color, cheapest, cmc, collector_number, color,
+        color_count, color_identity, color_identity_count, cube, date, devotion, eur, flavor_text,
+        format, frame, full_oracle_text, game, illustration_count, in_game, in_language, in_rarity,
+        in_set, in_set_type, keyword, language, loyalty, mana, name, oracle_text,
+        paper_print_count, paper_set_count, pow_tou, power, print_count, produces, rarity,
+        restricted, set, set_count, set_type, tix, toughness, type_line, usd, usd_foil, watermark,
+        year, Devotion, NumProperty, Regex,
     };
     pub use super::param::{exact, Param};
     pub use super::query::{not, Query};
@@ -176,19 +131,56 @@ mod tests {
     use super::prelude::*;
     use crate::Card;
 
+    use futures::stream::StreamExt;
+
     #[test]
     fn basic_search() {
-        let cards = SearchOptions::new()
-            .query(Query::And(vec![
-                name("lightning"),
-                name("helix"),
-                cmc(eq(2)),
-            ]))
-            .unique(UniqueStrategy::Prints)
-            .search()
-            .unwrap()
-            .map(|c| c.unwrap())
-            .collect::<Vec<_>>();
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
+        let cards = handle.block_on(async move {
+            SearchOptions::new()
+                .query(Query::And(vec![
+                    name("lightning"),
+                    name("helix"),
+                    cmc(eq(2)),
+                ]))
+                .unique(UniqueStrategy::Prints)
+                .search()
+                .await
+                .unwrap()
+                .into_stream()
+                .map(|c| c.unwrap())
+                .collect::<Vec<_>>()
+                .await
+        });
+
+        assert!(cards.len() > 1);
+
+        for card in cards {
+            assert_eq!(card.name, "Lightning Helix")
+        }
+    }
+
+    #[test]
+    fn basic_search_buffered() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
+        let cards = handle.block_on(async move {
+            SearchOptions::new()
+                .query(Query::And(vec![
+                    name("lightning"),
+                    name("helix"),
+                    cmc(eq(2)),
+                ]))
+                .unique(UniqueStrategy::Prints)
+                .search()
+                .await
+                .unwrap()
+                .into_stream_buffered(10)
+                .map(|c| c.unwrap())
+                .collect::<Vec<_>>()
+                .await
+        });
 
         assert!(cards.len() > 1);
 
@@ -201,7 +193,9 @@ mod tests {
     fn random_works_with_search_options() {
         // `SearchOptions` can set more query params than the "cards/random" API method
         // accepts. Scryfall should ignore these and return a random card.
-        assert!(
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
+        assert!(handle.block_on(async move {
             SearchOptions::new()
                 .query(keyword("storm"))
                 .unique(UniqueStrategy::Art)
@@ -210,12 +204,13 @@ mod tests {
                 .multilingual(true)
                 .variations(true)
                 .random()
+                .await
                 .unwrap()
                 .oracle_text
                 .unwrap()
                 .to_lowercase()
                 .contains("storm")
-        );
+        }));
     }
 
     #[test]
@@ -228,15 +223,50 @@ mod tests {
             .sort(SortOrder::Released, SortDirection::Ascending);
 
         eprintln!("{}", search.query_string().unwrap());
-
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
         assert_eq!(
-            Card::search(&search)
-                .unwrap()
-                .next()
-                .unwrap()
-                .unwrap()
-                .set
-                .to_string(),
+            handle.block_on(async move {
+                Card::search(&search)
+                    .await
+                    .unwrap()
+                    .into_stream()
+                    .next()
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .set
+                    .to_string()
+            }),
+            "lea",
+        );
+    }
+
+    #[test]
+    fn finds_alpha_lotus_buffered() {
+        let mut search = SearchOptions::new();
+
+        search
+            .query(exact("Black Lotus"))
+            .unique(UniqueStrategy::Prints)
+            .sort(SortOrder::Released, SortDirection::Ascending);
+
+        eprintln!("{}", search.query_string().unwrap());
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
+        assert_eq!(
+            handle.block_on(async move {
+                Card::search(&search)
+                    .await
+                    .unwrap()
+                    .into_stream_buffered(10)
+                    .next()
+                    .await
+                    .unwrap()
+                    .unwrap()
+                    .set
+                    .to_string()
+            }),
             "lea",
         );
     }
@@ -244,32 +274,68 @@ mod tests {
     #[test]
     fn rarity_comparison() {
         use crate::card::Rarity;
-
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
         // The cards with "Bonus" rarity (power nine in vma).
-        let cards = SearchOptions::new()
-            .query(rarity(gt(Rarity::Mythic)))
-            .search()
-            .unwrap()
-            .collect::<Vec<_>>();
+        let cards = handle.block_on(async move {
+            SearchOptions::new()
+                .query(rarity(gt(Rarity::Mythic)))
+                .search()
+                .await
+                .unwrap()
+                .into_stream()
+                .collect::<Vec<_>>()
+                .await
+        });
 
         assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
 
-        assert!(
-            cards
-                .into_iter()
-                .map(|c| c.unwrap())
-                .all(|c| c.rarity > Rarity::Mythic)
-        );
+        assert!(cards
+            .into_iter()
+            .map(|c| c.unwrap())
+            .all(|c| c.rarity > Rarity::Mythic));
+    }
+
+    #[test]
+    fn rarity_comparison_buffered() {
+        use crate::card::Rarity;
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
+        // The cards with "Bonus" rarity (power nine in vma).
+        let cards = handle.block_on(async move {
+            SearchOptions::new()
+                .query(rarity(gt(Rarity::Mythic)))
+                .search()
+                .await
+                .unwrap()
+                .into_stream_buffered(10)
+                .collect::<Vec<_>>()
+                .await
+        });
+
+        assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
+
+        assert!(cards
+            .into_iter()
+            .map(|c| c.unwrap())
+            .all(|c| c.rarity > Rarity::Mythic));
     }
 
     #[test]
     fn numeric_property_comparison() {
-        let card = Card::search_random(Query::And(vec![
-            power(eq(NumProperty::Toughness)),
-            pow_tou(eq(NumProperty::Cmc)),
-            not(CardIs::Funny),
-        ]))
-        .unwrap();
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
+
+        let card = handle
+            .block_on(async move {
+                Card::search_random(Query::And(vec![
+                    power(eq(NumProperty::Toughness)),
+                    pow_tou(eq(NumProperty::Cmc)),
+                    not(CardIs::Funny),
+                ]))
+                .await
+            })
+            .unwrap();
 
         let power = card
             .power
@@ -281,14 +347,60 @@ mod tests {
             .unwrap_or_default();
 
         assert_eq!(power, toughness);
-        assert_eq!(power + toughness, card.cmc as u32);
+        assert_eq!(power + toughness, card.cmc.unwrap_or_default() as u32);
 
-        let card = Card::search(pow_tou(gt(NumProperty::Year)))
-            .unwrap()
-            .map(|c| c.unwrap())
-            .collect::<Vec<_>>();
+        let card = handle.block_on(async move {
+            Card::search(pow_tou(gt(NumProperty::Year)))
+                .await
+                .unwrap()
+                .into_stream()
+                .map(|c| c.unwrap())
+                .any(|c| async move { &c.name == "Infinity Elemental" })
+                .await
+        });
 
-        assert!(card.into_iter().any(|c| &c.name == "Infinity Elemental"));
+        assert!(card);
+    }
+
+    #[test]
+    fn numeric_property_comparison_buffered() {
+        let rt = tokio::runtime::Runtime::new().unwrap();
+        let handle = rt.handle();
+
+        let card = handle
+            .block_on(async move {
+                Card::search_random(Query::And(vec![
+                    power(eq(NumProperty::Toughness)),
+                    pow_tou(eq(NumProperty::Cmc)),
+                    not(CardIs::Funny),
+                ]))
+                .await
+            })
+            .unwrap();
+
+        let power = card
+            .power
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or_default();
+        let toughness = card
+            .toughness
+            .and_then(|s| s.parse::<u32>().ok())
+            .unwrap_or_default();
+
+        assert_eq!(power, toughness);
+        assert_eq!(power + toughness, card.cmc.unwrap_or_default() as u32);
+
+        let card = handle.block_on(async move {
+            Card::search(pow_tou(gt(NumProperty::Year)))
+                .await
+                .unwrap()
+                .into_stream_buffered(10)
+                .map(|c| c.unwrap())
+                .any(|c| async move { &c.name == "Infinity Elemental" })
+                .await
+        });
+
+        assert!(card);
     }
 
     #[test]

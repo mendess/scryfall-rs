@@ -331,10 +331,12 @@ impl<T: TextValue> TextOrRegexValue for T {}
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
-/// let cards_named_fog = name(Regex::from(r"^fog$")).search_all()?;
+/// # tokio_test::block_on(async {
+/// let cards_named_fog = name(Regex::from(r"^fog$")).search_all().await?;
 /// assert_eq!(cards_named_fog.len(), 1);
 /// assert_eq!(cards_named_fog[0].name, "Fog");
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
@@ -391,10 +393,12 @@ impl<T: TextValue> ColorValue for T {}
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
+/// # tokio_test::block_on(async {
 /// use scryfall::card::Color;
-/// let five_red_devotion = devotion(Devotion::monocolor(Color::Red, 5)).random()?;
-/// assert!(five_red_devotion.cmc >= 5.0);
+/// let five_red_devotion = devotion(Devotion::monocolor(Color::Red, 5)).random().await?;
+/// assert!(five_red_devotion.cmc.unwrap() >= 5.0);
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 pub trait DevotionValue: ParamValue {}
@@ -460,17 +464,21 @@ impl Devotion {
 /// # use scryfall::search::prelude::*;
 /// use scryfall::card::Rarity;
 /// # fn main() -> scryfall::Result<()> {
+/// # tokio_test::block_on(async {
 /// // Get the most expensive Common card, in USD.
 /// let card = SearchOptions::new()
 ///     .query(rarity(Rarity::Common).and(cheapest("usd")))
 ///     .sort(SortOrder::Usd, SortDirection::Descending)
 ///     .unique(UniqueStrategy::Cards)
-///     .search()?
+///     .search()
+///     .await?
 ///     .next()
+///     .await
 ///     .unwrap()?;
 ///
 /// assert!(card.prices.usd.is_some());
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 pub trait RarityValue: ParamValue {}
@@ -495,10 +503,12 @@ impl<T: TextValue> RarityValue for Compare<T> {}
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
+/// # tokio_test::block_on(async {
 /// // Get a random Abzan card from Khans of Tarkir.
-/// let card = set("ktk").and(name("abzan")).random()?;
+/// let card = set("ktk").and(name("abzan")).random().await?;
 /// assert!(card.name.to_lowercase().contains("abzan"));
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 pub trait SetValue: ParamValue {}
@@ -529,16 +539,19 @@ impl<T: TextValue> CubeValue for T {}
 /// ```rust
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
+/// # tokio_test::block_on(async {
 /// use scryfall::format::Format;
 /// // Find a card that's restricted in Vintage whose name contains 'recall'.
 /// let card = restricted(Format::Vintage)
 ///     .and(name("recall"))
-///     .search_all()?
+///     .search_all()
+///     .await?
 ///     .into_iter()
 ///     .next()
 ///     .unwrap();
 /// assert_eq!(card.name, "Ancestral Recall");
 /// # Ok(())
+/// # })
 /// # }
 /// ```
 pub trait FormatValue: ParamValue {}

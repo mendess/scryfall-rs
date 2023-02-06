@@ -96,7 +96,7 @@ impl fmt::Display for ParamImpl {
             ParamImpl::Criterion(prop) => write!(f, "{}", prop),
             ParamImpl::ExactName(name) => write!(f, "!\"{}\"", name),
             ParamImpl::Value(kind, value) => kind.fmt_value(value.as_str(), f),
-            ParamImpl::Comparison(kind, op, value) => kind.fmt_comparison(*op, &*value, f),
+            ParamImpl::Comparison(kind, op, value) => kind.fmt_comparison(*op, value, f),
         }
     }
 }

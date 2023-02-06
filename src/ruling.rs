@@ -63,14 +63,38 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::multiverse_id(3255)
+    ///         .await
     ///         .unwrap()
+    ///         .into_stream()
     ///         .map(Result::unwrap)
-    ///         .any(|r| r.comment.ends_with("Yes, this is a bit weird."))
+    ///         .any(|r| future::ready(r.comment.ends_with("Yes, this is a bit weird.")))
+    ///         .await
     /// );
+    /// # })
     /// ```
-    pub fn multiverse_id(id: usize) -> crate::Result<ListIter<Self>> {
+    ///
+    /// ```rust
+    /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
+    /// assert!(
+    ///     Ruling::multiverse_id(3255)
+    ///         .await
+    ///         .unwrap()
+    ///         .into_stream_buffered(10)
+    ///         .map(Result::unwrap)
+    ///         .any(|r| future::ready(r.comment.ends_with("Yes, this is a bit weird.")))
+    ///         .await
+    /// );
+    /// # })
+    /// ```
+    pub async fn multiverse_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join("multiverse/")?
@@ -78,6 +102,7 @@ impl Ruling {
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns rulings for a card with the given MTGO ID (also known as the
@@ -87,14 +112,38 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::mtgo_id(57934)
+    ///         .await
     ///         .unwrap()
+    ///         .into_stream()
     ///         .map(Result::unwrap)
-    ///         .any(|r| r.comment.ends_with("You read the whole contract, right?"))
+    ///         .any(|r| future::ready(r.comment.ends_with("You read the whole contract, right?")))
+    ///         .await
     /// );
+    /// # })
     /// ```
-    pub fn mtgo_id(id: usize) -> crate::Result<ListIter<Self>> {
+    ///
+    /// ```rust
+    /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
+    /// assert!(
+    ///     Ruling::mtgo_id(57934)
+    ///         .await
+    ///         .unwrap()
+    ///         .into_stream_buffered(10)
+    ///         .map(Result::unwrap)
+    ///         .any(|r| future::ready(r.comment.ends_with("You read the whole contract, right?")))
+    ///         .await
+    /// );
+    /// # })
+    /// ```
+    pub async fn mtgo_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join("mtgo/")?
@@ -102,23 +151,51 @@ impl Ruling {
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns rulings for a card with the given Magic: The Gathering Arena ID.
     ///
     /// ```rust
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::arena_id(67462)
+    ///         .await
     ///         .unwrap()
+    ///         .into_stream()
     ///         .map(Result::unwrap)
     ///         .any(|r| {
-    ///             r.comment
-    ///                 .starts_with("Once a chapter ability has triggered,")
+    ///             future::ready(r.comment
+    ///                 .starts_with("Once a chapter ability has triggered,"))
     ///         })
+    ///         .await
     /// );
+    /// # })
     /// ```
-    pub fn arena_id(id: usize) -> crate::Result<ListIter<Self>> {
+    ///
+    /// ```rust
+    /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
+    /// assert!(
+    ///     Ruling::arena_id(67462)
+    ///         .await
+    ///         .unwrap()
+    ///         .into_stream_buffered(10)
+    ///         .map(Result::unwrap)
+    ///         .any(|r| {
+    ///             future::ready(r.comment
+    ///                 .starts_with("Once a chapter ability has triggered,"))
+    ///         })
+    ///         .await
+    /// );
+    /// # })
+    /// ```
+    pub async fn arena_id(id: usize) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join("arena/")?
@@ -126,6 +203,7 @@ impl Ruling {
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns a List of rulings for the card with the given set code and
@@ -134,20 +212,45 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::set_and_number("bfz", 17)
+    ///         .await
     ///         .unwrap()
+    ///         .into_stream()
     ///         .map(Result::unwrap)
-    ///         .any(|r| r.comment == "Yes, your opponent can’t even. We know.")
+    ///         .any(|r| future::ready(r.comment == "Yes, your opponent can’t even. We know."))
+    ///         .await
     /// );
+    /// # })
     /// ```
-    pub fn set_and_number(set: &str, number: u32) -> crate::Result<ListIter<Self>> {
+    ///
+    /// ```rust
+    /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
+    /// assert!(
+    ///     Ruling::set_and_number("bfz", 17)
+    ///         .await
+    ///         .unwrap()
+    ///         .into_stream_buffered(10)
+    ///         .map(Result::unwrap)
+    ///         .any(|r| future::ready(r.comment == "Yes, your opponent can’t even. We know."))
+    ///         .await
+    /// );
+    /// # })
+    /// ```
+    pub async fn set_and_number(set: &str, number: u32) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
                 .join(&format!("{}/{}/", set, number))?
                 .join(API_RULING)?,
         )
         .fetch_iter()
+        .await
     }
 
     /// Returns a List of rulings for a card with the given Scryfall ID.
@@ -155,14 +258,40 @@ impl Ruling {
     /// # Examples
     /// ```rust
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap())
+    ///         .await
     ///         .unwrap()
+    ///         .into_stream()
     ///         .map(Result::unwrap)
-    ///         .any(|r| r.comment == "It must flip like a coin and not like a Frisbee.")
+    ///         .any(|r| future::ready(r.comment == "It must flip like a coin and not like a Frisbee."))
+    ///         .await
     /// );
+    /// # })
     /// ```
-    pub fn uuid(id: Uuid) -> crate::Result<ListIter<Self>> {
-        Uri::from(CARDS_URL.join(&format!("{}/", id))?.join(API_RULING)?).fetch_iter()
+    ///
+    /// ```rust
+    /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
+    /// # tokio_test::block_on(async {
+    /// assert!(
+    ///     Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap())
+    ///         .await
+    ///         .unwrap()
+    ///         .into_stream_buffered(10)
+    ///         .map(Result::unwrap)
+    ///         .any(|r| future::ready(r.comment == "It must flip like a coin and not like a Frisbee."))
+    ///         .await
+    /// );
+    /// # })
+    /// ```
+    pub async fn uuid(id: Uuid) -> crate::Result<ListIter<Self>> {
+        Uri::from(CARDS_URL.join(&format!("{}/", id))?.join(API_RULING)?)
+            .fetch_iter()
+            .await
     }
 }

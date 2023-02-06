@@ -68,6 +68,8 @@ pub enum FrameEffect {
     Textless,
     /// Is a story spotlight card
     StorySpotlight,
+    /// Undocumented
+    Gilded,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -107,6 +109,7 @@ impl std::fmt::Display for FrameEffect {
                 Booster => "booster",
                 Textless => "textless",
                 StorySpotlight => "storyspotlight",
+                Gilded => "gilded",
             }
         )
     }
