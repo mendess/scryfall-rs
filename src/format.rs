@@ -27,6 +27,7 @@ pub enum Format {
     PauperCommander,
     Alchemy,
     Explorer,
+    Predh,
 }
 
 impl fmt::Display for Format {
@@ -55,6 +56,7 @@ impl fmt::Display for Format {
                 PauperCommander => "paupercommander",
                 Alchemy => "alchemy",
                 Explorer => "explorer",
+                Predh => "predh",
             }
         )
     }
