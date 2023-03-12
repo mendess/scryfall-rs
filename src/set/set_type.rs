@@ -56,6 +56,8 @@ pub enum SetType {
     Alchemy,
     /// Arsenal sets
     Arsenal,
+    /// Mini game sets
+    Minigame,
 }
 
 impl fmt::Display for SetType {
@@ -86,6 +88,7 @@ impl fmt::Display for SetType {
                 SetType::Memorabilia => "memorabilia",
                 SetType::Alchemy => "alchemy",
                 SetType::Arsenal => "arsenal",
+                SetType::Minigame => "minigame",
             }
         )
     }
