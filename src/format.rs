@@ -28,6 +28,7 @@ pub enum Format {
     Alchemy,
     Explorer,
     Predh,
+    Oathbreaker,
 }
 
 impl fmt::Display for Format {
@@ -57,6 +58,7 @@ impl fmt::Display for Format {
                 Alchemy => "alchemy",
                 Explorer => "explorer",
                 Predh => "predh",
+                Oathbreaker => "oathbreaker",
             }
         )
     }
