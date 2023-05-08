@@ -68,8 +68,9 @@ pub enum FrameEffect {
     Textless,
     /// Is a story spotlight card
     StorySpotlight,
-    /// Undocumented
-    Gilded,
+    /// The only card that has this, as of this writting is this version of [Commodore
+    /// Guff](https://api.scryfall.com/cards/9a5bb122-19f3-4e46-a71c-b8a53e9aacc7)
+    Thick,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -109,7 +110,7 @@ impl std::fmt::Display for FrameEffect {
                 Booster => "booster",
                 Textless => "textless",
                 StorySpotlight => "storyspotlight",
-                Gilded => "gilded",
+                Thick => "thick",
             }
         )
     }
