@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use self::Color::*;
 
 /// Enum defining the 5 colors of magic, plus colorless.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
 #[allow(missing_docs)]
 #[repr(u8)]
 pub enum Color {
