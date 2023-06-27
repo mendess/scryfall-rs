@@ -57,4 +57,8 @@ pub enum Layout {
     ArtSeries,
     /// A Magic card with two sides that are unrelated.
     ReversibleCard,
+    /// Prototype
+    Prototype,
+    /// Mutate
+    Mutate,
 }

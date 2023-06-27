@@ -71,6 +71,8 @@ pub enum FrameEffect {
     /// The only card that has this, as of this writting is this version of [Commodore
     /// Guff](https://api.scryfall.com/cards/9a5bb122-19f3-4e46-a71c-b8a53e9aacc7)
     Thick,
+    /// Borderless frame
+    Borderless,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -111,6 +113,7 @@ impl std::fmt::Display for FrameEffect {
                 Textless => "textless",
                 StorySpotlight => "storyspotlight",
                 Thick => "thick",
+                Borderless => "borderless",
             }
         )
     }
