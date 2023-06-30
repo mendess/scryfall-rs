@@ -9,13 +9,30 @@
 //! This allows you to get cards from `scryfall` using all of their available
 //! REST Apis
 //!
-//! ```rust,no_run
+//! ```rust
 //! use scryfall::card::Card;
 //! # tokio_test::block_on(async {
 //! match Card::named_fuzzy("Light Bolt").await {
 //!     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
-//!     Err(e) => panic!(format!("{:?}", e))
+//!     Err(e) => panic!("{e:?}"),
 //! }
+//! # })
+//! ```
+//!
+//! Double faced cards have some of their properties inside the card_faces array instead of at
+//! the top level.
+//! ```
+//! use scryfall::card::{Card, Color};
+//! # tokio_test::block_on(async {
+//!
+//! match Card::named("Delver of Secrets").await {
+//!     Ok(card) => {
+//!         assert!(card.colors.is_none());
+//!         assert_eq!(card.card_faces.unwrap()[0].colors, Some(vec![Color::Blue]));
+//!     }
+//!     Err(e) => panic!("{e:?}"),
+//! }
+//!
 //! # })
 //! ```
 //!
@@ -24,7 +41,7 @@
 //!
 //! The available routes for this can be seen on [`Set`]
 //!
-//! ```rust,no_run
+//! ```rust
 //! use scryfall::set::Set;
 //! # tokio_test::block_on(async {
 //! assert_eq!(Set::code("mmq").await.unwrap().name, "Mercadian Masques")

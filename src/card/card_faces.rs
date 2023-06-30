@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
+use url::Url;
 use uuid::Uuid;
 
 use crate::card::Color;
@@ -34,7 +35,7 @@ pub struct CardFace {
     /// An object providing URIs to imagery for this face, if this is a
     /// double-sided card. If this card is not double-sided, then the image_uris
     /// property will be part of the parent object instead.
-    pub image_uris: Option<HashMap<String, String>>,
+    pub image_uris: Option<HashMap<String, Url>>,
 
     /// This face’s loyalty, if any.
     pub loyalty: Option<String>,
