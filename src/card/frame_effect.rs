@@ -73,6 +73,8 @@ pub enum FrameEffect {
     Thick,
     /// Borderless frame
     Borderless,
+    /// Is a vehicle
+    Vehicle,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -114,6 +116,7 @@ impl std::fmt::Display for FrameEffect {
                 StorySpotlight => "storyspotlight",
                 Thick => "thick",
                 Borderless => "borderless",
+                Vehicle => "vehicle",
             }
         )
     }
