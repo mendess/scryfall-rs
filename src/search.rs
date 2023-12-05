@@ -387,8 +387,17 @@ mod tests {
             .and_then(|s| s.parse::<u32>().ok())
             .unwrap_or_default();
 
-        assert_eq!(power, toughness);
-        assert_eq!(power + toughness, card.cmc.unwrap_or_default() as u32);
+        assert_eq!(
+            power, toughness,
+            "power was not equal to toughness for card {}",
+            card.name
+        );
+        assert_eq!(
+            power + toughness,
+            card.cmc.unwrap_or_default() as u32,
+            "power and toughness added was not equal to cmc for card {}",
+            card.name
+        );
 
         let card = handle.block_on(async move {
             Card::search(pow_tou(gt(NumProperty::Year)))
