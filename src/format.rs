@@ -29,6 +29,7 @@ pub enum Format {
     Explorer,
     Predh,
     Oathbreaker,
+    Timeless,
 }
 
 impl fmt::Display for Format {
@@ -59,6 +60,7 @@ impl fmt::Display for Format {
                 Explorer => "explorer",
                 Predh => "predh",
                 Oathbreaker => "oathbreaker",
+                Timeless => "timeless",
             }
         )
     }
