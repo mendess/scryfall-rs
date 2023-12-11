@@ -12,19 +12,19 @@ pub enum ProducedMana {
 
 impl ProducedMana {
     #[allow(non_upper_case_globals)]
-    /// Alias to unfinity 2 mana symbol
-    pub const Two: Self = Self::UnfinityMana(UnfinityMana::Two);
-
-    #[allow(non_upper_case_globals)]
     /// Alias to unfinity "tap" mana symbol
     pub const Tap: Self = Self::UnfinityMana(UnfinityMana::Two);
+    #[allow(non_upper_case_globals)]
+    /// Alias to unfinity 2 mana symbol
+    pub const Two: Self = Self::UnfinityMana(UnfinityMana::Two);
 }
 
 /// Kinds of mana only produced in unfinity
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum UnfinityMana {
-    /// Some sticker sheets have stickers that give creatures the ability to generate 2
-    /// colorless mana, for some reason wizards used the old templating
+    /// Some sticker sheets have stickers that give creatures the ability to
+    /// generate 2 colorless mana, for some reason wizards used the old
+    /// templating
     ///
     /// ## Examples
     /// - [Happy Dead Squirrel](https://scryfall.com/card/sunf/8/happy-dead-squirrel)
@@ -39,9 +39,10 @@ pub enum UnfinityMana {
 
 #[cfg(test)]
 mod test {
+    use serde_json::from_str;
+
     use super::super::color::Color;
     use super::*;
-    use serde_json::from_str;
 
     #[test]
     fn color() {

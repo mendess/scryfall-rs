@@ -135,7 +135,10 @@ impl Set {
     /// ```rust
     /// use scryfall::set::Set;
     /// # tokio_test::block_on(async {
-    /// assert_eq!(Set::tcgplayer(1909).await.unwrap().name, "Amonkhet Invocations")
+    /// assert_eq!(
+    ///     Set::tcgplayer(1909).await.unwrap().name,
+    ///     "Amonkhet Invocations"
+    /// )
     /// # })
     /// ```
     pub async fn tcgplayer<T: std::fmt::Display>(code: T) -> crate::Result<Set> {

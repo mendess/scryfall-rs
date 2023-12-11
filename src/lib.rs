@@ -19,8 +19,8 @@
 //! # })
 //! ```
 //!
-//! Double faced cards have some of their properties inside the card_faces array instead of at
-//! the top level.
+//! Double faced cards have some of their properties inside the card_faces array
+//! instead of at the top level.
 //! ```
 //! use scryfall::card::{Card, Color};
 //! # tokio_test::block_on(async {
@@ -29,7 +29,7 @@
 //!     Ok(card) => {
 //!         assert!(card.colors.is_none());
 //!         assert_eq!(card.card_faces.unwrap()[0].colors, Some(vec![Color::Blue]));
-//!     }
+//!     },
 //!     Err(e) => panic!("{e:?}"),
 //! }
 //!
@@ -93,7 +93,6 @@ mod tests {
     use std::convert::TryFrom;
 
     use futures::stream::StreamExt;
-
     use serde_json::{from_str, to_string};
 
     use crate::search::prelude::*;

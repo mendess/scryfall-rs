@@ -94,8 +94,8 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
     /// # use scryfall::Card;
     /// # use scryfall::list::List;
     /// # use scryfall::uri::Uri;
-    /// use futures::stream::StreamExt;
     /// use futures::future;
+    /// use futures::stream::StreamExt;
     /// # tokio_test::block_on(async {
     /// let uri = Uri::<List<Card>>::try_from("https://api.scryfall.com/cards/search?q=zurgo").unwrap();
     /// assert!(
@@ -108,7 +108,7 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
     ///         .collect::<Vec<_>>()
     ///         .await
     ///         .len()
-    ///          > 0
+    ///         > 0
     /// );
     /// # })
     /// ```
@@ -119,8 +119,8 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
     /// # use scryfall::Card;
     /// # use scryfall::list::List;
     /// # use scryfall::uri::Uri;
-    /// use futures::stream::StreamExt;
     /// use futures::future;
+    /// use futures::stream::StreamExt;
     /// # tokio_test::block_on(async {
     /// let uri = Uri::<List<Card>>::try_from("https://api.scryfall.com/cards/search?q=zurgo").unwrap();
     /// assert!(
@@ -133,7 +133,7 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
     ///         .collect::<Vec<_>>()
     ///         .await
     ///         .len()
-    ///          > 0
+    ///         > 0
     /// );
     /// # })
     /// ```

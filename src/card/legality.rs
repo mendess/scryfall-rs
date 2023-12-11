@@ -2,9 +2,10 @@
 use std::cmp::Ordering;
 
 use serde::{Deserialize, Serialize};
+use strum::EnumIter;
 
 /// Enum describing the 4 states of legality a card can have.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, EnumIter, Eq, PartialEq, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum Legality {

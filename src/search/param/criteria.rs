@@ -81,7 +81,10 @@ impl From<Criterion> for Query {
 /// # use scryfall::search::prelude::*;
 /// # fn main() -> scryfall::Result<()> {
 /// # tokio_test::block_on(async {
-/// let party_member = Query::from(CardIs::Party).and(CardIs::Leveler).random().await?;
+/// let party_member = Query::from(CardIs::Party)
+///     .and(CardIs::Leveler)
+///     .random()
+///     .await?;
 /// let tl = party_member.type_line.unwrap();
 /// assert!(
 ///     tl.contains("Cleric")

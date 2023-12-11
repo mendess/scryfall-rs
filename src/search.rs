@@ -113,13 +113,60 @@ pub mod prelude {
     pub use super::param::compare::{eq, gt, gte, lt, lte, neq};
     pub use super::param::criteria::{CardIs, PrintingIs};
     pub use super::param::value::{
-        artist, artist_count, banned, block, border_color, cheapest, cmc, collector_number, color,
-        color_count, color_identity, color_identity_count, cube, date, devotion, eur, flavor_text,
-        format, frame, full_oracle_text, game, illustration_count, in_game, in_language, in_rarity,
-        in_set, in_set_type, keyword, language, loyalty, mana, name, oracle_text,
-        paper_print_count, paper_set_count, pow_tou, power, print_count, produces, rarity,
-        restricted, set, set_count, set_type, tix, toughness, type_line, usd, usd_foil, watermark,
-        year, Devotion, NumProperty, Regex,
+        artist,
+        artist_count,
+        banned,
+        block,
+        border_color,
+        cheapest,
+        cmc,
+        collector_number,
+        color,
+        color_count,
+        color_identity,
+        color_identity_count,
+        cube,
+        date,
+        devotion,
+        eur,
+        flavor_text,
+        format,
+        frame,
+        full_oracle_text,
+        game,
+        illustration_count,
+        in_game,
+        in_language,
+        in_rarity,
+        in_set,
+        in_set_type,
+        keyword,
+        language,
+        loyalty,
+        mana,
+        name,
+        oracle_text,
+        paper_print_count,
+        paper_set_count,
+        pow_tou,
+        power,
+        print_count,
+        produces,
+        rarity,
+        restricted,
+        set,
+        set_count,
+        set_type,
+        tix,
+        toughness,
+        type_line,
+        usd,
+        usd_foil,
+        watermark,
+        year,
+        Devotion,
+        NumProperty,
+        Regex,
     };
     pub use super::param::{exact, Param};
     pub use super::query::{not, Query};
@@ -128,10 +175,10 @@ pub mod prelude {
 
 #[cfg(test)]
 mod tests {
+    use futures::stream::StreamExt;
+
     use super::prelude::*;
     use crate::Card;
-
-    use futures::stream::StreamExt;
 
     #[test]
     fn basic_search() {
