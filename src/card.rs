@@ -18,6 +18,7 @@ mod rarity;
 mod related_card;
 
 use std::collections::hash_map::HashMap;
+use std::ops::{Index, IndexMut};
 
 use chrono::NaiveDate;
 use serde::{Deserialize, Serialize};
@@ -44,6 +45,127 @@ use crate::search::Search;
 use crate::set::{Set, SetCode, SetType};
 use crate::uri::Uri;
 use crate::util::CARDS_URL;
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
+#[serde(deny_unknown_fields)]
+#[allow(missing_docs)]
+pub struct CardLegality {
+    pub standard: Legality,
+    pub modern: Legality,
+    pub legacy: Legality,
+    pub vintage: Legality,
+    pub commander: Legality,
+    pub future: Legality,
+    pub pauper: Legality,
+    pub pioneer: Legality,
+    pub penny: Legality,
+    pub duel: Legality,
+    #[serde(rename = "oldschool")]
+    pub old_school: Legality,
+    pub historic: Legality,
+    pub gladiator: Legality,
+    pub brawl: Legality,
+    pub premodern: Legality,
+    #[serde(rename = "historicbrawl")]
+    pub historic_brawl: Legality,
+    #[serde(rename = "paupercommander")]
+    pub pauper_commander: Legality,
+    pub alchemy: Legality,
+    pub explorer: Legality,
+    pub predh: Legality,
+    pub oathbreaker: Legality,
+    pub timeless: Legality,
+}
+
+impl Index<Format> for CardLegality {
+    type Output = Legality;
+
+    fn index(&self, index: Format) -> &Self::Output {
+        match index {
+            Format::Standard => &self.standard,
+            Format::Modern => &self.modern,
+            Format::Legacy => &self.legacy,
+            Format::Vintage => &self.vintage,
+            Format::Commander => &self.commander,
+            Format::Future => &self.future,
+            Format::Pauper => &self.pauper,
+            Format::Pioneer => &self.pioneer,
+            Format::Penny => &self.penny,
+            Format::Duel => &self.duel,
+            Format::OldSchool => &self.old_school,
+            Format::Historic => &self.historic,
+            Format::Gladiator => &self.gladiator,
+            Format::Brawl => &self.brawl,
+            Format::Premodern => &self.premodern,
+            Format::HistoricBrawl => &self.historic_brawl,
+            Format::PauperCommander => &self.pauper_commander,
+            Format::Alchemy => &self.alchemy,
+            Format::Explorer => &self.explorer,
+            Format::Predh => &self.predh,
+            Format::Oathbreaker => &self.oathbreaker,
+            Format::Timeless => &self.timeless,
+        }
+    }
+}
+
+impl IndexMut<Format> for CardLegality {
+    fn index_mut(&mut self, index: Format) -> &mut Self::Output {
+        match index {
+            Format::Standard => &mut self.standard,
+            Format::Modern => &mut self.modern,
+            Format::Legacy => &mut self.legacy,
+            Format::Vintage => &mut self.vintage,
+            Format::Commander => &mut self.commander,
+            Format::Future => &mut self.future,
+            Format::Pauper => &mut self.pauper,
+            Format::Pioneer => &mut self.pioneer,
+            Format::Penny => &mut self.penny,
+            Format::Duel => &mut self.duel,
+            Format::OldSchool => &mut self.old_school,
+            Format::Historic => &mut self.historic,
+            Format::Gladiator => &mut self.gladiator,
+            Format::Brawl => &mut self.brawl,
+            Format::Premodern => &mut self.premodern,
+            Format::HistoricBrawl => &mut self.historic_brawl,
+            Format::PauperCommander => &mut self.pauper_commander,
+            Format::Alchemy => &mut self.alchemy,
+            Format::Explorer => &mut self.explorer,
+            Format::Predh => &mut self.predh,
+            Format::Oathbreaker => &mut self.oathbreaker,
+            Format::Timeless => &mut self.timeless,
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+/// Scryfall produces multiple sizes of images and image crops for each Card object. Links to these
+/// images are available in each Card objects’ image_uris properties.
+///
+/// Field         | Size       | Format | Example
+///  ---          | ---        | ---    | ---
+/// `png`         | 745 × 1040 | PNG    | [Example Image](https://cards.scryfall.io/png/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.png?1562404626)
+/// `border_crop` | 480 × 680  | JPG    | [Example Image](https://cards.scryfall.io/border_crop/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+/// `art_crop`    | Varies     | JPG    | [Example Image](https://cards.scryfall.io/art_crop/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+/// `large`       | 672 × 936  | JPG    | [Example Image](https://cards.scryfall.io/large/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+/// `normal`      | 488 × 680  | JPG    | [Example Image](https://cards.scryfall.io/normal/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+/// `small`       | 146 × 204  | JPG    | [Example Image](https://cards.scryfall.io/small/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+pub struct ImageUris {
+    /// A transparent, rounded full card PNG. This is the best image to use for videos or other
+    /// high-quality content.
+    pub png: Url,
+    /// A full card image with the rounded corners and the majority of the border cropped off.
+    /// Designed for dated contexts where rounded images can’t be used.
+    pub border_crop: Url,
+    /// A rectangular crop of the card’s art only. Not guaranteed to be perfect for cards with
+    /// outlier designs or strange frame arrangements
+    pub art_crop: Url,
+    ///  A large full card image
+    pub large: Url,
+    /// A medium-sized full card image
+    pub normal: Url,
+    /// A small full card image. Designed for use as thumbnail or list icon.
+    pub small: Url,
+}
 
 /// Card objects represent individual Magic: The Gathering cards that players
 /// could obtain and add to their collection (with a few minor exceptions).
@@ -167,7 +289,7 @@ pub struct Card {
 
     /// An object describing the legality of this card across play formats.
     /// Possible legalities are legal, not_legal, restricted, and banned.
-    pub legalities: HashMap<Format, Legality>,
+    pub legalities: CardLegality,
 
     /// This card’s life modifier, if it is Vanguard card. This value will
     /// contain a delta, such as +2.
@@ -271,7 +393,7 @@ pub struct Card {
 
     /// An object listing available imagery for this card. See the [Card Imagery](https://scryfall.com/docs/api/images) article for more information.
     #[serde(default)]
-    pub image_uris: HashMap<String, Url>,
+    pub image_uris: Option<ImageUris>,
 
     /// An object containing daily price information for this card, including
     /// `usd`, `usd_foil`, `eur`, and `tix` prices, as strings.
