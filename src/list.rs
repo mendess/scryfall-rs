@@ -6,11 +6,10 @@
 //! of a `List`. If the list is paginated, the `ListIter` will request each page
 //! lazily.
 
-use std::vec;
-
 use futures::{future, stream, Future, Stream, StreamExt};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use std::vec;
 
 use crate::uri::Uri;
 
@@ -208,8 +207,7 @@ impl<T: DeserializeOwned + Send + Sync + Unpin + 'static> ListIter<T> {
         )
     }
 
-    /// Creates a Stream from a ListIter that is buffered by n items in a
-    /// non-deterministic order
+    /// Creates a Stream from a ListIter that is buffered by n items in a non-deterministic order
     pub fn into_stream_buffered_unordered(
         self,
         buf_factor: usize,
@@ -239,7 +237,6 @@ impl<T: DeserializeOwned + Send + Sync + Unpin + 'static> ListIter<T> {
             )
         }
     }
-
     /// Extracts the inner [`vec::IntoIter`] that holds this page of data.
     /// Further pages will not be fetched when it gets to the end.
     ///
@@ -247,8 +244,7 @@ impl<T: DeserializeOwned + Send + Sync + Unpin + 'static> ListIter<T> {
     /// ```rust
     /// # use scryfall::Card;
     /// # tokio_test::block_on(async {
-    /// let card_names = Card::search("stormcrow")
-    ///     .await
+    /// let card_names = Card::search("stormcrow").await
     ///     .unwrap()
     ///     .into_inner()
     ///     .map(|c| c.name)

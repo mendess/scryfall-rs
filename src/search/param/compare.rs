@@ -26,11 +26,7 @@ use crate::search::param::Param;
 /// let card = query.random().await.unwrap();
 ///
 /// assert!(card.cmc.unwrap() as u32 >= 5);
-/// assert!(card
-///     .type_line
-///     .unwrap()
-///     .to_lowercase()
-///     .contains("planeswalker"));
+/// assert!(card.type_line.unwrap().to_lowercase().contains("planeswalker"));
 /// # })
 /// ```
 #[derive(Clone, Eq, PartialEq, Hash, Debug)]

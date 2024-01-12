@@ -62,9 +62,9 @@ impl Ruling {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::multiverse_id(3255)
@@ -79,9 +79,9 @@ impl Ruling {
     /// ```
     ///
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::multiverse_id(3255)
@@ -111,9 +111,9 @@ impl Ruling {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::mtgo_id(57934)
@@ -128,9 +128,9 @@ impl Ruling {
     /// ```
     ///
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::mtgo_id(57934)
@@ -157,9 +157,9 @@ impl Ruling {
     /// Returns rulings for a card with the given Magic: The Gathering Arena ID.
     ///
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::arena_id(67462)
@@ -168,10 +168,8 @@ impl Ruling {
     ///         .into_stream()
     ///         .map(Result::unwrap)
     ///         .any(|r| {
-    ///             future::ready(
-    ///                 r.comment
-    ///                     .starts_with("Once a chapter ability has triggered,"),
-    ///             )
+    ///             future::ready(r.comment
+    ///                 .starts_with("Once a chapter ability has triggered,"))
     ///         })
     ///         .await
     /// );
@@ -179,9 +177,9 @@ impl Ruling {
     /// ```
     ///
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::arena_id(67462)
@@ -190,10 +188,8 @@ impl Ruling {
     ///         .into_stream_buffered(10)
     ///         .map(Result::unwrap)
     ///         .any(|r| {
-    ///             future::ready(
-    ///                 r.comment
-    ///                     .starts_with("Once a chapter ability has triggered,"),
-    ///             )
+    ///             future::ready(r.comment
+    ///                 .starts_with("Once a chapter ability has triggered,"))
     ///         })
     ///         .await
     /// );
@@ -215,9 +211,9 @@ impl Ruling {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::set_and_number("bfz", 17)
@@ -232,9 +228,9 @@ impl Ruling {
     /// ```
     ///
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::set_and_number("bfz", 17)
@@ -261,9 +257,9 @@ impl Ruling {
     ///
     /// # Examples
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap())
@@ -278,9 +274,9 @@ impl Ruling {
     /// ```
     ///
     /// ```rust
-    /// use futures::future;
-    /// use futures::stream::StreamExt;
     /// use scryfall::ruling::Ruling;
+    /// use futures::stream::StreamExt;
+    /// use futures::future;
     /// # tokio_test::block_on(async {
     /// assert!(
     ///     Ruling::uuid("f2b9983e-20d4-4d12-9e2c-ec6d9a345787".parse().unwrap())
