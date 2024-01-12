@@ -230,14 +230,13 @@ impl Catalog {
     /// ```rust
     /// # use scryfall::catalog::Catalog;
     /// # tokio_test::block_on(async {
-    /// assert!(
-    ///     Catalog::keyword_abilities().await
-    ///         .unwrap()
-    ///         .data
-    ///         .iter()
-    ///         .find(|a| a.as_str() == "Haste")
-    ///         .is_some()
-    /// );
+    /// assert!(Catalog::keyword_abilities()
+    ///     .await
+    ///     .unwrap()
+    ///     .data
+    ///     .iter()
+    ///     .find(|a| a.as_str() == "Haste")
+    ///     .is_some());
     /// # });
     /// ```
     pub async fn keyword_abilities() -> crate::Result<Self> {
@@ -253,14 +252,13 @@ impl Catalog {
     /// ```rust
     /// # use scryfall::catalog::Catalog;
     /// # tokio_test::block_on(async {
-    /// assert!(
-    ///     Catalog::keyword_actions().await
-    ///         .unwrap()
-    ///         .data
-    ///         .iter()
-    ///         .find(|a| a.as_str() == "Scry")
-    ///         .is_some()
-    /// );
+    /// assert!(Catalog::keyword_actions()
+    ///     .await
+    ///     .unwrap()
+    ///     .data
+    ///     .iter()
+    ///     .find(|a| a.as_str() == "Scry")
+    ///     .is_some());
     /// # })
     /// ```
     pub async fn keyword_actions() -> crate::Result<Self> {
@@ -277,13 +275,13 @@ impl Catalog {
     /// # use scryfall::catalog::Catalog;
     /// assert!(
     /// # tokio_test::block_on(async {
-    ///     Catalog::ability_words().await
+    ///     Catalog::ability_words()
+    ///         .await
     ///         .unwrap()
     ///         .data
     ///         .iter()
     ///         .find(|a| a.as_str() == "Landfall")
-    ///         .is_some()
-    /// # })
+    ///         .is_some() //#### # })
     /// );
     /// ```
     pub async fn ability_words() -> crate::Result<Self> {

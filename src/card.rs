@@ -138,8 +138,9 @@ impl IndexMut<Format> for CardLegality {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
-/// Scryfall produces multiple sizes of images and image crops for each Card object. Links to these
-/// images are available in each Card objects’ image_uris properties.
+/// Scryfall produces multiple sizes of images and image crops for each Card
+/// object. Links to these images are available in each Card objects’ image_uris
+/// properties.
 ///
 /// Field         | Size       | Format | Example
 ///  ---          | ---        | ---    | ---
@@ -150,14 +151,15 @@ impl IndexMut<Format> for CardLegality {
 /// `normal`      | 488 × 680  | JPG    | [Example Image](https://cards.scryfall.io/normal/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
 /// `small`       | 146 × 204  | JPG    | [Example Image](https://cards.scryfall.io/small/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
 pub struct ImageUris {
-    /// A transparent, rounded full card PNG. This is the best image to use for videos or other
-    /// high-quality content.
+    /// A transparent, rounded full card PNG. This is the best image to use for
+    /// videos or other high-quality content.
     pub png: Url,
-    /// A full card image with the rounded corners and the majority of the border cropped off.
-    /// Designed for dated contexts where rounded images can’t be used.
+    /// A full card image with the rounded corners and the majority of the
+    /// border cropped off. Designed for dated contexts where rounded images
+    /// can’t be used.
     pub border_crop: Url,
-    /// A rectangular crop of the card’s art only. Not guaranteed to be perfect for cards with
-    /// outlier designs or strange frame arrangements
+    /// A rectangular crop of the card’s art only. Not guaranteed to be perfect
+    /// for cards with outlier designs or strange frame arrangements
     pub art_crop: Url,
     ///  A large full card image
     pub large: Url,
@@ -468,8 +470,8 @@ pub struct Card {
     /// Information about when and where the card was originally previewed.
     #[serde(default)]
     pub preview: Preview,
-    /* ======================
-     * endregion Print Fields */
+    // ======================
+    // endregion Print Fields
 }
 
 impl Card {
@@ -494,34 +496,34 @@ impl Card {
     ///
     /// # Examples
     /// ```rust
-    /// use scryfall::card::Card;
-    /// use futures::stream::{self, StreamExt};
     /// use futures::future;
+    /// use futures::stream::{self, StreamExt};
+    /// use scryfall::card::Card;
     /// assert!(
     /// # tokio_test::block_on(async {
-    ///     Card::search("lightning").await
+    ///     Card::search("lightning")
+    ///         .await
     ///         .unwrap()
     ///         .into_stream()
     ///         .map(Result::unwrap)
     ///         .all(|x| future::ready(x.name.to_lowercase().contains("lightning")))
-    ///         .await
-    /// # })
+    ///         .await //#### # })
     /// )
     /// ```
     ///
     /// ```rust
-    /// use scryfall::card::Card;
-    /// use futures::stream::{self, StreamExt};
     /// use futures::future;
+    /// use futures::stream::{self, StreamExt};
+    /// use scryfall::card::Card;
     /// assert!(
     /// # tokio_test::block_on(async {
-    ///     Card::search("lightning").await
+    ///     Card::search("lightning")
+    ///         .await
     ///         .unwrap()
     ///         .into_stream_buffered(10)
     ///         .map(Result::unwrap)
     ///         .all(|x| future::ready(x.name.to_lowercase().contains("lightning")))
-    ///         .await
-    /// # })
+    ///         .await //#### # })
     /// )
     /// ```
     ///
@@ -532,8 +534,15 @@ impl Card {
     /// # fn main() -> scryfall::Result<()> {
     /// use scryfall::Card;
     /// # tokio_test::block_on(async {
-    /// let mut demolish = Card::search(set("war").and(collector_number(123))).await?.into_stream().map(Result::unwrap);
-    /// assert!(demolish.all(|card| future::ready(&card.name == "Demolish")).await);
+    /// let mut demolish = Card::search(set("war").and(collector_number(123)))
+    ///     .await?
+    ///     .into_stream()
+    ///     .map(Result::unwrap);
+    /// assert!(
+    ///     demolish
+    ///         .all(|card| future::ready(&card.name == "Demolish"))
+    ///         .await
+    /// );
     /// # Ok(())
     /// # })
     /// # }
@@ -546,8 +555,15 @@ impl Card {
     /// # fn main() -> scryfall::Result<()> {
     /// use scryfall::Card;
     /// # tokio_test::block_on(async {
-    /// let mut demolish = Card::search(set("war").and(collector_number(123))).await?.into_stream_buffered(10).map(Result::unwrap);
-    /// assert!(demolish.all(|card| future::ready(&card.name == "Demolish")).await);
+    /// let mut demolish = Card::search(set("war").and(collector_number(123)))
+    ///     .await?
+    ///     .into_stream_buffered(10)
+    ///     .map(Result::unwrap);
+    /// assert!(
+    ///     demolish
+    ///         .all(|card| future::ready(&card.name == "Demolish"))
+    ///         .await
+    /// );
     /// # Ok(())
     /// # })
     /// # }
