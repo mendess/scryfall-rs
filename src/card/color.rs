@@ -5,10 +5,13 @@ use serde::{Deserialize, Serialize};
 use self::Color::*;
 
 /// Enum defining the 5 colors of magic, plus colorless.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[derive(
+    Default, Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug,
+)]
 #[allow(missing_docs)]
 #[repr(u8)]
 pub enum Color {
+    #[default]
     #[serde(rename = "C")]
     Colorless = 0,
     #[serde(rename = "W")]
@@ -37,12 +40,6 @@ impl fmt::Display for Color {
                 Color::Green => "G",
             }
         )
-    }
-}
-
-impl Default for Color {
-    fn default() -> Self {
-        Colorless
     }
 }
 

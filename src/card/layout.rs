@@ -61,4 +61,6 @@ pub enum Layout {
     Prototype,
     /// Mutate
     Mutate,
+    /// Case
+    Case,
 }

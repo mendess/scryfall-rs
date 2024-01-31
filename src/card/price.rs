@@ -41,7 +41,7 @@ impl PartialOrd for Price {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         let mut result = None;
         for (a, b) in self.to_array().iter().zip(other.to_array().iter()) {
-            match (result, compare_prices(*a, *b)) {
+            match (result, compare_prices(a, b)) {
                 // If either ordering is `None`, use the other. Then if either is `Some(Equal)`,
                 // use the other.
                 (None, order)

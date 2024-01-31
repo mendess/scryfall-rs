@@ -2,22 +2,17 @@
 use serde::{Deserialize, Serialize};
 
 /// Enum defining the colors a mtg card border can have.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Default, Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 #[non_exhaustive]
 pub enum BorderColor {
+    #[default]
     Black,
     Borderless,
     Gold,
     White,
     Silver,
-}
-
-impl Default for BorderColor {
-    fn default() -> Self {
-        BorderColor::Black
-    }
 }
 
 impl std::fmt::Display for BorderColor {

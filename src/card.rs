@@ -49,6 +49,7 @@ use crate::util::CARDS_URL;
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
 #[serde(deny_unknown_fields)]
 #[allow(missing_docs)]
+#[non_exhaustive]
 pub struct CardLegality {
     pub standard: Legality,
     pub modern: Legality,
@@ -66,8 +67,6 @@ pub struct CardLegality {
     pub gladiator: Legality,
     pub brawl: Legality,
     pub premodern: Legality,
-    #[serde(rename = "historicbrawl")]
-    pub historic_brawl: Legality,
     #[serde(rename = "paupercommander")]
     pub pauper_commander: Legality,
     pub alchemy: Legality,
@@ -75,6 +74,8 @@ pub struct CardLegality {
     pub predh: Legality,
     pub oathbreaker: Legality,
     pub timeless: Legality,
+    #[serde(rename = "standardbrawl")]
+    pub standard_brawl: Legality,
 }
 
 impl Index<Format> for CardLegality {
@@ -97,13 +98,13 @@ impl Index<Format> for CardLegality {
             Format::Gladiator => &self.gladiator,
             Format::Brawl => &self.brawl,
             Format::Premodern => &self.premodern,
-            Format::HistoricBrawl => &self.historic_brawl,
             Format::PauperCommander => &self.pauper_commander,
             Format::Alchemy => &self.alchemy,
             Format::Explorer => &self.explorer,
             Format::Predh => &self.predh,
             Format::Oathbreaker => &self.oathbreaker,
             Format::Timeless => &self.timeless,
+            Format::StandardBrawl => &self.standard_brawl,
         }
     }
 }
@@ -126,13 +127,13 @@ impl IndexMut<Format> for CardLegality {
             Format::Gladiator => &mut self.gladiator,
             Format::Brawl => &mut self.brawl,
             Format::Premodern => &mut self.premodern,
-            Format::HistoricBrawl => &mut self.historic_brawl,
             Format::PauperCommander => &mut self.pauper_commander,
             Format::Alchemy => &mut self.alchemy,
             Format::Explorer => &mut self.explorer,
             Format::Predh => &mut self.predh,
             Format::Oathbreaker => &mut self.oathbreaker,
             Format::Timeless => &mut self.timeless,
+            Format::StandardBrawl => &mut self.standard_brawl,
         }
     }
 }
