@@ -48,6 +48,9 @@ pub struct CardFace {
     /// The name of this particular face.
     pub name: String,
 
+    /// The Oracle ID of this particular face, if the card is reversible.
+    pub oracle_id: Option<Uuid>,
+
     /// The Oracle text for this face, if any.
     pub oracle_text: Option<String>,
 
