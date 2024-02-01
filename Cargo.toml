@@ -13,6 +13,7 @@ categories = ["api-bindings", "games"]
 [features]
 default = ["bulk_caching"]
 bulk_caching = ["heck"]
+bin = ["dep:tokio"]
 
 [dependencies]
 async-trait = "0.1.77"
@@ -33,8 +34,14 @@ thiserror = "1"
 tinyvec = "1"
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde"] }
+tokio = { version = "1", features = ["macros"], optional = true }
 
 [dev-dependencies]
 strum = { version = "0.26", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 tokio-test = "0.4.3"
+
+[[bin]]
+name = "search"
+path = "src/bin/search.rs"
+required-features = ["bin"]
