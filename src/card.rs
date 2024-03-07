@@ -51,31 +51,52 @@ use crate::util::CARDS_URL;
 #[allow(missing_docs)]
 #[non_exhaustive]
 pub struct CardLegality {
+    #[serde(default)]
     pub standard: Legality,
+    #[serde(default)]
     pub modern: Legality,
+    #[serde(default)]
     pub legacy: Legality,
+    #[serde(default)]
     pub vintage: Legality,
+    #[serde(default)]
     pub commander: Legality,
+    #[serde(default)]
     pub future: Legality,
+    #[serde(default)]
     pub pauper: Legality,
+    #[serde(default)]
     pub pioneer: Legality,
+    #[serde(default)]
     pub penny: Legality,
+    #[serde(default)]
     pub duel: Legality,
-    #[serde(rename = "oldschool")]
+    #[serde(default, rename = "oldschool")]
     pub old_school: Legality,
+    #[serde(default)]
     pub historic: Legality,
+    #[serde(default)]
     pub gladiator: Legality,
+    #[serde(default)]
     pub brawl: Legality,
+    #[serde(default)]
     pub premodern: Legality,
-    #[serde(rename = "paupercommander")]
+    #[serde(default, rename = "paupercommander")]
     pub pauper_commander: Legality,
+    #[serde(default)]
     pub alchemy: Legality,
+    #[serde(default)]
     pub explorer: Legality,
+    #[serde(default)]
     pub predh: Legality,
+    #[serde(default)]
     pub oathbreaker: Legality,
+    #[serde(default)]
     pub timeless: Legality,
-    #[serde(rename = "standardbrawl")]
+    #[serde(default, rename = "standardbrawl")]
     pub standard_brawl: Legality,
+    #[serde(default, rename = "historicbrawl")]
+    pub historic_brawl: Legality,
 }
 
 impl Index<Format> for CardLegality {
@@ -105,6 +126,7 @@ impl Index<Format> for CardLegality {
             Format::Oathbreaker => &self.oathbreaker,
             Format::Timeless => &self.timeless,
             Format::StandardBrawl => &self.standard_brawl,
+            Format::HistoricBrawl => &self.historic_brawl,
         }
     }
 }
@@ -134,6 +156,7 @@ impl IndexMut<Format> for CardLegality {
             Format::Oathbreaker => &mut self.oathbreaker,
             Format::Timeless => &mut self.timeless,
             Format::StandardBrawl => &mut self.standard_brawl,
+            Format::HistoricBrawl => &mut self.historic_brawl,
         }
     }
 }
@@ -153,19 +176,25 @@ impl IndexMut<Format> for CardLegality {
 pub struct ImageUris {
     /// A transparent, rounded full card PNG. This is the best image to use for videos or other
     /// high-quality content.
-    pub png: Url,
+    #[serde(default)]
+    pub png: Option<Url>,
     /// A full card image with the rounded corners and the majority of the border cropped off.
     /// Designed for dated contexts where rounded images can’t be used.
-    pub border_crop: Url,
+    #[serde(default)]
+    pub border_crop: Option<Url>,
     /// A rectangular crop of the card’s art only. Not guaranteed to be perfect for cards with
     /// outlier designs or strange frame arrangements
-    pub art_crop: Url,
+    #[serde(default)]
+    pub art_crop: Option<Url>,
     ///  A large full card image
-    pub large: Url,
+    #[serde(default)]
+    pub large: Option<Url>,
     /// A medium-sized full card image
-    pub normal: Url,
+    #[serde(default)]
+    pub normal: Option<Url>,
     /// A small full card image. Designed for use as thumbnail or list icon.
-    pub small: Url,
+    #[serde(default)]
+    pub small: Option<Url>,
 }
 
 /// Card objects represent individual Magic: The Gathering cards that players

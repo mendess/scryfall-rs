@@ -30,6 +30,7 @@ pub enum Format {
     Oathbreaker,
     Timeless,
     StandardBrawl,
+    HistoricBrawl,
 }
 
 impl fmt::Display for Format {
@@ -61,6 +62,7 @@ impl fmt::Display for Format {
                 Oathbreaker => "oathbreaker",
                 Timeless => "timeless",
                 StandardBrawl => "standardbrawl",
+                HistoricBrawl => "historicbrawl",
             }
         )
     }
