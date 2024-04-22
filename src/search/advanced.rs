@@ -127,10 +127,12 @@ impl SearchOptions {
 /// in your query.
 #[derive(Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum UniqueStrategy {
     /// Removes duplicate gameplay objects (cards that share a name and have the
     /// same functionality). For example, if your search matches more than
     /// one print of Pacifism, only one copy of Pacifism will be returned.
+    #[default]
     Cards,
     /// Returns only one copy of each unique artwork for matching cards. For
     /// example, if your search matches more than one print of Pacifism, one
@@ -144,17 +146,13 @@ pub enum UniqueStrategy {
     Prints,
 }
 
-impl Default for UniqueStrategy {
-    fn default() -> Self {
-        UniqueStrategy::Cards
-    }
-}
-
 /// The order parameter determines how Scryfall should sort the returned cards.
 #[derive(Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum SortOrder {
     /// Sort cards by name, A → Z
+    #[default]
     Name,
     /// Sort cards by their set and collector number: AAA/#1 → ZZZ/#999
     Set,
@@ -184,17 +182,13 @@ pub enum SortOrder {
     Artist,
 }
 
-impl Default for SortOrder {
-    fn default() -> Self {
-        SortOrder::Name
-    }
-}
-
 /// Which direction the sorting should occur:
 #[derive(Serialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum SortDirection {
     /// Scryfall will automatically choose the most intuitive direction to sort
+    #[default]
     Auto,
     /// Sort ascending (flip the direction of the arrows in [`SortMethod`])
     ///
@@ -206,10 +200,4 @@ pub enum SortDirection {
     /// [`SortMethod`]: enum.SortMethod.html
     #[serde(rename = "desc")]
     Descending,
-}
-
-impl Default for SortDirection {
-    fn default() -> Self {
-        SortDirection::Auto
-    }
 }

@@ -55,7 +55,6 @@ pub enum FrameEffect {
     FanDfc,
     /// The cards have the Upside Down transforming marks.
     UpsideDownDfc,
-
     /// The waxing and waning crescent moon transform marks.
     MoonReverseMoonDfc,
     /// A full art frame. Undocumented and unsupported for search.
@@ -75,6 +74,8 @@ pub enum FrameEffect {
     Borderless,
     /// Is a vehicle
     Vehicle,
+    /// Spree
+    Spree,
 }
 
 impl std::fmt::Display for FrameEffect {
@@ -107,7 +108,6 @@ impl std::fmt::Display for FrameEffect {
                 ConvertDfc => "convertdfc",
                 FanDfc => "fandfc",
                 UpsideDownDfc => "upsidedowndfc",
-
                 FullArt => "fullart",
                 Nyxborn => "nyxborn",
                 WaxingAndWaningMoonDfc => "waxingandwaningmoondfc",
@@ -117,6 +117,7 @@ impl std::fmt::Display for FrameEffect {
                 Thick => "thick",
                 Borderless => "borderless",
                 Vehicle => "vehicle",
+                Spree => "spree",
             }
         )
     }
