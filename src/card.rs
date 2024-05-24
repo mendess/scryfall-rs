@@ -9,6 +9,7 @@ mod color;
 mod frame;
 mod frame_effect;
 mod game;
+mod image_status;
 mod layout;
 mod legality;
 mod preview;
@@ -31,6 +32,7 @@ pub use self::color::{Color, Colors, Multicolored};
 pub use self::frame::Frame;
 pub use self::frame_effect::FrameEffect;
 pub use self::game::Game;
+pub use self::image_status::ImageStatus;
 pub use self::layout::Layout;
 pub use self::legality::Legality;
 pub use self::preview::Preview;
@@ -420,6 +422,10 @@ pub struct Card {
     /// A unique identifier for the card artwork that remains consistent across
     /// reprints. Newly spoiled cards may not have this field yet.
     pub illustration_id: Option<Uuid>,
+
+    /// A computer-readable indicator for the state of this card’s image,
+    /// one of `missing`, `placeholder`, `lowres`, or `highres_scan`.
+    pub image_status: ImageStatus,
 
     /// An object listing available imagery for this card. See the [Card Imagery](https://scryfall.com/docs/api/images) article for more information.
     #[serde(default)]
