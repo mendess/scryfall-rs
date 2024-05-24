@@ -12,7 +12,7 @@ use crate::search::Search;
 /// documentation on each option, refer to this struct's methods.
 ///
 /// For more information, refer to the [official docs](https://scryfall.com/docs/api/cards/search).
-#[derive(Serialize, Default, Debug)]
+#[derive(Serialize, Default, Debug, Clone, PartialEq)]
 pub struct SearchOptions {
     #[serde(skip_serializing_if = "is_default")]
     unique: UniqueStrategy,
@@ -68,56 +68,56 @@ impl SearchOptions {
     }
 
     /// Sets the query to use for this search.
-    pub fn query(&mut self, query: Query) -> &mut Self {
+    pub fn query(mut self, query: Query) -> Self {
         self.query = query;
         self
     }
 
     /// Sets the page number to start with. Page 0 is equivalent to page 1.
-    pub fn page(&mut self, page: usize) -> &mut Self {
+    pub fn page(mut self, page: usize) -> Self {
         self.page = page;
         self
     }
 
     /// Sets the strategy for omitting similar cards.
-    pub fn unique(&mut self, unique: UniqueStrategy) -> &mut Self {
+    pub fn unique(mut self, unique: UniqueStrategy) -> Self {
         self.unique = unique;
         self
     }
 
     /// Sets the sort order and direction for returned cards.
     #[inline]
-    pub fn sort(&mut self, order: SortOrder, dir: SortDirection) -> &mut Self {
+    pub fn sort(mut self, order: SortOrder, dir: SortDirection) -> Self {
         self.order(order).direction(dir)
     }
 
     /// Sets the sort order for returned cards.
-    pub fn order(&mut self, order: SortOrder) -> &mut Self {
+    pub fn order(mut self, order: SortOrder) -> Self {
         self.order = order;
         self
     }
 
     /// Sets the sort direction for returned cards.
-    pub fn direction(&mut self, dir: SortDirection) -> &mut Self {
+    pub fn direction(mut self, dir: SortDirection) -> Self {
         self.dir = dir;
         self
     }
 
     /// If true, extra cards (tokens, planes, etc) will be included.
-    pub fn extras(&mut self, include_extras: bool) -> &mut Self {
+    pub fn extras(mut self, include_extras: bool) -> Self {
         self.include_extras = include_extras;
         self
     }
 
     /// If true, cards in every language supported by Scryfall will be included.
-    pub fn multilingual(&mut self, include_multilingual: bool) -> &mut Self {
+    pub fn multilingual(mut self, include_multilingual: bool) -> Self {
         self.include_multilingual = include_multilingual;
         self
     }
 
     /// If true, rare care variants will be included, like the
     /// [Hairy Runesword](https://scryfall.com/card/drk/107%E2%80%A0/runesword).
-    pub fn variations(&mut self, include_variations: bool) -> &mut Self {
+    pub fn variations(mut self, include_variations: bool) -> Self {
         self.include_variations = include_variations;
         self
     }
