@@ -215,9 +215,7 @@ mod tests {
 
     #[test]
     fn finds_alpha_lotus() {
-        let mut search = SearchOptions::new();
-
-        search
+        let search = SearchOptions::new()
             .query(exact("Black Lotus"))
             .unique(UniqueStrategy::Prints)
             .sort(SortOrder::Released, SortDirection::Ascending);
@@ -244,9 +242,7 @@ mod tests {
 
     #[test]
     fn finds_alpha_lotus_buffered() {
-        let mut search = SearchOptions::new();
-
-        search
+        let search = SearchOptions::new()
             .query(exact("Black Lotus"))
             .unique(UniqueStrategy::Prints)
             .sort(SortOrder::Released, SortDirection::Ascending);
