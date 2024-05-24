@@ -68,18 +68,21 @@ impl SearchOptions {
     }
 
     /// Sets the query to use for this search.
+    #[must_use]
     pub fn query(mut self, query: Query) -> Self {
         self.query = query;
         self
     }
 
     /// Sets the page number to start with. Page 0 is equivalent to page 1.
+    #[must_use]
     pub fn page(mut self, page: usize) -> Self {
         self.page = page;
         self
     }
 
     /// Sets the strategy for omitting similar cards.
+    #[must_use]
     pub fn unique(mut self, unique: UniqueStrategy) -> Self {
         self.unique = unique;
         self
@@ -87,29 +90,34 @@ impl SearchOptions {
 
     /// Sets the sort order and direction for returned cards.
     #[inline]
+    #[must_use]
     pub fn sort(mut self, order: SortOrder, dir: SortDirection) -> Self {
         self.order(order).direction(dir)
     }
 
     /// Sets the sort order for returned cards.
+    #[must_use]
     pub fn order(mut self, order: SortOrder) -> Self {
         self.order = order;
         self
     }
 
     /// Sets the sort direction for returned cards.
+    #[must_use]
     pub fn direction(mut self, dir: SortDirection) -> Self {
         self.dir = dir;
         self
     }
 
     /// If true, extra cards (tokens, planes, etc) will be included.
+    #[must_use]
     pub fn extras(mut self, include_extras: bool) -> Self {
         self.include_extras = include_extras;
         self
     }
 
     /// If true, cards in every language supported by Scryfall will be included.
+    #[must_use]
     pub fn multilingual(mut self, include_multilingual: bool) -> Self {
         self.include_multilingual = include_multilingual;
         self
@@ -117,6 +125,7 @@ impl SearchOptions {
 
     /// If true, rare care variants will be included, like the
     /// [Hairy Runesword](https://scryfall.com/card/drk/107%E2%80%A0/runesword).
+    #[must_use]
     pub fn variations(mut self, include_variations: bool) -> Self {
         self.include_variations = include_variations;
         self
