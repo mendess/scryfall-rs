@@ -4,7 +4,6 @@ use std::{fmt, io};
 
 use httpstatus::StatusCode;
 use itertools::Itertools;
-use reqwest::Error as ReqwestError;
 use serde::{Deserialize, Serialize};
 use serde_json::Error as SerdeError;
 use url::ParseError as UrlParseError;
@@ -26,9 +25,9 @@ pub enum Error {
     #[error("Error parsing URL: {0}")]
     UrlParseError(#[from] UrlParseError),
 
-    /// Something went wrong when making the HTTP request.
+    /// An error occurred while performing a HTTP operation.
     #[error("Error making request: {0}")]
-    ReqwestError(Box<ReqwestError>, String),
+    HttpClientError(String),
 
     /// Scryfall error. Please refer to the [official docs](https://scryfall.com/docs/api/errors).
     #[error("Scryfall error: {0}")]
@@ -53,13 +52,10 @@ impl From<SerdeError> for Box<Error> {
     }
 }
 
-impl From<ReqwestError> for Error {
-    fn from(err: ReqwestError) -> Self {
-        let s = err
-            .url()
-            .map(|url| url.to_string())
-            .unwrap_or_else(|| format!("{}", err));
-        Error::ReqwestError(Box::new(err), s)
+impl From<surf::Error> for Error {
+    fn from(err: surf::Error) -> Self {
+        let s = err.to_string();
+        Error::HttpClientError(s)
     }
 }
 
