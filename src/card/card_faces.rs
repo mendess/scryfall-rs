@@ -5,6 +5,7 @@ use url::Url;
 use uuid::Uuid;
 
 use crate::card::Color;
+use crate::card::ImageUris;
 
 /// Multiface cards have a card_faces property containing at least two Card Face
 /// objects.
@@ -35,7 +36,7 @@ pub struct CardFace {
     /// An object providing URIs to imagery for this face, if this is a
     /// double-sided card. If this card is not double-sided, then the image_uris
     /// property will be part of the parent object instead.
-    pub image_uris: Option<HashMap<String, Url>>,
+    pub image_uris: Option<ImageUris>,
 
     /// This face’s loyalty, if any.
     pub loyalty: Option<String>,
