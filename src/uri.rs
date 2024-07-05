@@ -45,6 +45,35 @@ impl<T> From<Url> for Uri<T> {
     }
 }
 
+impl<T> Uri<T> {
+    /// Extract the inner url.
+    pub fn into_inner(self) -> Url {
+        self.url
+    }
+
+    /// Get the contained url.
+    pub fn inner(&self) -> &Url {
+        &self.url
+    }
+
+    /// Get the str representation of the url
+    pub fn as_str(&self) -> &str {
+        self.url.as_str()
+    }
+}
+
+impl<T> AsRef<Url> for Uri<T> {
+    fn as_ref(&self) -> &Url {
+        self.inner()
+    }
+}
+
+impl<T> AsRef<str> for Uri<T> {
+    fn as_ref(&self) -> &str {
+        self.as_str()
+    }
+}
+
 impl<T: DeserializeOwned> Uri<T> {
     /// Fetches a resource from the Scryfall API and deserializes it into a type
     /// `T`.

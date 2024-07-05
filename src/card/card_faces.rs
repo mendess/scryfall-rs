@@ -1,7 +1,4 @@
-use std::collections::HashMap;
-
 use serde::{Deserialize, Serialize};
-use url::Url;
 use uuid::Uuid;
 
 use crate::card::Color;
@@ -65,7 +62,7 @@ pub struct CardFace {
     /// The localized text printed on this face, if any.
     pub printed_text: Option<String>,
 
-    ///
+    /// The type line as printed on the card.
     pub printed_type_line: Option<String>,
 
     /// The localized type line printed on this face, if any.
