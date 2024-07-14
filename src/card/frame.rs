@@ -6,6 +6,8 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Official docs](https://scryfall.com/docs/api/layouts#frames)
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[non_exhaustive]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum Frame {
     /// The original Magic card frame, starting from Limited Edition Alpha.
     #[serde(rename = "1993")]

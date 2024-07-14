@@ -26,6 +26,8 @@ use crate::util::SETS_URL;
 ///
 /// For more details visit the [official docs](https://scryfall.com/docs/api/sets).
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+#[non_exhaustive]
 pub struct Set {
     /// A unique ID for this set on Scryfall that will not change.
     pub id: Uuid,
@@ -36,6 +38,9 @@ pub struct Set {
     /// The unique code for this set on MTGO, which may differ from the regular
     /// code.
     pub mtgo_code: Option<String>,
+
+    /// The unique code for this set on Arena, which may differ from the regular code.
+    pub arena_code: Option<String>,
 
     /// This set’s ID on TCGplayer’s API, also known as the groupId.
     pub tcgplayer_id: Option<u64>,
@@ -90,6 +95,10 @@ pub struct Set {
     /// A Scryfall API URI that you can request to begin paginating over the
     /// cards in this set.
     pub search_uri: Uri<List<Card>>,
+
+    #[cfg(test)]
+    #[serde(rename = "object")]
+    _object: String,
 }
 
 impl Set {

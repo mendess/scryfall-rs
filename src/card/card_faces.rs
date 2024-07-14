@@ -4,13 +4,17 @@ use uuid::Uuid;
 use crate::card::Color;
 use crate::card::ImageUris;
 
+use super::Layout;
+
 /// Multiface cards have a card_faces property containing at least two Card Face
 /// objects.
 ///
 /// ---
 ///
 /// For more information, refer to the [official docs](https://scryfall.com/docs/api/cards#card-face-objects).
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Debug)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[non_exhaustive]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct CardFace {
     /// The name of the illustrator of this card face. Newly spoiled cards may
     /// not have this field yet.
@@ -22,6 +26,9 @@ pub struct CardFace {
     /// This face’s colors, if the game defines colors for the individual face
     /// of this card.
     pub colors: Option<Vec<Color>>,
+
+    /// The mana value of this particular face, if the card is reversible.
+    pub cmc: Option<f32>,
 
     /// The flavor text printed on this face, if any.
     pub flavor_text: Option<String>,
@@ -65,7 +72,8 @@ pub struct CardFace {
     /// The type line as printed on the card.
     pub printed_type_line: Option<String>,
 
-    /// The localized type line printed on this face, if any.
+    /// This face’s toughness, if any. Note that some cards have powers that are not
+    /// numeric, such as `*`.
     pub toughness: Option<String>,
 
     /// The type line of this particular face.
@@ -73,4 +81,20 @@ pub struct CardFace {
 
     /// The watermark on this particulary card face, if any.
     pub watermark: Option<String>,
+
+    /// The ID of the illustrator of this card face. Newly spoiled cards may not have this field yet.
+    pub artist_id: Option<Uuid>,
+
+    /// The just-for-fun name printed on the card (such as for Godzilla series cards).
+    pub flavor_name: Option<String>,
+
+    /// This face’s defense, if it's a battle.
+    pub defense: Option<String>,
+
+    /// The layout of this card face, if the card is reversible.
+    pub layout: Option<Layout>,
+
+    #[cfg(test)]
+    #[serde(rename = "object")]
+    _object: String,
 }

@@ -55,6 +55,8 @@ use crate::util::BULK_DATA_URL;
 /// Bulk data is only collected once every 12 hours. You can use the card API
 /// methods to retrieve fresh objects instead.
 #[derive(Deserialize, Debug, Clone)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+#[non_exhaustive]
 pub struct BulkDataFile<T> {
     /// A unique ID for this bulk item.
     pub id: Uuid,
@@ -87,6 +89,13 @@ pub struct BulkDataFile<T> {
     /// The Content-Encoding encoding that will be used to transmit this file
     /// when you download it.
     pub content_encoding: String,
+
+    /// The byte size of the bulk file.
+    pub size: usize,
+
+    #[cfg(test)]
+    #[serde(rename = "object")]
+    _object: String,
 }
 
 impl<T: DeserializeOwned> BulkDataFile<T> {

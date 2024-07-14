@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 /// Scryfall provides an overall categorization for each Set in the set_type
 /// property.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum SetType {

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 /// Enum defining the colors a mtg card border can have.
 #[derive(Default, Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 #[non_exhaustive]

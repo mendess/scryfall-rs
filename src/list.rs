@@ -21,6 +21,7 @@ use crate::uri::Uri;
 ///
 /// For more information, visit the [official docs](https://scryfall.com/docs/api/lists).
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct List<T> {
     /// An array of the requested objects, in a specific order.
     pub data: Vec<T>,
@@ -44,6 +45,10 @@ pub struct List<T> {
     /// of the information you requested. You should fix the warnings and
     /// re-submit your request.
     pub warnings: Option<Vec<String>>,
+
+    #[cfg(test)]
+    #[serde(rename = "object")]
+    _object: String,
 }
 
 impl<T: DeserializeOwned + Send + Sync + Unpin> List<T> {

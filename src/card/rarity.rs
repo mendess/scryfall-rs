@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 /// For the purposes of sorting and comparison, `Special` is considered above
 /// `Rare` and below `Mythic`, and `Bonus` is the rarest, above `Mythic.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
+#[non_exhaustive]
 pub enum Rarity {
     /// Black set symbol.
     Common,

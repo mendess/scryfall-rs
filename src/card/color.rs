@@ -47,6 +47,7 @@ impl fmt::Display for Color {
 /// the `search` module as a
 /// [`ColorValue`][crate::search::param::value::ColorValue].
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug, Default)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Colors(u8);
 
 macro_rules! color_consts {

@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(untagged)]
 /// A type of mana a card can produce
 pub enum ProducedMana {
@@ -22,6 +23,7 @@ impl ProducedMana {
 
 /// Kinds of mana only produced in unfinity
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub enum UnfinityMana {
     /// Some sticker sheets have stickers that give creatures the ability to generate 2
     /// colorless mana, for some reason wizards used the old templating

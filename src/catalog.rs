@@ -15,6 +15,7 @@ use crate::util::CATALOG_URL;
 /// Magic software and understanding possible values for a field on Card
 /// objects.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Catalog {
     /// A link to the current catalog on Scryfall’s API.
     pub uri: Uri<Catalog>,

@@ -28,6 +28,8 @@ use crate::util::{API_RULING, CARDS_URL};
 ///
 /// For more information, refer to the [official docs](https://scryfall.com/docs/api/rulings).
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+#[non_exhaustive]
 pub struct Ruling {
     /// A unique ID for the oracle identity of the card this ruling is about.
     /// This value is consistent across reprinted card editions, and unique
@@ -44,10 +46,15 @@ pub struct Ruling {
 
     /// The text of the ruling.
     pub comment: String,
+
+    #[cfg(test)]
+    #[serde(rename = "object")]
+    _object: String,
 }
 
 /// The two possible ruling sources
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
 #[allow(missing_docs)]
 pub enum Source {

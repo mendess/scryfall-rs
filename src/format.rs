@@ -4,6 +4,7 @@ use std::fmt;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "lowercase")]
 #[allow(missing_docs)]
 #[non_exhaustive]

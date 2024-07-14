@@ -5,6 +5,7 @@ use url::Url;
 
 /// Struct describing card preview information.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug, Default)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct Preview {
     /// The date this card was previewed.
     pub previewed_at: Option<NaiveDate>,

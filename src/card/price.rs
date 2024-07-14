@@ -5,13 +5,16 @@ use serde::{Deserialize, Serialize};
 
 /// Struct defining a price object containing data in various currencies.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug, Default)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[allow(missing_docs)]
+#[non_exhaustive]
 pub struct Price {
     pub usd: Option<String>,
     pub usd_foil: Option<String>,
     pub eur: Option<String>,
     pub eur_foil: Option<String>,
     pub tix: Option<String>,
+    pub usd_etched: Option<String>,
 }
 
 impl Price {

@@ -6,6 +6,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Official docs](https://scryfall.com/docs/api/layouts#frame-effects)
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "lowercase")]
 #[non_exhaustive]
 pub enum FrameEffect {

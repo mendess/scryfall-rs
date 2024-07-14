@@ -6,6 +6,7 @@
 mod border_color;
 mod card_faces;
 mod color;
+mod finishes;
 mod frame;
 mod frame_effect;
 mod game;
@@ -15,13 +16,18 @@ mod legality;
 mod preview;
 mod price;
 mod produced_mana;
+mod promo_types;
 mod rarity;
 mod related_card;
+mod security_stamp;
 
 use std::collections::hash_map::HashMap;
 use std::ops::{Index, IndexMut};
 
 use chrono::NaiveDate;
+use finishes::Finishes;
+use promo_types::PromoType;
+use security_stamp::SecurityStamp;
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
@@ -164,6 +170,7 @@ impl IndexMut<Format> for CardLegality {
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 /// Scryfall produces multiple sizes of images and image crops for each Card object. Links to these
 /// images are available in each Card objects’ image_uris properties.
 ///
@@ -223,6 +230,8 @@ pub struct ImageUris {
 ///
 /// For more details, see the [official documentation](https://scryfall.com/docs/api/cards).
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
+#[non_exhaustive]
 pub struct Card {
     // region Core Card Fields
     // =======================
@@ -254,6 +263,9 @@ pub struct Card {
 
     /// This card’s ID on TCGplayer’s API, also known as the `productId`.
     pub tcgplayer_id: Option<usize>,
+
+    /// This card’s ID on TCGplayer’s API, for its etched version if that version is a separate product.
+    pub tcgplayer_etched_id: Option<usize>,
 
     /// This card’s ID on Cardmarket’s API, also known as the `idProduct`.
     pub cardmarket_id: Option<usize>,
@@ -366,6 +378,12 @@ pub struct Card {
 
     /// The type line of this card.
     pub type_line: Option<String>,
+
+    /// This card’s rank/popularity on Penny Dreadful. Not all cards are ranked.
+    pub penny_rank: Option<u64>,
+
+    /// This face’s defense, if any.
+    pub defense: Option<String>,
     // =========================
     // endregion Gameplay Fields
     //
@@ -374,6 +392,9 @@ pub struct Card {
     /// The name of the illustrator of this card. Newly spoiled cards may not
     /// have this field yet.
     pub artist: Option<String>,
+
+    /// The IDs of the artists that illustrated this card. Newly spoiled cards may not have this field yet.
+    pub artist_ids: Option<Vec<Uuid>>,
 
     /// Whether this card is found in boosters.
     pub booster: bool,
@@ -486,6 +507,9 @@ pub struct Card {
     /// This card’s set code.
     pub set: SetCode,
 
+    /// The scryfall id of the set it belongs to.
+    pub set_id: Uuid,
+
     /// True if this card is a Story Spotlight.
     pub story_spotlight: bool,
 
@@ -504,8 +528,25 @@ pub struct Card {
     /// Information about when and where the card was originally previewed.
     #[serde(default)]
     pub preview: Preview,
+
+    /// The finishes the card can come in.
+    pub finishes: Vec<Finishes>,
+
+    /// The security stamp on this card, if any.
+    #[serde(default)]
+    pub security_stamp: Option<SecurityStamp>,
+
+    /// An array of strings describing what categories of promo cards this card falls into.
+    #[serde(default)]
+    pub promo_types: Vec<PromoType>,
+
+    /// The lit Unfinity attractions lights on this card, if any.
+    pub attraction_lights: Option<Vec<u8>>,
     /* ======================
      * endregion Print Fields */
+    #[cfg(test)]
+    #[serde(rename = "object")]
+    _object: String,
 }
 
 impl Card {

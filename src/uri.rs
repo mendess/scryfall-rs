@@ -22,6 +22,7 @@ use crate::list::{List, ListIter};
 /// and `fetch_all` are available, giving access to objects from all pages
 /// of the collection.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(transparent)]
 pub struct Uri<T> {
     url: Url,

@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 ///
 /// [Official docs](https://scryfall.com/docs/api/layouts#layout)
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
 pub enum Layout {

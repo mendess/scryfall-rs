@@ -74,6 +74,7 @@ impl From<UrlParseError> for Box<Error> {
 ///
 /// [Official docs](https://scryfall.com/docs/api/errors)
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ScryfallError {
     /// An integer HTTP status code for this error.
     pub status: u16,

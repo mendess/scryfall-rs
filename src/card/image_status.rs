@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 /// computer-readable value of the image’s state using the image_status field
 /// on card objects.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
 pub enum ImageStatus {
     /// The card has no image, or the image is being processed.
