@@ -94,21 +94,29 @@ impl<T: DeserializeOwned> Uri<T> {
     /// ```
     pub async fn fetch(&self) -> crate::Result<T> {
         match self.fetch_raw().await {
-            Ok(response) => match response.status().as_u16() {
-                200..=299 => Ok(response.json().await?),
-                status => Err(Error::HttpError(StatusCode::from(status))),
+            Ok(mut response) => {
+                let status = response.status();
+                if status.is_success() {
+                    Ok(response.body_json().await?)
+                } else {
+                    Err(Error::HttpError(StatusCode::from(u16::from(status))))
+                }
             },
             Err(e) => Err(e),
         }
     }
 
-    pub(crate) async fn fetch_raw(&self) -> crate::Result<reqwest::Response> {
-        match reqwest::get(self.url.clone()).await {
-            Ok(response) => match response.status().as_u16() {
-                400..=599 => Err(Error::ScryfallError(response.json().await?)),
-                _ => Ok(response),
+    pub(crate) async fn fetch_raw(&self) -> crate::Result<surf::Response> {
+        match surf::get(self.url.clone()).await {
+            Ok(mut response) => {
+                let status = response.status();
+                if status.is_client_error() || status.is_server_error() {
+                    Err(Error::ScryfallError(response.body_json().await?))
+                } else {
+                    Ok(response)
+                }
             },
-            Err(e) => Err(Error::ReqwestError(e.into(), self.url.to_string())),
+            Err(e) => Err(e.into()),
         }
     }
 }

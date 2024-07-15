@@ -16,8 +16,8 @@
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
 use std::fs::File;
-use std::io;
 use std::io::BufReader;
+use std::io::{self, Cursor};
 use std::path::Path;
 
 use cfg_if::cfg_if;
@@ -163,9 +163,9 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     /// already exists.
     pub async fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
         let path = path.as_ref();
-        let response = self.download_uri.fetch_raw().await?;
-        let content = response.bytes().await?;
-        io::copy(&mut content.as_ref(), &mut File::create(path)?)?;
+        let mut response = self.download_uri.fetch_raw().await?;
+        let mut content = Cursor::new(response.body_bytes().await?);
+        io::copy(&mut content, &mut File::create(path)?)?;
         Ok(())
     }
 }
