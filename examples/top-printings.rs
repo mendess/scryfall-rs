@@ -8,8 +8,7 @@ use scryfall::Card;
 async fn main() -> scryfall::Result<()> {
     let card_name = std::env::args().nth(1).expect("expected a card name param");
 
-    let mut search_options = SearchOptions::new();
-    search_options
+    let search_options = SearchOptions::new()
         .unique(UniqueStrategy::Prints)
         .sort(SortOrder::Usd, SortDirection::Descending)
         .query(exact(card_name).and(in_game(Game::Paper)));
