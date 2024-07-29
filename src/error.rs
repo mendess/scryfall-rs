@@ -27,12 +27,17 @@ pub enum Error {
     UrlParseError(#[from] UrlParseError),
 
     /// Something went wrong when making the HTTP request.
-    #[error("Error making request: {0}")]
-    ReqwestError(Box<ReqwestError>, String),
+    #[error("Error making request to {url}: {error}")]
+    ReqwestError {
+        /// The error reqwest returned.
+        error: Box<ReqwestError>,
+        /// The url that was involved.
+        url: url::Url,
+    },
 
     /// Scryfall error. Please refer to the [official docs](https://scryfall.com/docs/api/errors).
     #[error("Scryfall error: {0}")]
-    ScryfallError(ScryfallError),
+    ScryfallError(Box<ScryfallError>),
 
     /// HTTP error with status code.
     #[error("HTTP error: {0}")]
@@ -50,16 +55,6 @@ pub enum Error {
 impl From<SerdeError> for Box<Error> {
     fn from(err: SerdeError) -> Self {
         Box::new(err.into())
-    }
-}
-
-impl From<ReqwestError> for Error {
-    fn from(err: ReqwestError) -> Self {
-        let s = err
-            .url()
-            .map(|url| url.to_string())
-            .unwrap_or_else(|| format!("{}", err));
-        Error::ReqwestError(Box::new(err), s)
     }
 }
 
@@ -97,6 +92,10 @@ pub struct ScryfallError {
     /// as human-readable strings in this array.
     #[serde(default)]
     pub warnings: Vec<String>,
+
+    #[cfg(test)]
+    #[serde(rename = "object")]
+    _object: String,
 }
 
 impl fmt::Display for ScryfallError {

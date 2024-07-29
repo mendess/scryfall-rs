@@ -5,8 +5,10 @@
 //! that data.
 use std::convert::TryFrom;
 use std::marker::PhantomData;
+use std::sync::OnceLock;
 
 use httpstatus::StatusCode;
+use reqwest::header::{self, HeaderValue};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -21,12 +23,21 @@ use crate::list::{List, ListIter};
 /// [`List`][crate::list::List]`<_>`, then additional methods `fetch_iter`
 /// and `fetch_all` are available, giving access to objects from all pages
 /// of the collection.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(transparent)]
 pub struct Uri<T> {
     url: Url,
     _marker: PhantomData<fn() -> T>,
+}
+
+impl<T> std::fmt::Debug for Uri<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Uri")
+            .field("url", &self.url)
+            .field("type", &std::any::type_name::<T>())
+            .finish()
+    }
 }
 
 impl<T> TryFrom<&str> for Uri<T> {
@@ -75,6 +86,23 @@ impl<T> AsRef<str> for Uri<T> {
     }
 }
 
+fn client() -> &'static reqwest::Client {
+    static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .default_headers(
+                [
+                    (header::ACCEPT, HeaderValue::from_static("*/*")),
+                    (header::USER_AGENT, HeaderValue::from_static("scryfall-rs")),
+                ]
+                .into_iter()
+                .collect(),
+            )
+            .build()
+            .unwrap()
+    })
+}
+
 impl<T: DeserializeOwned> Uri<T> {
     /// Fetches a resource from the Scryfall API and deserializes it into a type
     /// `T`.
@@ -95,7 +123,10 @@ impl<T: DeserializeOwned> Uri<T> {
     pub async fn fetch(&self) -> crate::Result<T> {
         match self.fetch_raw().await {
             Ok(response) => match response.status().as_u16() {
-                200..=299 => Ok(response.json().await?),
+                200..=299 => response.json().await.map_err(|e| Error::ReqwestError {
+                    error: e.into(),
+                    url: self.url.clone(),
+                }),
                 status => Err(Error::HttpError(StatusCode::from(status))),
             },
             Err(e) => Err(e),
@@ -103,12 +134,20 @@ impl<T: DeserializeOwned> Uri<T> {
     }
 
     pub(crate) async fn fetch_raw(&self) -> crate::Result<reqwest::Response> {
-        match reqwest::get(self.url.clone()).await {
+        match client().get(self.url.clone()).send().await {
             Ok(response) => match response.status().as_u16() {
-                400..=599 => Err(Error::ScryfallError(response.json().await?)),
+                400..=599 => Err(Error::ScryfallError(response.json().await.map_err(
+                    |e| Error::ReqwestError {
+                        error: e.into(),
+                        url: self.url.clone(),
+                    },
+                )?)),
                 _ => Ok(response),
             },
-            Err(e) => Err(Error::ReqwestError(e.into(), self.url.to_string())),
+            Err(e) => Err(Error::ReqwestError {
+                error: e.into(),
+                url: self.url.clone(),
+            }),
         }
     }
 }

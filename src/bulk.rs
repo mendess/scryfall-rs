@@ -31,6 +31,7 @@ use crate::ruling::Ruling;
 use crate::uri::Uri;
 use crate::util::array_stream_reader::ArrayStreamReader;
 use crate::util::BULK_DATA_URL;
+use crate::Error;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
 /// these files is represented as a bulk_data object via the API. URLs for files
@@ -164,7 +165,10 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     pub async fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
         let path = path.as_ref();
         let response = self.download_uri.fetch_raw().await?;
-        let content = response.bytes().await?;
+        let content = response.bytes().await.map_err(|e| Error::ReqwestError {
+            error: e.into(),
+            url: self.download_uri.inner().clone(),
+        })?;
         io::copy(&mut content.as_ref(), &mut File::create(path)?)?;
         Ok(())
     }
