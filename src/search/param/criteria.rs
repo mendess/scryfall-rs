@@ -410,33 +410,25 @@ mod tests {
     use super::*;
     use crate::search::Search;
 
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn all_card_is() {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        let handle = runtime.handle();
+    async fn all_card_is() {
         for criterion in CardIs::iter() {
-            handle.block_on(async move {
-                Query::from(criterion)
-                    .random()
-                    .await
-                    .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
-            })
+            Query::from(criterion)
+                .random()
+                .await
+                .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
         }
     }
 
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn all_printing_is() {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        let handle = runtime.handle();
+    async fn all_printing_is() {
         for criterion in PrintingIs::iter() {
-            handle.block_on(async move {
-                Query::from(criterion)
-                    .random()
-                    .await
-                    .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
-            })
+            Query::from(criterion)
+                .random()
+                .await
+                .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
         }
     }
 }

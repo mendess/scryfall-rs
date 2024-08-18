@@ -53,6 +53,7 @@ pub enum PromoType {
     Plastic,
     Playerrewards,
     Playpromo,
+    Playtest,
     Portrait,
     Poster,
     Premiereshop,
@@ -79,6 +80,8 @@ pub enum PromoType {
     Themepack,
     Thick,
     Tourney,
+    UpsideDown,
+    UpsideDownBack,
     Vault,
     Wizardsplaynetwork,
 }

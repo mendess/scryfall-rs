@@ -228,8 +228,8 @@ impl Ruling {
     ///         .unwrap()
     ///         .into_stream()
     ///         .map(Result::unwrap)
-    ///         .any(|r| future::ready(r.comment == "Yes, your opponent can’t even. We know."))
-    ///         .await
+    ///         .any(|r| future::ready(dbg!(dbg!(r.comment) == "Yes, your opponent can't even. We know.")))
+    ///         .await,
     /// );
     /// # })
     /// ```
@@ -245,7 +245,7 @@ impl Ruling {
     ///         .unwrap()
     ///         .into_stream_buffered(10)
     ///         .map(Result::unwrap)
-    ///         .any(|r| future::ready(r.comment == "Yes, your opponent can’t even. We know."))
+    ///         .any(|r| future::ready(r.comment == "Yes, your opponent can't even. We know."))
     ///         .await
     /// );
     /// # })

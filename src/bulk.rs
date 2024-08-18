@@ -219,68 +219,42 @@ pub async fn rulings() -> crate::Result<impl Iterator<Item = crate::Result<Rulin
 #[cfg(test)]
 mod tests {
 
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn oracle_cards() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-
-        for card in handle
-            .block_on(super::oracle_cards())
-            .expect("Couldn't get the bulk object")
-        {
+    async fn oracle_cards() {
+        for card in super::oracle_cards().await.unwrap() {
             card.unwrap();
         }
     }
 
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn unique_artwork() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        for card in handle
-            .block_on(super::unique_artwork())
-            .expect("Couldn't get the bulk object")
-        {
+    async fn unique_artwork() {
+        for card in super::unique_artwork().await.unwrap() {
             card.unwrap();
         }
     }
 
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn default_cards() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        for card in handle
-            .block_on(super::default_cards())
-            .expect("Couldn't get the bulk object")
-        {
+    async fn default_cards() {
+        for card in super::default_cards().await.unwrap() {
             card.unwrap();
         }
     }
 
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn all_cards() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        for card in handle
-            .block_on(super::all_cards())
-            .expect("Couldn't get the bulk object")
-        {
+    async fn all_cards() {
+        for card in super::all_cards().await.unwrap() {
             card.unwrap();
         }
     }
 
-    #[test]
+    #[tokio::test]
     #[ignore]
-    fn rulings() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        for ruling in handle
-            .block_on(super::rulings())
-            .expect("Couldn't get the bulk object")
-        {
+    async fn rulings() {
+        for ruling in super::rulings().await.unwrap() {
             ruling.unwrap();
         }
     }

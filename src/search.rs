@@ -133,26 +133,22 @@ mod tests {
 
     use futures::stream::StreamExt;
 
-    #[test]
-    fn basic_search() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        let cards = handle.block_on(async move {
-            SearchOptions::new()
-                .query(Query::And(vec![
-                    name("lightning"),
-                    name("helix"),
-                    cmc(eq(2)),
-                ]))
-                .unique(UniqueStrategy::Prints)
-                .search()
-                .await
-                .unwrap()
-                .into_stream()
-                .map(|c| c.unwrap())
-                .collect::<Vec<_>>()
-                .await
-        });
+    #[tokio::test]
+    async fn basic_search() {
+        let cards = SearchOptions::new()
+            .query(Query::And(vec![
+                name("lightning"),
+                name("helix"),
+                cmc(eq(2)),
+            ]))
+            .unique(UniqueStrategy::Prints)
+            .search()
+            .await
+            .unwrap()
+            .into_stream()
+            .map(|c| c.unwrap())
+            .collect::<Vec<_>>()
+            .await;
 
         assert!(cards.len() > 1);
 
@@ -161,26 +157,22 @@ mod tests {
         }
     }
 
-    #[test]
-    fn basic_search_buffered() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        let cards = handle.block_on(async move {
-            SearchOptions::new()
-                .query(Query::And(vec![
-                    name("lightning"),
-                    name("helix"),
-                    cmc(eq(2)),
-                ]))
-                .unique(UniqueStrategy::Prints)
-                .search()
-                .await
-                .unwrap()
-                .into_stream_buffered(10)
-                .map(|c| c.unwrap())
-                .collect::<Vec<_>>()
-                .await
-        });
+    #[tokio::test]
+    async fn basic_search_buffered() {
+        let cards = SearchOptions::new()
+            .query(Query::And(vec![
+                name("lightning"),
+                name("helix"),
+                cmc(eq(2)),
+            ]))
+            .unique(UniqueStrategy::Prints)
+            .search()
+            .await
+            .unwrap()
+            .into_stream_buffered(10)
+            .map(|c| c.unwrap())
+            .collect::<Vec<_>>()
+            .await;
 
         assert!(cards.len() > 1);
 
@@ -189,32 +181,28 @@ mod tests {
         }
     }
 
-    #[test]
-    fn random_works_with_search_options() {
+    #[tokio::test]
+    async fn random_works_with_search_options() {
         // `SearchOptions` can set more query params than the "cards/random" API method
         // accepts. Scryfall should ignore these and return a random card.
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        assert!(handle.block_on(async move {
-            SearchOptions::new()
-                .query(keyword("storm"))
-                .unique(UniqueStrategy::Art)
-                .sort(SortOrder::Usd, SortDirection::Ascending)
-                .extras(true)
-                .multilingual(true)
-                .variations(true)
-                .random()
-                .await
-                .unwrap()
-                .oracle_text
-                .unwrap()
-                .to_lowercase()
-                .contains("storm")
-        }));
+        assert!(SearchOptions::new()
+            .query(keyword("storm"))
+            .unique(UniqueStrategy::Art)
+            .sort(SortOrder::Usd, SortDirection::Ascending)
+            .extras(true)
+            .multilingual(true)
+            .variations(true)
+            .random()
+            .await
+            .unwrap()
+            .oracle_text
+            .unwrap()
+            .to_lowercase()
+            .contains("storm"));
     }
 
-    #[test]
-    fn finds_alpha_lotus() {
+    #[tokio::test]
+    async fn finds_alpha_lotus() {
         let mut search = SearchOptions::new();
 
         search
@@ -223,95 +211,58 @@ mod tests {
             .sort(SortOrder::Released, SortDirection::Ascending);
 
         eprintln!("{}", search.query_string().unwrap());
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
         assert_eq!(
-            handle.block_on(async move {
-                Card::search(&search)
-                    .await
-                    .unwrap()
-                    .into_stream()
-                    .next()
-                    .await
-                    .unwrap()
-                    .unwrap()
-                    .set
-                    .to_string()
-            }),
-            "lea",
-        );
-    }
-
-    #[test]
-    fn finds_alpha_lotus_buffered() {
-        let mut search = SearchOptions::new();
-
-        search
-            .query(exact("Black Lotus"))
-            .unique(UniqueStrategy::Prints)
-            .sort(SortOrder::Released, SortDirection::Ascending);
-
-        eprintln!("{}", search.query_string().unwrap());
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        assert_eq!(
-            handle.block_on(async move {
-                Card::search(&search)
-                    .await
-                    .unwrap()
-                    .into_stream_buffered(10)
-                    .next()
-                    .await
-                    .unwrap()
-                    .unwrap()
-                    .set
-                    .to_string()
-            }),
-            "lea",
-        );
-    }
-
-    #[test]
-    fn rarity_comparison() {
-        use crate::card::Rarity;
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        // The cards with "Bonus" rarity (power nine in vma).
-        let cards = handle.block_on(async move {
-            SearchOptions::new()
-                .query(rarity(gt(Rarity::Mythic)))
-                .search()
+            Card::search(&search)
                 .await
                 .unwrap()
                 .into_stream()
-                .collect::<Vec<_>>()
+                .next()
                 .await
-        });
-
-        assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
-
-        assert!(cards
-            .into_iter()
-            .map(|c| c.unwrap())
-            .all(|c| c.rarity > Rarity::Mythic));
+                .unwrap()
+                .unwrap()
+                .set
+                .to_string(),
+            "lea",
+        );
     }
 
-    #[test]
-    fn rarity_comparison_buffered() {
-        use crate::card::Rarity;
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-        // The cards with "Bonus" rarity (power nine in vma).
-        let cards = handle.block_on(async move {
-            SearchOptions::new()
-                .query(rarity(gt(Rarity::Mythic)))
-                .search()
+    #[tokio::test]
+    async fn finds_alpha_lotus_buffered() {
+        let mut search = SearchOptions::new();
+
+        search
+            .query(exact("Black Lotus"))
+            .unique(UniqueStrategy::Prints)
+            .sort(SortOrder::Released, SortDirection::Ascending);
+
+        eprintln!("{}", search.query_string().unwrap());
+        assert_eq!(
+            Card::search(&search)
                 .await
                 .unwrap()
                 .into_stream_buffered(10)
-                .collect::<Vec<_>>()
+                .next()
                 .await
-        });
+                .unwrap()
+                .unwrap()
+                .set
+                .to_string(),
+            "lea",
+        );
+    }
+
+    #[tokio::test]
+    async fn rarity_comparison() {
+        use crate::card::Rarity;
+        // The cards with "Bonus" rarity (power nine in vma).
+        let cards = SearchOptions::new()
+            .query(rarity(gt(Rarity::Mythic)))
+            .search()
+            .await
+            .unwrap()
+            .into_stream()
+            .collect::<Vec<_>>()
+            .await;
 
         assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
 
@@ -321,21 +272,36 @@ mod tests {
             .all(|c| c.rarity > Rarity::Mythic));
     }
 
-    #[test]
-    fn numeric_property_comparison() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
+    #[tokio::test]
+    async fn rarity_comparison_buffered() {
+        use crate::card::Rarity;
+        // The cards with "Bonus" rarity (power nine in vma).
+        let cards = SearchOptions::new()
+            .query(rarity(gt(Rarity::Mythic)))
+            .search()
+            .await
+            .unwrap()
+            .into_stream_buffered(10)
+            .collect::<Vec<_>>()
+            .await;
 
-        let card = handle
-            .block_on(async move {
-                Card::search_random(Query::And(vec![
-                    power(eq(NumProperty::Toughness)),
-                    pow_tou(eq(NumProperty::Cmc)),
-                    not(CardIs::Funny),
-                ]))
-                .await
-            })
-            .unwrap();
+        assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
+
+        assert!(cards
+            .into_iter()
+            .map(|c| c.unwrap())
+            .all(|c| c.rarity > Rarity::Mythic));
+    }
+
+    #[tokio::test]
+    async fn numeric_property_comparison() {
+        let card = Card::search_random(Query::And(vec![
+            power(eq(NumProperty::Toughness)),
+            pow_tou(eq(NumProperty::Cmc)),
+            not(CardIs::Funny),
+        ]))
+        .await
+        .unwrap();
 
         let power = card
             .power
@@ -349,34 +315,26 @@ mod tests {
         assert_eq!(power, toughness);
         assert_eq!(power + toughness, card.cmc.unwrap_or_default() as u32);
 
-        let card = handle.block_on(async move {
-            Card::search(pow_tou(gt(NumProperty::Year)))
-                .await
-                .unwrap()
-                .into_stream()
-                .map(|c| c.unwrap())
-                .any(|c| async move { &c.name == "Infinity Elemental" })
-                .await
-        });
+        let card = Card::search(pow_tou(gt(NumProperty::Year)))
+            .await
+            .unwrap()
+            .into_stream()
+            .map(|c| c.unwrap())
+            .any(|c| async move { &c.name == "Infinity Elemental" })
+            .await;
 
         assert!(card);
     }
 
-    #[test]
-    fn numeric_property_comparison_buffered() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.handle();
-
-        let card = handle
-            .block_on(async move {
-                Card::search_random(Query::And(vec![
-                    power(eq(NumProperty::Toughness)),
-                    pow_tou(eq(NumProperty::Cmc)),
-                    not(CardIs::Funny),
-                ]))
-                .await
-            })
-            .unwrap();
+    #[tokio::test]
+    async fn numeric_property_comparison_buffered() {
+        let card = Card::search_random(Query::And(vec![
+            power(eq(NumProperty::Toughness)),
+            pow_tou(eq(NumProperty::Cmc)),
+            not(CardIs::Funny),
+        ]))
+        .await
+        .unwrap();
 
         let power = card
             .power
@@ -399,15 +357,13 @@ mod tests {
             card.name
         );
 
-        let card = handle.block_on(async move {
-            Card::search(pow_tou(gt(NumProperty::Year)))
-                .await
-                .unwrap()
-                .into_stream_buffered(10)
-                .map(|c| c.unwrap())
-                .any(|c| async move { &c.name == "Infinity Elemental" })
-                .await
-        });
+        let card = Card::search(pow_tou(gt(NumProperty::Year)))
+            .await
+            .unwrap()
+            .into_stream_buffered(10)
+            .map(|c| c.unwrap())
+            .any(|c| async move { &c.name == "Infinity Elemental" })
+            .await;
 
         assert!(card);
     }

@@ -146,55 +146,47 @@ mod tests {
     use super::*;
     use crate::search::prelude::*;
 
-    #[test]
-    fn even_power() -> crate::Result<()> {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        let handle = runtime.handle();
+    #[tokio::test]
+    async fn even_power() -> crate::Result<()> {
         // Scryfall doesn't support "power:even", so let's do it manually.
         let normal_creatures = type_line("Creature").and(not(CardIs::Funny));
-        handle.block_on(async move {
-            let highest_power: u32 = SearchOptions::new()
-                .query(normal_creatures.clone())
-                .sort(SortOrder::Power, SortDirection::Descending)
-                .search()
-                .await?
-                .into_stream()
-                .next()
-                .await
-                .unwrap()?
-                .power
-                .and_then(|pow| pow.parse().ok())
-                .unwrap_or(0);
-            let query = normal_creatures.and(Query::Or((0..=highest_power).map(power).collect()));
-            // There are at least 1000 cards with even power.
-            assert!(query.search().await.unwrap().size_hint().0 > 1000);
-            Ok(())
-        })
+        let highest_power: u32 = SearchOptions::new()
+            .query(normal_creatures.clone())
+            .sort(SortOrder::Power, SortDirection::Descending)
+            .search()
+            .await?
+            .into_stream()
+            .next()
+            .await
+            .unwrap()?
+            .power
+            .and_then(|pow| pow.parse().ok())
+            .unwrap_or(0);
+        let query = normal_creatures.and(Query::Or((0..=highest_power).map(power).collect()));
+        // There are at least 1000 cards with even power.
+        assert!(query.search().await.unwrap().size_hint().0 > 1000);
+        Ok(())
     }
 
-    #[test]
-    fn even_power_buffered() -> crate::Result<()> {
-        let runtime = tokio::runtime::Runtime::new().unwrap();
-        let handle = runtime.handle();
+    #[tokio::test]
+    async fn even_power_buffered() -> crate::Result<()> {
         // Scryfall doesn't support "power:even", so let's do it manually.
         let normal_creatures = type_line("Creature").and(not(CardIs::Funny));
-        handle.block_on(async move {
-            let highest_power: u32 = SearchOptions::new()
-                .query(normal_creatures.clone())
-                .sort(SortOrder::Power, SortDirection::Descending)
-                .search()
-                .await?
-                .into_stream_buffered(10)
-                .next()
-                .await
-                .unwrap()?
-                .power
-                .and_then(|pow| pow.parse().ok())
-                .unwrap_or(0);
-            let query = normal_creatures.and(Query::Or((0..=highest_power).map(power).collect()));
-            // There are at least 1000 cards with even power.
-            assert!(query.search().await.unwrap().size_hint().0 > 1000);
-            Ok(())
-        })
+        let highest_power: u32 = SearchOptions::new()
+            .query(normal_creatures.clone())
+            .sort(SortOrder::Power, SortDirection::Descending)
+            .search()
+            .await?
+            .into_stream_buffered(10)
+            .next()
+            .await
+            .unwrap()?
+            .power
+            .and_then(|pow| pow.parse().ok())
+            .unwrap_or(0);
+        let query = normal_creatures.and(Query::Or((0..=highest_power).map(power).collect()));
+        // There are at least 1000 cards with even power.
+        assert!(query.search().await.unwrap().size_hint().0 > 1000);
+        Ok(())
     }
 }
