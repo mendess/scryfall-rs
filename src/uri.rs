@@ -5,7 +5,6 @@
 //! that data.
 use std::convert::TryFrom;
 use std::marker::PhantomData;
-use std::sync::OnceLock;
 
 use httpstatus::StatusCode;
 use reqwest::header::{self, HeaderValue};
@@ -86,21 +85,27 @@ impl<T> AsRef<str> for Uri<T> {
     }
 }
 
+fn create_client() -> reqwest::Client {
+    reqwest::Client::builder()
+        .default_headers(
+            [
+                (header::ACCEPT, HeaderValue::from_static("*/*")),
+                (header::USER_AGENT, HeaderValue::from_static("scryfall-rs")),
+            ]
+            .into_iter()
+            .collect(),
+        )
+        .build()
+        .unwrap()
+}
+#[cfg(test)]
+use create_client as client;
+
+#[cfg(not(test))]
 fn client() -> &'static reqwest::Client {
+    use std::sync::OnceLock;
     static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
-    CLIENT.get_or_init(|| {
-        reqwest::Client::builder()
-            .default_headers(
-                [
-                    (header::ACCEPT, HeaderValue::from_static("*/*")),
-                    (header::USER_AGENT, HeaderValue::from_static("scryfall-rs")),
-                ]
-                .into_iter()
-                .collect(),
-            )
-            .build()
-            .unwrap()
-    })
+    CLIENT.get_or_init(create_client)
 }
 
 impl<T: DeserializeOwned> Uri<T> {
