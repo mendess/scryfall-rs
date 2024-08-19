@@ -13,6 +13,8 @@ categories = ["api-bindings", "games"]
 [features]
 default = ["bulk_caching"]
 bulk_caching = ["heck"]
+unknown_variants = []
+unknown_variants_slim = []
 bin = ["dep:tokio"]
 
 [dependencies]
@@ -40,6 +42,7 @@ tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = tr
 strum = { version = "0.26", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 tokio-test = "0.4.4"
+static_assertions = "1.1.0"
 
 [[bin]]
 name = "search"

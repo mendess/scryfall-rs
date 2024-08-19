@@ -37,3 +37,41 @@ use scryfall::set::Set;
 assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
 ```
 
+## Dealing with breaking changes
+
+Scryfall makes a lot of breaking api changes, mostly because magic makes a lot
+of breaking changes 😅. Due to the strong typing of this crate, this means that
+sometimes code that works one day breaks the next day. For example, there's a
+[Format](./src/format.rs) enum. This enum, when deserializing, will strictly
+reject any format it doesn't know about. This means that everytime wizards adds
+a new format, this scryfall will start returning this new format from its API
+which will make your code fail at runtime.
+
+To cope with this I've added a feature called `unknown_variants`. This feature
+adds to these troublesome enums a variant called `Unknown`, which contains the
+string representation of the unknown format.
+
+This has a few pros and cons:
+
+- Pros:
+  - Your code is much less likely to stop working from one day to the next.
+  - You can exhaustively match on the enum
+- Cons:
+  - The size of the enum is now 24 bytes, instead of 1
+  - It is no longer Copy
+  - If you ever depend on a variant being passed through the unknown variant,
+      when the new variant is added to the enum, it will stop showing up in the
+      unknown variant. For example, if tomorrow wizards adds a format called
+      "Frontier" and you have `unknown_variants` enabled, `"frontier"` will
+      start showing up inside the `Format::Unknown` variant. But in the next
+      version of this crate, I will add `Format::Frontier`, which means that if
+      you upgrade your dependency on this crate, `"frontier"` will no longer
+      show up inside the `Format::Unknown` variant. If you depend on that
+      behaviour it will be considered a breaking change.
+
+If you want to have the unknown variant but don't want to pay for the 16 byte
+cost, you can opt for the `unknown_variants_slim` feature, which will simply add
+an empty `Unknown` variant instead.
+
+These two features are incompatible and `unknown_variants` will take
+precedence if both are present.

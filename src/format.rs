@@ -3,11 +3,18 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(not(feature = "unknown_variants"), derive(Copy))]
+#[cfg_attr(
+    all(
+        not(feature = "unknown_variants"),
+        not(feature = "unknown_variants_slim")
+    ),
+    non_exhaustive
+)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "lowercase")]
 #[allow(missing_docs)]
-#[non_exhaustive]
 pub enum Format {
     Standard,
     Modern,
@@ -32,6 +39,12 @@ pub enum Format {
     Timeless,
     StandardBrawl,
     HistoricBrawl,
+    #[cfg(feature = "unknown_variants")]
+    #[serde(untagged)]
+    Unknown(Box<str>),
+    #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+    #[serde(other)]
+    Unknown,
 }
 
 impl fmt::Display for Format {
@@ -64,6 +77,10 @@ impl fmt::Display for Format {
                 Timeless => "timeless",
                 StandardBrawl => "standardbrawl",
                 HistoricBrawl => "historicbrawl",
+                #[cfg(feature = "unknown_variants")]
+                Unknown(s) => s,
+                #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+                Unknown => "unknown-format",
             }
         )
     }
