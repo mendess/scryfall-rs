@@ -113,8 +113,6 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
                 ))
             }
 
-
-
             async fn get_reader(&self) -> crate::Result<BufReader<File>> {
                 let cache_path = self.cache_path();
                 if !cache_path.exists() {
@@ -124,7 +122,16 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
             }
         } else {
             async fn get_reader(&self) -> crate::Result<BufReader<impl io::Read + Send>> {
-                Ok(BufReader::new(self.download_uri.fetch_raw().await?.into_reader()))
+                let content = self.download_uri
+                    .fetch_raw()
+                    .await?
+                    .bytes()
+                    .await
+                    .map_err(|error| crate::Error::ReqwestError {
+                        url: self.download_uri.inner().clone(),
+                        error: Box::new(error),
+                    })?;
+                Ok(BufReader::new(std::io::Cursor::new(content)))
             }
         }
     }

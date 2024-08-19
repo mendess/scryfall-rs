@@ -34,7 +34,7 @@ thiserror = "1"
 tinyvec = "1"
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde"] }
-tokio = { version = "1", features = ["macros"], optional = true }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = true }
 
 [dev-dependencies]
 strum = { version = "0.26", features = ["derive"] }
