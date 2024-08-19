@@ -6,10 +6,17 @@ use serde::{Deserialize, Serialize};
 
 /// Scryfall provides an overall categorization for each Set in the set_type
 /// property.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug)]
+#[cfg_attr(not(feature = "unknown_variants"), derive(Copy))]
+#[cfg_attr(
+    all(
+        not(feature = "unknown_variants"),
+        not(feature = "unknown_variants_slim")
+    ),
+    non_exhaustive
+)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
-#[non_exhaustive]
 pub enum SetType {
     /// A yearly Magic core set (Tenth Edition, etc)
     Core,
@@ -59,6 +66,12 @@ pub enum SetType {
     Arsenal,
     /// Mini game sets
     Minigame,
+    #[cfg(feature = "unknown_variants")]
+    /// Unknown set type
+    Unknown(Box<str>),
+    #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+    /// Unknown set type
+    Unknown,
 }
 
 impl fmt::Display for SetType {
@@ -90,6 +103,10 @@ impl fmt::Display for SetType {
                 SetType::Alchemy => "alchemy",
                 SetType::Arsenal => "arsenal",
                 SetType::Minigame => "minigame",
+                #[cfg(feature = "unknown_variants")]
+                SetType::Unknown(s) => s,
+                #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+                SetType::Unknown => "unknown-set-type",
             }
         )
     }

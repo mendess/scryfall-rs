@@ -54,10 +54,17 @@ use crate::set::{Set, SetCode, SetType};
 use crate::uri::Uri;
 use crate::util::CARDS_URL;
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(not(feature = "unknown_variants"), derive(Copy))]
+#[cfg_attr(
+    all(
+        not(feature = "unknown_variants"),
+        not(feature = "unknown_variants_slim")
+    ),
+    non_exhaustive
+)]
 #[serde(deny_unknown_fields)]
 #[allow(missing_docs)]
-#[non_exhaustive]
 pub struct CardLegality {
     #[serde(default)]
     pub standard: Legality,
@@ -105,6 +112,12 @@ pub struct CardLegality {
     pub standard_brawl: Legality,
     #[serde(default, rename = "historicbrawl")]
     pub historic_brawl: Legality,
+    #[cfg(feature = "unknown_variants")]
+    #[serde(flatten)]
+    pub unknown: HashMap<Box<str>, Legality>,
+    #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+    #[serde(default, skip_serializing)]
+    unknown: Legality,
 }
 
 impl Index<Format> for CardLegality {
@@ -135,6 +148,10 @@ impl Index<Format> for CardLegality {
             Format::Timeless => &self.timeless,
             Format::StandardBrawl => &self.standard_brawl,
             Format::HistoricBrawl => &self.historic_brawl,
+            #[cfg(feature = "unknown_variants")]
+            Format::Unknown(s) => &self.unknown[&s],
+            #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+            Format::Unknown => &self.unknown,
         }
     }
 }
@@ -165,6 +182,10 @@ impl IndexMut<Format> for CardLegality {
             Format::Timeless => &mut self.timeless,
             Format::StandardBrawl => &mut self.standard_brawl,
             Format::HistoricBrawl => &mut self.historic_brawl,
+            #[cfg(feature = "unknown_variants")]
+            Format::Unknown(s) => self.unknown.get_mut(&s).expect("format not present"),
+            #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+            Format::Unknown => &mut self.unknown,
         }
     }
 }
