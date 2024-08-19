@@ -280,17 +280,20 @@ mod tests {
             .query(rarity(gt(Rarity::Mythic)))
             .search()
             .await
-            .unwrap()
+            .expect("search failed")
             .into_stream_buffered(10)
             .collect::<Vec<_>>()
             .await;
 
         assert!(cards.len() >= 9, "Couldn't find the Power Nine from VMA.");
 
-        assert!(cards
-            .into_iter()
-            .map(|c| c.unwrap())
-            .all(|c| c.rarity > Rarity::Mythic));
+        assert!(
+            cards
+                .into_iter()
+                .map(|c| c.unwrap())
+                .all(|c| c.rarity > Rarity::Mythic),
+            "rarity should above mythic"
+        );
     }
 
     #[tokio::test]
@@ -299,6 +302,9 @@ mod tests {
             power(eq(NumProperty::Toughness)),
             pow_tou(eq(NumProperty::Cmc)),
             not(CardIs::Funny),
+            not(CardIs::Transform),
+            not(CardIs::Flip),
+            not(CardIs::ModalDfc),
         ]))
         .await
         .unwrap();
