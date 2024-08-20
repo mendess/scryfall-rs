@@ -71,10 +71,18 @@ pub enum Layout {
     Mutate,
     /// Case
     Case,
+    #[cfg_attr(
+        doc,
+        doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))
+    )]
     #[cfg(feature = "unknown_variants")]
     #[serde(untagged)]
     /// Unknown layout
     Unknown(Box<str>),
+    #[cfg_attr(
+        doc,
+        doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))
+    )]
     #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
     #[serde(other)]
     /// Unknown layout

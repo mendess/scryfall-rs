@@ -1,8 +1,7 @@
 //! This module defines the [`Compare`] type, which represents a comparison
 //! operator and right-hand side of a comparison expression. Certain
-//! [`ParamValue`][crate::search::param::value::ParamValue] subtraits are
-//! implemented for `Compare<T>`, depending on whether Scryfall syntax supports
-//! comparing for that.
+//! [`ParamValue`] subtraits are implemented for `Compare<T>`, depending on
+//! whether Scryfall syntax supports comparing for that.
 //!
 //! To construct a `Compare` instance, use the helper functions defined in this
 //! module: [`lt`], [`lte`], [`gt`], [`gte`], [`eq`], and [`neq`].

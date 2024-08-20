@@ -1,5 +1,5 @@
 use scryfall::{
-    card::{FrameEffect, Layout, PromoType, SecurityStamp},
+    card::{Finishes, FrameEffect, Layout, PromoType, SecurityStamp},
     format::Format,
     set::SetType,
 };
@@ -28,4 +28,5 @@ fn deserialize() {
     assert!(serde_json::from_str::<SetType>(r#""foo""#).is_err());
     assert!(serde_json::from_str::<PromoType>(r#""foo""#).is_err());
     assert!(serde_json::from_str::<SecurityStamp>(r#""foo""#).is_err());
+    assert!(serde_json::from_str::<Finishes>(r#""foo""#).is_err());
 }

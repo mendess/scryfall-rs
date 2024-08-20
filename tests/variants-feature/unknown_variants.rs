@@ -1,5 +1,5 @@
 use scryfall::{
-    card::{FrameEffect, Layout, PromoType, SecurityStamp},
+    card::{Finishes, FrameEffect, Layout, PromoType, SecurityStamp},
     format::Format,
     set::SetType,
 };
@@ -240,6 +240,16 @@ fn match_on_security_stamp(s: SecurityStamp) {
     }
 }
 
+#[allow(dead_code)]
+fn match_on_finishes(f: Finishes) {
+    match f {
+        Finishes::Nonfoil => todo!(),
+        Finishes::Foil => todo!(),
+        Finishes::Etched => todo!(),
+        Finishes::Unknown(_) => todo!(),
+    }
+}
+
 #[test]
 fn deserialize() {
     assert_eq!(
@@ -265,5 +275,9 @@ fn deserialize() {
     assert_eq!(
         serde_json::from_str::<SecurityStamp>(r#""foo""#).unwrap(),
         SecurityStamp::Unknown("foo".into())
+    );
+    assert_eq!(
+        serde_json::from_str::<Finishes>(r#""foo""#).unwrap(),
+        Finishes::Unknown("foo".into())
     );
 }
