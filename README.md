@@ -69,7 +69,7 @@ This has a few pros and cons:
       show up inside the [`Format::Unknown`][format-unknown] variant. If you depend on that
       behaviour it will be considered a breaking change.
 
-If you want to have the unknown variant but don't want to pay for the 16 byte
+If you want to have the unknown variant but don't want to pay for the 24 byte
 cost, you can opt for the `unknown_variants_slim` feature, which will simply add
 an empty `Unknown` variant instead.
 
