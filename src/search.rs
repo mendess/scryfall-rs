@@ -210,16 +210,16 @@ mod tests {
             .unique(UniqueStrategy::Prints)
             .sort(SortOrder::Released, SortDirection::Ascending);
 
-        eprintln!("{}", search.query_string().unwrap());
+        eprintln!("search query: {}", search.query_string().unwrap());
         assert_eq!(
             Card::search(&search)
                 .await
-                .unwrap()
+                .expect("search failed")
                 .into_stream()
                 .next()
                 .await
-                .unwrap()
-                .unwrap()
+                .expect("empty stream")
+                .expect("deserialization failed")
                 .set
                 .to_string(),
             "lea",
@@ -235,16 +235,16 @@ mod tests {
             .unique(UniqueStrategy::Prints)
             .sort(SortOrder::Released, SortDirection::Ascending);
 
-        eprintln!("{}", search.query_string().unwrap());
+        eprintln!("search query: {}", search.query_string().unwrap());
         assert_eq!(
             Card::search(&search)
                 .await
-                .unwrap()
+                .expect("search failed")
                 .into_stream_buffered(10)
                 .next()
                 .await
-                .unwrap()
-                .unwrap()
+                .expect("empty stream")
+                .expect("deserialization failed")
                 .set
                 .to_string(),
             "lea",
