@@ -42,13 +42,13 @@ assert_eq!(Set::code("mmq").unwrap().name, "Mercadian Masques")
 Scryfall makes a lot of breaking api changes, mostly because magic makes a lot
 of breaking changes 😅. Due to the strong typing of this crate, this means that
 sometimes code that works one day breaks the next day. For example, there's a
-[Format](./src/format.rs) enum. This enum, when deserializing, will strictly
+[`Format`][format-enum] enum. This enum, when deserializing, will strictly
 reject any format it doesn't know about. This means that everytime wizards adds
-a new format, this scryfall will start returning this new format from its API
+a new format, scryfall will start returning this new format from its API
 which will make your code fail at runtime.
 
 To cope with this I've added a feature called `unknown_variants`. This feature
-adds to these troublesome enums a variant called `Unknown`, which contains the
+adds to these troublesome enums a variant called [`Unknown`][format-unknown], which contains the
 string representation of the unknown format.
 
 This has a few pros and cons:
@@ -63,10 +63,10 @@ This has a few pros and cons:
       when the new variant is added to the enum, it will stop showing up in the
       unknown variant. For example, if tomorrow wizards adds a format called
       "Frontier" and you have `unknown_variants` enabled, `"frontier"` will
-      start showing up inside the `Format::Unknown` variant. But in the next
+      start showing up inside the [`Format::Unknown`][format-unknown] variant. But in the next
       version of this crate, I will add `Format::Frontier`, which means that if
       you upgrade your dependency on this crate, `"frontier"` will no longer
-      show up inside the `Format::Unknown` variant. If you depend on that
+      show up inside the [`Format::Unknown`][format-unknown] variant. If you depend on that
       behaviour it will be considered a breaking change.
 
 If you want to have the unknown variant but don't want to pay for the 16 byte
@@ -75,3 +75,6 @@ an empty `Unknown` variant instead.
 
 These two features are incompatible and `unknown_variants` will take
 precedence if both are present.
+
+[format-enum]: https://docs.rs/scryfall/latest/scryfall/format/enum.Format.html
+[format-unknown]: https://docs.rs/scryfall/latest/scryfall/format/enum.Format.html#variant.Unknown

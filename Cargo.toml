@@ -1,6 +1,6 @@
 [package]
 name = "scryfall"
-version = "0.17.5"
+version = "0.17.7"
 authors = ["Mendess2526 <pedro.mendes.26@gmail.com>"]
 edition = "2021"
 description = "A wrapper around the scryfall magic the gathering api"
@@ -10,9 +10,12 @@ readme = "README.md"
 keywords = ["mtg", "Magic", "API", "Scryfall"]
 categories = ["api-bindings", "games"]
 
+[package.metadata.docs.rs]
+features = ["unknown_variants"]
+
 [features]
 default = ["bulk_caching"]
-bulk_caching = ["heck"]
+bulk_caching = ["dep:heck"]
 unknown_variants = []
 unknown_variants_slim = []
 bin = ["dep:tokio"]

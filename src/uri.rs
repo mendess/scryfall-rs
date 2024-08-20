@@ -19,7 +19,7 @@ use crate::list::{List, ListIter};
 ///
 /// The `fetch` method handles requesting the resource from the API endpoint,
 /// and deserializing it into a `T` object. If the type parameter is
-/// [`List`][crate::list::List]`<_>`, then additional methods `fetch_iter`
+/// [`List`]`<_>`, then additional methods `fetch_iter`
 /// and `fetch_all` are available, giving access to objects from all pages
 /// of the collection.
 #[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]

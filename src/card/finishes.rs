@@ -19,10 +19,20 @@ pub enum Finishes {
     Foil,
     /// Etched foil.
     Etched,
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))
+    )]
     #[cfg(feature = "unknown_variants")]
+    #[serde(untagged)]
     /// Unknown frame effect
     Unknown(Box<str>),
+    #[cfg_attr(
+        docsrs,
+        doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))
+    )]
     #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
+    #[serde(other)]
     /// Unknown frame effect
     Unknown,
 }
