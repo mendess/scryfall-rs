@@ -66,7 +66,7 @@ This has a few pros and cons:
       start showing up inside the [`PromoType::Unknown`][promo-type-unknown] variant. But in the next
       version of this crate, I will add `PromoType::Transparent`, which means that if
       you upgrade your dependency on this crate, `"transparent"` will no longer
-      show up inside the [`PromoType::Unknown`][format-unknown] variant. If you depend on that
+      show up inside the [`PromoType::Unknown`][promo-type-unknown] variant. If you depend on that
       behaviour it will be considered a breaking change.
 
 If you want to have the unknown variant but don't want to pay for the 24 byte
