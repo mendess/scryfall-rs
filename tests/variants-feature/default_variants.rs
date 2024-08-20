@@ -23,36 +23,6 @@ sa::assert_eq_size!(PromoType, u8);
 sa::assert_eq_size!(SecurityStamp, u8);
 
 #[allow(dead_code)]
-fn match_on_format(f: Format) {
-    match f {
-        Format::Standard => todo!(),
-        Format::Modern => todo!(),
-        Format::Legacy => todo!(),
-        Format::Vintage => todo!(),
-        Format::Commander => todo!(),
-        Format::Future => todo!(),
-        Format::Pauper => todo!(),
-        Format::Pioneer => todo!(),
-        Format::Penny => todo!(),
-        Format::Duel => todo!(),
-        Format::OldSchool => todo!(),
-        Format::Historic => todo!(),
-        Format::Gladiator => todo!(),
-        Format::Brawl => todo!(),
-        Format::Premodern => todo!(),
-        Format::PauperCommander => todo!(),
-        Format::Alchemy => todo!(),
-        Format::Explorer => todo!(),
-        Format::Predh => todo!(),
-        Format::Oathbreaker => todo!(),
-        Format::Timeless => todo!(),
-        Format::StandardBrawl => todo!(),
-        Format::HistoricBrawl => todo!(),
-        _ => todo!(),
-    }
-}
-
-#[allow(dead_code)]
 fn match_on_frame_effect(f: FrameEffect) {
     match f {
         FrameEffect::Legendary => todo!(),
@@ -260,7 +230,6 @@ fn match_on_finishes(f: Finishes) {
 }
 #[test]
 fn deserialize() {
-    assert!(serde_json::from_str::<Format>(r#""frontier""#).is_err());
     assert!(serde_json::from_str::<FrameEffect>(r#""foo""#).is_err());
     assert!(serde_json::from_str::<Layout>(r#""foo""#).is_err());
     assert!(serde_json::from_str::<SetType>(r#""foo""#).is_err());

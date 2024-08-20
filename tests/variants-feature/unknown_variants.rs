@@ -6,42 +6,11 @@ use scryfall::{
 
 use static_assertions as sa;
 
-sa::assert_eq_size!(Format, [u8; 24]);
 sa::assert_eq_size!(FrameEffect, [u8; 24]);
 sa::assert_eq_size!(Layout, [u8; 24]);
 sa::assert_eq_size!(SetType, [u8; 24]);
 sa::assert_eq_size!(PromoType, [u8; 24]);
 sa::assert_eq_size!(SecurityStamp, [u8; 24]);
-
-#[allow(dead_code)]
-fn match_on_format(f: Format) {
-    match f {
-        Format::Standard => todo!(),
-        Format::Modern => todo!(),
-        Format::Legacy => todo!(),
-        Format::Vintage => todo!(),
-        Format::Commander => todo!(),
-        Format::Future => todo!(),
-        Format::Pauper => todo!(),
-        Format::Pioneer => todo!(),
-        Format::Penny => todo!(),
-        Format::Duel => todo!(),
-        Format::OldSchool => todo!(),
-        Format::Historic => todo!(),
-        Format::Gladiator => todo!(),
-        Format::Brawl => todo!(),
-        Format::Premodern => todo!(),
-        Format::PauperCommander => todo!(),
-        Format::Alchemy => todo!(),
-        Format::Explorer => todo!(),
-        Format::Predh => todo!(),
-        Format::Oathbreaker => todo!(),
-        Format::Timeless => todo!(),
-        Format::StandardBrawl => todo!(),
-        Format::HistoricBrawl => todo!(),
-        Format::Unknown(_) => todo!(),
-    }
-}
 
 #[allow(dead_code)]
 fn match_on_frame_effect(f: FrameEffect) {
@@ -252,10 +221,6 @@ fn match_on_finishes(f: Finishes) {
 
 #[test]
 fn deserialize() {
-    assert_eq!(
-        serde_json::from_str::<Format>(r#""frontier""#).unwrap(),
-        Format::Unknown("frontier".into())
-    );
     assert_eq!(
         serde_json::from_str::<FrameEffect>(r#""foo""#).unwrap(),
         FrameEffect::Unknown("foo".into())

@@ -112,12 +112,6 @@ pub struct CardLegality {
     pub standard_brawl: Legality,
     #[serde(default, rename = "historicbrawl")]
     pub historic_brawl: Legality,
-    #[cfg(feature = "unknown_variants")]
-    #[serde(flatten)]
-    pub unknown: HashMap<Box<str>, Legality>,
-    #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
-    #[serde(default, skip_serializing)]
-    unknown: Legality,
 }
 
 impl Index<Format> for CardLegality {
@@ -148,10 +142,6 @@ impl Index<Format> for CardLegality {
             Format::Timeless => &self.timeless,
             Format::StandardBrawl => &self.standard_brawl,
             Format::HistoricBrawl => &self.historic_brawl,
-            #[cfg(feature = "unknown_variants")]
-            Format::Unknown(s) => &self.unknown[&s],
-            #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
-            Format::Unknown => &self.unknown,
         }
     }
 }
@@ -182,10 +172,6 @@ impl IndexMut<Format> for CardLegality {
             Format::Timeless => &mut self.timeless,
             Format::StandardBrawl => &mut self.standard_brawl,
             Format::HistoricBrawl => &mut self.historic_brawl,
-            #[cfg(feature = "unknown_variants")]
-            Format::Unknown(s) => self.unknown.get_mut(&s).expect("format not present"),
-            #[cfg(all(not(feature = "unknown_variants"), feature = "unknown_variants_slim"))]
-            Format::Unknown => &mut self.unknown,
         }
     }
 }
