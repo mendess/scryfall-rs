@@ -145,6 +145,8 @@ pub enum CardIs {
     Companion,
     /// Find cards on the reserved list.
     Reserved,
+    /// Find adventure cards
+    Adventure,
 
     /// A cycling dual land, such as [Fetid Pools](https://scryfall.com/card/akh/243).
     BicycleLand,
@@ -241,6 +243,7 @@ impl fmt::Display for CardIs {
                 CardIs::Brawler => "brawler",
                 CardIs::Companion => "companion",
                 CardIs::Reserved => "reserved",
+                CardIs::Adventure => "adventure",
 
                 CardIs::BicycleLand => "bicycle_land",
                 CardIs::TricycleLand => "tricycle_land",
