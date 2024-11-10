@@ -44,6 +44,7 @@ fn match_on_frame_effect(f: FrameEffect) {
         FrameEffect::FanDfc => todo!(),
         FrameEffect::UpsideDownDfc => todo!(),
         FrameEffect::MoonReverseMoonDfc => todo!(),
+        FrameEffect::Enchantment => todo!(),
         FrameEffect::FullArt => todo!(),
         FrameEffect::Nyxborn => todo!(),
         FrameEffect::Booster => todo!(),
@@ -197,6 +198,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::UpsideDownBack => todo!(),
         PromoType::Vault => todo!(),
         PromoType::Wizardsplaynetwork => todo!(),
+        PromoType::Sldbonus => todo!(),
         PromoType::Unknown => todo!(),
     }
 }
