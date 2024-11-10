@@ -65,6 +65,8 @@ pub enum FrameEffect {
     UpsideDownDfc,
     /// The waxing and waning crescent moon transform marks.
     MoonReverseMoonDfc,
+    /// The cards have the enchantment frame effect.
+    Enchantment,
     /// A full art frame. Undocumented and unsupported for search.
     FullArt,
     /// A nyxborn card frame. Undocumented and unsupported for search.
@@ -132,6 +134,7 @@ impl std::fmt::Display for FrameEffect {
                 ConvertDfc => "convertdfc",
                 FanDfc => "fandfc",
                 UpsideDownDfc => "upsidedowndfc",
+                Enchantment => "enchantment",
                 FullArt => "fullart",
                 Nyxborn => "nyxborn",
                 WaxingAndWaningMoonDfc => "waxingandwaningmoondfc",
