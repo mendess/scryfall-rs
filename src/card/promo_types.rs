@@ -79,6 +79,7 @@ pub enum PromoType {
     Setextension,
     Setpromo,
     Silverfoil,
+    Sldbonus,
     Stamped,
     Starterdeck,
     Stepandcompleat,
