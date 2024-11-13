@@ -153,6 +153,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Judgegift => todo!(),
         PromoType::League => todo!(),
         PromoType::Magnified => todo!(),
+        PromoType::Manafoil => todo!(),
         PromoType::Mediainsert => todo!(),
         PromoType::Moonlitland => todo!(),
         PromoType::Neonink => todo!(),

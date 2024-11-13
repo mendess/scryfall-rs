@@ -52,6 +52,7 @@ pub enum PromoType {
     Judgegift,
     League,
     Magnified,
+    Manafoil,
     Mediainsert,
     Moonlitland,
     Neonink,
