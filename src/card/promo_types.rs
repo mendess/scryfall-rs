@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 pub enum PromoType {
     Alchemy,
     Arenaleague,
+    Beginnerbox,
     Boosterfun,
     Boxtopper,
     Brawldeck,
@@ -82,6 +83,7 @@ pub enum PromoType {
     Silverfoil,
     Sldbonus,
     Stamped,
+    Startercollection,
     Starterdeck,
     Stepandcompleat,
     Storechampionship,
