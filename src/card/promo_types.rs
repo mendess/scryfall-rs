@@ -74,6 +74,7 @@ pub enum PromoType {
     Ravnicacity,
     Rebalanced,
     Release,
+    Resale,
     Ripplefoil,
     Schinesealtart,
     Scroll,
