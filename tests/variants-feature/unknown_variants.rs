@@ -1,6 +1,5 @@
 use scryfall::{
     card::{Finishes, FrameEffect, Layout, PromoType, SecurityStamp},
-    format::Format,
     set::SetType,
 };
 
@@ -117,6 +116,7 @@ fn match_on_promo_type(f: PromoType) {
     match f {
         PromoType::Alchemy => todo!(),
         PromoType::Arenaleague => todo!(),
+        PromoType::Beginnerbox => todo!(),
         PromoType::Boosterfun => todo!(),
         PromoType::Boxtopper => todo!(),
         PromoType::Brawldeck => todo!(),
@@ -174,6 +174,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Ravnicacity => todo!(),
         PromoType::Rebalanced => todo!(),
         PromoType::Release => todo!(),
+        PromoType::Resale => todo!(),
         PromoType::Ripplefoil => todo!(),
         PromoType::Schinesealtart => todo!(),
         PromoType::Scroll => todo!(),
@@ -181,7 +182,9 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Setextension => todo!(),
         PromoType::Setpromo => todo!(),
         PromoType::Silverfoil => todo!(),
+        PromoType::Sldbonus => todo!(),
         PromoType::Stamped => todo!(),
+        PromoType::Startercollection => todo!(),
         PromoType::Starterdeck => todo!(),
         PromoType::Stepandcompleat => todo!(),
         PromoType::Storechampionship => todo!(),
@@ -190,12 +193,11 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Themepack => todo!(),
         PromoType::Thick => todo!(),
         PromoType::Tourney => todo!(),
+        PromoType::Unknown(_) => todo!(),
         PromoType::UpsideDown => todo!(),
         PromoType::UpsideDownBack => todo!(),
         PromoType::Vault => todo!(),
         PromoType::Wizardsplaynetwork => todo!(),
-        PromoType::Sldbonus => todo!(),
-        PromoType::Unknown(_) => todo!(),
     }
 }
 
