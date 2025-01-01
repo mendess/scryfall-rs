@@ -48,6 +48,7 @@ pub trait Search {
     /// Write this search as the query for the given `Url`.
     fn write_query(&self, url: &mut Url) -> crate::Result<()>;
 
+    /// Returns the constructed query string for testing purposes.
     #[cfg(test)]
     fn query_string(&self) -> crate::Result<String> {
         let mut url = Url::parse("http://localhost")?;
