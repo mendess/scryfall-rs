@@ -4,6 +4,7 @@ use serde::{Deserialize, Deserializer};
 use url::Url;
 
 pub(crate) mod array_stream_reader;
+pub(crate) mod stream_iterator;
 
 /// The [scryfall](https://scryfall.com/docs/api) endpoint.
 pub static ROOT_URL: Lazy<Url> = Lazy::new(|| Url::parse("https://api.scryfall.com/").unwrap());

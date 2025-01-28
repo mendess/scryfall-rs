@@ -16,8 +16,8 @@
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
 use std::fs::File;
-use std::io;
 use std::io::BufReader;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use cfg_if::cfg_if;
@@ -30,8 +30,9 @@ use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
 use crate::util::array_stream_reader::ArrayStreamReader;
-use crate::util::BULK_DATA_URL;
+use crate::util::{stream_iterator, BULK_DATA_URL};
 use crate::Error;
+use futures_util::StreamExt;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
 /// these files is represented as a bulk_data object via the API. URLs for files
@@ -122,16 +123,12 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
             }
         } else {
             async fn get_reader(&self) -> crate::Result<BufReader<impl io::Read + Send>> {
-                let content = self.download_uri
+                self.download_uri
                     .fetch_raw()
                     .await?
-                    .bytes()
-                    .await
-                    .map_err(|error| crate::Error::ReqwestError {
-                        url: self.download_uri.inner().clone(),
-                        error: Box::new(error),
-                    })?;
-                Ok(BufReader::new(std::io::Cursor::new(content)))
+                    .bytes_stream();
+
+                todo!()
             }
         }
     }
@@ -172,11 +169,20 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     pub async fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
         let path = path.as_ref();
         let response = self.download_uri.fetch_raw().await?;
-        let content = response.bytes().await.map_err(|e| Error::ReqwestError {
-            error: e.into(),
-            url: self.download_uri.inner().clone(),
-        })?;
-        io::copy(&mut content.as_ref(), &mut File::create(path)?)?;
+
+        let mut body = response.bytes_stream();
+        let mut writer = BufWriter::new(File::create(path)?);
+
+        while let Some(chunk_result) = body.next().await {
+            let chunk = chunk_result.map_err(|e| Error::ReqwestError {
+                error: e.into(),
+                url: self.download_uri.inner().clone(),
+            })?;
+            writer.write_all(&chunk)?;
+        }
+
+        writer.flush()?;
+
         Ok(())
     }
 }
@@ -215,6 +221,17 @@ pub async fn default_cards() -> crate::Result<impl Iterator<Item = crate::Result
 /// This currently takes about 2GB of RAM before returning 👀.
 pub async fn all_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("all_cards").await?.load_iter().await
+}
+
+/// An iterator of every card object on Scryfall in every language.
+pub async fn all_cards_streaming_visitor(
+) -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+    let reader = BulkDataFile::<Vec<Card>>::of_type("all_cards")
+        .await?
+        .get_reader()
+        .await?;
+
+    Ok(stream_iterator::create(reader))
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
