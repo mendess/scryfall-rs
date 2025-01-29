@@ -29,7 +29,6 @@ use uuid::Uuid;
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
-use crate::util::array_stream_reader::ArrayStreamReader;
 use crate::util::{stream_iterator, BULK_DATA_URL};
 use crate::Error;
 use futures_util::StreamExt;
@@ -100,7 +99,7 @@ pub struct BulkDataFile<T> {
     _object: String,
 }
 
-impl<T: DeserializeOwned> BulkDataFile<T> {
+impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
     cfg_if! {
         if #[cfg(feature = "bulk_caching")] {
             /// The full temp path where this file will be downloaded with `load`. The
@@ -122,8 +121,8 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
                 Ok(BufReader::new(File::open(cache_path)?))
             }
         } else {
-            async fn get_reader(&self) -> crate::Result<BufReader<impl io::Read + Send>> {
-                self.download_uri
+            async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
+                 let stream = self.download_uri
                     .fetch_raw()
                     .await?
                     .bytes_stream();
@@ -158,10 +157,8 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     /// Downloads and stores the file in the computer's temp folder if this
     /// version hasn't been downloaded yet. Otherwise uses the stored copy.
     pub async fn load_iter(&self) -> crate::Result<impl Iterator<Item = crate::Result<T>>> {
-        let de = serde_json::Deserializer::from_reader(ArrayStreamReader::new_buffered(
-            self.get_reader().await?,
-        ));
-        Ok(de.into_iter().map(|item| item.map_err(|e| e.into())))
+        let reader = self.get_reader().await?;
+        Ok(stream_iterator::create(reader))
     }
 
     /// Downloads this file, saving it to `path`. Overwrites the file if it
@@ -216,22 +213,8 @@ pub async fn default_cards() -> crate::Result<impl Iterator<Item = crate::Result
 }
 
 /// An iterator of every card object on Scryfall in every language.
-///
-/// # Note
-/// This currently takes about 2GB of RAM before returning 👀.
 pub async fn all_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("all_cards").await?.load_iter().await
-}
-
-/// An iterator of every card object on Scryfall in every language.
-pub async fn all_cards_streaming_visitor(
-) -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
-    let reader = BulkDataFile::<Vec<Card>>::of_type("all_cards")
-        .await?
-        .get_reader()
-        .await?;
-
-    Ok(stream_iterator::create(reader))
 }
 
 /// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
@@ -242,6 +225,9 @@ pub async fn rulings() -> crate::Result<impl Iterator<Item = crate::Result<Rulin
 
 #[cfg(test)]
 mod tests {
+    use std::io::BufReader;
+
+    use crate::util::stream_iterator;
 
     #[tokio::test]
     #[ignore]
@@ -285,8 +271,6 @@ mod tests {
 
     #[test]
     fn test_parse_list() {
-        use serde_json::Deserializer;
-
         use crate::ruling::Ruling;
         let s = r#"[
                       {
@@ -304,9 +288,9 @@ mod tests {
                         "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
                       }
                    ]"#;
-        Deserializer::from_reader(super::ArrayStreamReader::new_buffered(s.as_bytes()))
+        stream_iterator::create(BufReader::new(s.as_bytes()))
             .into_iter()
-            .map(|r: serde_json::Result<Ruling>| r.unwrap())
+            .map(|r: crate::Result<Ruling>| r.unwrap())
             .for_each(drop);
     }
 }

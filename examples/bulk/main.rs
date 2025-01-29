@@ -9,7 +9,7 @@ async fn main() -> scryfall::Result<()> {
         match card {
             Ok(_) => {
                 count += 1;
-                if count % 1000 == 0 {
+                if count % 5000 == 0 {
                     println!("{count}");
                 }
             },
