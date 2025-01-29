@@ -14,6 +14,7 @@ pub enum BorderColor {
     Gold,
     White,
     Silver,
+    Yellow,
 }
 
 impl std::fmt::Display for BorderColor {
@@ -28,6 +29,7 @@ impl std::fmt::Display for BorderColor {
                 Gold => "gold",
                 White => "white",
                 Silver => "silver",
+                Yellow => "yellow",
             }
         )
     }
