@@ -14,7 +14,7 @@ categories = ["api-bindings", "games"]
 features = ["unknown_variants"]
 
 [features]
-default = []
+default = ["bulk_caching"]
 bulk_caching = ["dep:heck"]
 unknown_variants = []
 unknown_variants_slim = []
@@ -30,7 +30,7 @@ httpstatus = "0.1"
 itertools = "0.13"
 once_cell = "1"
 percent-encoding = "2"
-reqwest = {version = "0.12.5", features = ["json" ,"blocking", "stream"] }
+reqwest = {version = "0.12.12", features = ["json" ,"blocking", "stream"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde_urlencoded = "0.7"
@@ -41,12 +41,14 @@ url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = true }
 futures-util = "0.3.31"
+ureq = {version = "3.0.3", features = ["json"]}
 
 [dev-dependencies]
 strum = { version = "0.26", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 tokio-test = "0.4.4"
 static_assertions = "1.1.0"
+rand = "0.9.0"
 
 [[bin]]
 name = "search"

@@ -22,6 +22,7 @@ use std::path::Path;
 
 use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
+use futures_util::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -31,7 +32,6 @@ use crate::ruling::Ruling;
 use crate::uri::Uri;
 use crate::util::{stream_iterator, BULK_DATA_URL};
 use crate::Error;
-use futures_util::StreamExt;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
 /// these files is represented as a bulk_data object via the API. URLs for files
@@ -122,12 +122,10 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
             }
         } else {
             async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
-                 let stream = self.download_uri
-                    .fetch_raw()
-                    .await?
-                    .bytes_stream();
 
-                todo!()
+                let response = self.download_uri.fetch_raw_blocking()?;
+                let body = response.into_body();
+                Ok(BufReader::new(body.into_reader()))
             }
         }
     }
@@ -289,7 +287,6 @@ mod tests {
                       }
                    ]"#;
         stream_iterator::create(BufReader::new(s.as_bytes()))
-            .into_iter()
             .map(|r: crate::Result<Ruling>| r.unwrap())
             .for_each(drop);
     }
