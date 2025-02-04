@@ -41,7 +41,7 @@ url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = true }
 futures-util = "0.3.31"
-ureq = {version = "3.0.3", features = ["json"]}
+ureq = {version = "3.0.4", features = ["json"]}
 
 [dev-dependencies]
 strum = { version = "0.26", features = ["derive"] }
