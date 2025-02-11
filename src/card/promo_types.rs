@@ -36,6 +36,7 @@ pub enum PromoType {
     Duels,
     Embossed,
     Event,
+    FirstPlaceFoil,
     Fnm,
     Fracturefoil,
     Galaxyfoil,

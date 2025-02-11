@@ -142,6 +142,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Duels => todo!(),
         PromoType::Embossed => todo!(),
         PromoType::Event => todo!(),
+        PromoType::FirstPlaceFoil => todo!(),
         PromoType::Fnm => todo!(),
         PromoType::Fracturefoil => todo!(),
         PromoType::Galaxyfoil => todo!(),
