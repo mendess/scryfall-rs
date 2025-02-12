@@ -14,7 +14,8 @@ categories = ["api-bindings", "games"]
 features = ["unknown_variants"]
 
 [features]
-default = ["bulk_caching"]
+# default = ["bulk_caching"]
+default = []
 bulk_caching = ["dep:heck"]
 unknown_variants = []
 unknown_variants_slim = []
@@ -41,7 +42,7 @@ url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"], optional = true }
 futures-util = "0.3.31"
-ureq = {version = "3.0.4", features = ["json"]}
+bytes = "1.10.0"
 
 [dev-dependencies]
 strum = { version = "0.26", features = ["derive"] }

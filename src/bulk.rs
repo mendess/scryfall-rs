@@ -20,6 +20,7 @@ use std::io::BufReader;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
+use bytes::Buf;
 use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
 use futures_util::StreamExt;
@@ -123,9 +124,11 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
         } else {
             async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
 
-                let response = self.download_uri.fetch_raw_blocking()?;
-                let body = response.into_body();
-                Ok(BufReader::new(body.into_reader()))
+                let response = self.download_uri.fetch_raw().await?;
+                let body = response.bytes().await.map_err(|e| {
+                    crate::Error::ReqwestError { error: Box::new(e), url: self.download_uri.inner().clone() }
+                })?;
+                Ok(BufReader::new(body.reader()))
             }
         }
     }

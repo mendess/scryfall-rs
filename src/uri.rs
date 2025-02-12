@@ -155,26 +155,6 @@ impl<T: DeserializeOwned> Uri<T> {
             }),
         }
     }
-
-    #[cfg(not(feature = "bulk_caching"))]
-    pub(crate) fn fetch_raw_blocking(&self) -> crate::Result<ureq::http::Response<ureq::Body>> {
-        // reqwest::blocking::get wouldn't work here as it would use it's own runtime, but ureq is
-        // blocking by default
-        match ureq::get(self.url.as_str().to_owned()).call() {
-            Ok(response) => match response.status().as_u16() {
-                400..=599 => {
-                    let mut body = response.into_body();
-                    Err(Error::ScryfallError(Box::new(
-                        body.read_json::<crate::error::ScryfallError>()
-                            .map_err(|e| Error::Other(e.to_string()))?,
-                    )))
-                },
-                _ => Ok(response),
-            },
-            // TODO: better error handling
-            Err(e) => Err(Error::Other(e.to_string())),
-        }
-    }
 }
 
 impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
