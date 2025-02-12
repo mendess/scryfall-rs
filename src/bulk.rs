@@ -16,12 +16,14 @@
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
 use std::fs::File;
-use std::io;
 use std::io::BufReader;
+use std::io::{BufWriter, Write};
 use std::path::Path;
 
+use bytes::Buf;
 use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
+use futures_util::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -29,8 +31,7 @@ use uuid::Uuid;
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
-use crate::util::array_stream_reader::ArrayStreamReader;
-use crate::util::BULK_DATA_URL;
+use crate::util::{stream_iterator, BULK_DATA_URL};
 use crate::Error;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
@@ -99,7 +100,7 @@ pub struct BulkDataFile<T> {
     _object: String,
 }
 
-impl<T: DeserializeOwned> BulkDataFile<T> {
+impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
     cfg_if! {
         if #[cfg(feature = "bulk_caching")] {
             /// The full temp path where this file will be downloaded with `load`. The
@@ -121,17 +122,13 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
                 Ok(BufReader::new(File::open(cache_path)?))
             }
         } else {
-            async fn get_reader(&self) -> crate::Result<BufReader<impl io::Read + Send>> {
-                let content = self.download_uri
-                    .fetch_raw()
-                    .await?
-                    .bytes()
-                    .await
-                    .map_err(|error| crate::Error::ReqwestError {
-                        url: self.download_uri.inner().clone(),
-                        error: Box::new(error),
-                    })?;
-                Ok(BufReader::new(std::io::Cursor::new(content)))
+            async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
+
+                let response = self.download_uri.fetch_raw().await?;
+                let body = response.bytes().await.map_err(|e| {
+                    crate::Error::ReqwestError { error: Box::new(e), url: self.download_uri.inner().clone() }
+                })?;
+                Ok(BufReader::new(body.reader()))
             }
         }
     }
@@ -161,10 +158,8 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     /// Downloads and stores the file in the computer's temp folder if this
     /// version hasn't been downloaded yet. Otherwise uses the stored copy.
     pub async fn load_iter(&self) -> crate::Result<impl Iterator<Item = crate::Result<T>>> {
-        let de = serde_json::Deserializer::from_reader(ArrayStreamReader::new_buffered(
-            self.get_reader().await?,
-        ));
-        Ok(de.into_iter().map(|item| item.map_err(|e| e.into())))
+        let reader = self.get_reader().await?;
+        Ok(stream_iterator::create(reader))
     }
 
     /// Downloads this file, saving it to `path`. Overwrites the file if it
@@ -172,11 +167,20 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     pub async fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
         let path = path.as_ref();
         let response = self.download_uri.fetch_raw().await?;
-        let content = response.bytes().await.map_err(|e| Error::ReqwestError {
-            error: e.into(),
-            url: self.download_uri.inner().clone(),
-        })?;
-        io::copy(&mut content.as_ref(), &mut File::create(path)?)?;
+
+        let mut body = response.bytes_stream();
+        let mut writer = BufWriter::new(File::create(path)?);
+
+        while let Some(chunk_result) = body.next().await {
+            let chunk = chunk_result.map_err(|e| Error::ReqwestError {
+                error: e.into(),
+                url: self.download_uri.inner().clone(),
+            })?;
+            writer.write_all(&chunk)?;
+        }
+
+        writer.flush()?;
+
         Ok(())
     }
 }
@@ -210,9 +214,6 @@ pub async fn default_cards() -> crate::Result<impl Iterator<Item = crate::Result
 }
 
 /// An iterator of every card object on Scryfall in every language.
-///
-/// # Note
-/// This currently takes about 2GB of RAM before returning 👀.
 pub async fn all_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("all_cards").await?.load_iter().await
 }
@@ -225,6 +226,9 @@ pub async fn rulings() -> crate::Result<impl Iterator<Item = crate::Result<Rulin
 
 #[cfg(test)]
 mod tests {
+    use std::io::BufReader;
+
+    use crate::util::stream_iterator;
 
     #[tokio::test]
     #[ignore]
@@ -268,8 +272,6 @@ mod tests {
 
     #[test]
     fn test_parse_list() {
-        use serde_json::Deserializer;
-
         use crate::ruling::Ruling;
         let s = r#"[
                       {
@@ -287,9 +289,8 @@ mod tests {
                         "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
                       }
                    ]"#;
-        Deserializer::from_reader(super::ArrayStreamReader::new_buffered(s.as_bytes()))
-            .into_iter()
-            .map(|r: serde_json::Result<Ruling>| r.unwrap())
+        stream_iterator::create(BufReader::new(s.as_bytes()))
+            .map(|r: crate::Result<Ruling>| r.unwrap())
             .for_each(drop);
     }
 }
