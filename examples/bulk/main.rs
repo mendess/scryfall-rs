@@ -1,11 +1,13 @@
+use futures::StreamExt;
+
 #[tokio::main]
 async fn main() -> scryfall::Result<()> {
-    let iterator = scryfall::bulk::all_cards().await?;
+    let mut stream = scryfall::bulk::all_cards().await?;
 
     let mut error_count = 0;
     let mut count = 0;
 
-    for card in iterator {
+    while let Some(card) = stream.next().await {
         match card {
             Ok(_) => {
                 count += 1;

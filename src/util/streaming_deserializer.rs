@@ -1,19 +1,20 @@
-use std::{
-    fmt,
-    io::BufReader,
-    sync::mpsc::{sync_channel, Receiver, SyncSender},
-    thread,
-};
+use std::fmt;
+use std::marker::Send;
 
+use futures::Stream;
 use serde::{de::Visitor, Deserialize, Deserializer};
+use tokio::sync::mpsc::unbounded_channel;
+use tokio::{io::AsyncRead, sync::mpsc::UnboundedSender};
+use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio_util::io::SyncIoBridge;
 
 use crate::Error;
 
-pub fn create<'de, Value: 'static + Deserialize<'de> + std::marker::Send>(
-    reader: BufReader<impl std::io::Read + Send + 'static>,
-) -> impl Iterator<Item = Result<Value, Error>> {
+pub fn create<'de, Value: 'static + Deserialize<'de> + Send, R: AsyncRead + Send + 'static>(
+    reader: R,
+) -> impl Stream<Item = Result<Value, Error>> {
     struct ItemVisitor<V> {
-        sender: SyncSender<Result<V, Error>>,
+        sender: UnboundedSender<Result<V, Error>>,
     }
 
     impl<'de, V: Deserialize<'de>> Visitor<'de> for ItemVisitor<V> {
@@ -43,10 +44,11 @@ pub fn create<'de, Value: 'static + Deserialize<'de> + std::marker::Send>(
         }
     }
 
-    let (sender, receiver) = sync_channel::<Result<Value, Error>>(0);
+    let (sender, receiver) = unbounded_channel::<Result<Value, Error>>();
 
-    thread::spawn(move || {
-        let mut deserializer = serde_json::Deserializer::from_reader(reader);
+    let sync_reader = SyncIoBridge::new(Box::pin(reader));
+    tokio::task::spawn_blocking(move || {
+        let mut deserializer = serde_json::Deserializer::from_reader(sync_reader);
         if let Err(e) = deserializer.deserialize_seq(ItemVisitor::<Value> {
             sender: sender.clone(),
         }) {
@@ -54,17 +56,5 @@ pub fn create<'de, Value: 'static + Deserialize<'de> + std::marker::Send>(
         }
     });
 
-    struct ItemIterator<A> {
-        receiver: Receiver<Result<A, Error>>,
-    }
-
-    impl<A> Iterator for ItemIterator<A> {
-        type Item = Result<A, Error>;
-
-        fn next(&mut self) -> Option<Self::Item> {
-            self.receiver.recv().ok()
-        }
-    }
-
-    Box::new(ItemIterator { receiver })
+    UnboundedReceiverStream::new(receiver)
 }

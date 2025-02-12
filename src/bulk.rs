@@ -20,18 +20,26 @@ use std::io::BufReader;
 use std::io::{BufWriter, Write};
 use std::path::Path;
 
-use bytes::Buf;
 use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
+use futures::Stream;
 use futures_util::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use tokio::io::AsyncRead;
 use uuid::Uuid;
+
+cfg_if! {
+    if #[cfg(not(feature = "bulk_caching"))] {
+        use bytes::Buf;
+        use tokio_util::io::StreamReader;
+    }
+}
 
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
-use crate::util::{stream_iterator, BULK_DATA_URL};
+use crate::util::{streaming_deserializer, BULK_DATA_URL};
 use crate::Error;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
@@ -121,6 +129,17 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
                 }
                 Ok(BufReader::new(File::open(cache_path)?))
             }
+
+            async fn get_async_reader(&self) -> crate::Result<impl AsyncRead> {
+                let cache_path = self.cache_path();
+                if !cache_path.exists() {
+                    self.download(&cache_path).await?;
+                }
+
+                let file = tokio::fs::File::open(&cache_path).await?;
+
+                Ok(file)
+            }
         } else {
             async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
 
@@ -129,6 +148,18 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
                     crate::Error::ReqwestError { error: Box::new(e), url: self.download_uri.inner().clone() }
                 })?;
                 Ok(BufReader::new(body.reader()))
+            }
+
+            async fn get_async_reader(&self) -> crate::Result<impl AsyncRead> {
+                let response = self.download_uri.fetch_raw().await?;
+                let stream = response.bytes_stream()
+                    .map(|bytes_result| {
+                        bytes_result
+                            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+                            // .map(|bytes| bytes.to_vec())
+                    });
+
+                Ok(StreamReader::new(stream))
             }
         }
     }
@@ -153,13 +184,13 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
         Ok(serde_json::from_reader(self.get_reader().await?)?)
     }
 
-    /// Returns an iterator over the objects from this bulk data download.
+    /// Returns an async Stream over the objects from this bulk data download.
     ///
     /// Downloads and stores the file in the computer's temp folder if this
     /// version hasn't been downloaded yet. Otherwise uses the stored copy.
-    pub async fn load_iter(&self) -> crate::Result<impl Iterator<Item = crate::Result<T>>> {
-        let reader = self.get_reader().await?;
-        Ok(stream_iterator::create(reader))
+    pub async fn load_stream(&self) -> crate::Result<impl Stream<Item = crate::Result<T>>> {
+        let reader = self.get_async_reader().await?;
+        Ok(streaming_deserializer::create(reader))
     }
 
     /// Downloads this file, saving it to `path`. Overwrites the file if it
@@ -185,55 +216,59 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
     }
 }
 
-/// An iterator containing one Scryfall card object for each Oracle ID on
+/// An async Stream containing one Scryfall card object for each Oracle ID on
 /// Scryfall. The chosen sets for the cards are an attempt to return the most
 /// up-to-date recognizable version of the card.
-pub async fn oracle_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+pub async fn oracle_cards() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("oracle_cards")
         .await?
-        .load_iter()
+        .load_stream()
         .await
 }
 
-/// An iterator of Scryfall card objects that together contain all unique
+/// An async Stream of Scryfall card objects that together contain all unique
 /// artworks. The chosen cards promote the best image scans.
-pub async fn unique_artwork() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+pub async fn unique_artwork() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("unique_artwork")
         .await?
-        .load_iter()
+        .load_stream()
         .await
 }
 
-/// An iterator containing every card object on Scryfall in English or the
+/// An async Stream containing every card object on Scryfall in English or the
 /// printed language if the card is only available in one language.
-pub async fn default_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
+pub async fn default_cards() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("default_cards")
         .await?
-        .load_iter()
+        .load_stream()
         .await
 }
 
-/// An iterator of every card object on Scryfall in every language.
-pub async fn all_cards() -> crate::Result<impl Iterator<Item = crate::Result<Card>>> {
-    BulkDataFile::of_type("all_cards").await?.load_iter().await
+/// An async Stream of every card object on Scryfall in every language.
+pub async fn all_cards() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
+    BulkDataFile::of_type("all_cards")
+        .await?
+        .load_stream()
+        .await
 }
 
-/// An iterator of all Rulings on Scryfall. Each ruling refers to cards via an
+/// An async Stream of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
-pub async fn rulings() -> crate::Result<impl Iterator<Item = crate::Result<Ruling>>> {
-    BulkDataFile::of_type("rulings").await?.load_iter().await
+pub async fn rulings() -> crate::Result<impl Stream<Item = crate::Result<Ruling>>> {
+    BulkDataFile::of_type("rulings").await?.load_stream().await
 }
 
 #[cfg(test)]
 mod tests {
-    use std::io::BufReader;
+    use futures::StreamExt;
 
-    use crate::util::stream_iterator;
+    use crate::util::streaming_deserializer;
 
     #[tokio::test]
     #[ignore]
     async fn oracle_cards() {
-        for card in super::oracle_cards().await.unwrap() {
+        let mut stream = super::oracle_cards().await.unwrap();
+        while let Some(card) = stream.next().await {
             card.unwrap();
         }
     }
@@ -241,7 +276,8 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn unique_artwork() {
-        for card in super::unique_artwork().await.unwrap() {
+        let mut stream = super::unique_artwork().await.unwrap();
+        while let Some(card) = stream.next().await {
             card.unwrap();
         }
     }
@@ -249,7 +285,8 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn default_cards() {
-        for card in super::default_cards().await.unwrap() {
+        let mut stream = super::default_cards().await.unwrap();
+        while let Some(card) = stream.next().await {
             card.unwrap();
         }
     }
@@ -257,7 +294,8 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn all_cards() {
-        for card in super::all_cards().await.unwrap() {
+        let mut stream = super::all_cards().await.unwrap();
+        while let Some(card) = stream.next().await {
             card.unwrap();
         }
     }
@@ -265,13 +303,14 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn rulings() {
-        for ruling in super::rulings().await.unwrap() {
-            ruling.unwrap();
+        let mut stream = super::rulings().await.unwrap();
+        while let Some(card) = stream.next().await {
+            card.unwrap();
         }
     }
 
-    #[test]
-    fn test_parse_list() {
+    #[tokio::test]
+    async fn test_parse_list() {
         use crate::ruling::Ruling;
         let s = r#"[
                       {
@@ -289,8 +328,11 @@ mod tests {
                         "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
                       }
                    ]"#;
-        stream_iterator::create(BufReader::new(s.as_bytes()))
-            .map(|r: crate::Result<Ruling>| r.unwrap())
-            .for_each(drop);
+        let mut stream =
+            streaming_deserializer::create(s.as_bytes()).map(|r: crate::Result<Ruling>| r.unwrap());
+
+        while let Some(r) = stream.next().await {
+            drop(r)
+        }
     }
 }
