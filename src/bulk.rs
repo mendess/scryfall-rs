@@ -17,22 +17,21 @@
 
 use std::fs::File;
 use std::io::BufReader;
-use std::io::{BufWriter, Write};
 use std::path::Path;
 
 use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
 use futures::Stream;
-use futures_util::StreamExt;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
 use tokio::io::AsyncRead;
+use tokio_stream::StreamExt;
+use tokio_util::io::StreamReader;
 use uuid::Uuid;
 
 cfg_if! {
     if #[cfg(not(feature = "bulk_caching"))] {
         use bytes::Buf;
-        use tokio_util::io::StreamReader;
     }
 }
 
@@ -40,7 +39,6 @@ use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
 use crate::util::{streaming_deserializer, BULK_DATA_URL};
-use crate::Error;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
 /// these files is represented as a bulk_data object via the API. URLs for files
@@ -138,7 +136,7 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
 
                 let file = tokio::fs::File::open(&cache_path).await?;
 
-                Ok(file)
+                Ok(tokio::io::BufReader::new(file))
             }
         } else {
             async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
@@ -199,18 +197,12 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
         let path = path.as_ref();
         let response = self.download_uri.fetch_raw().await?;
 
-        let mut body = response.bytes_stream();
-        let mut writer = BufWriter::new(File::create(path)?);
+        let body = response.bytes_stream().map(|bytes_result| {
+            bytes_result.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+        });
+        let mut file = tokio::fs::File::create(path).await?;
 
-        while let Some(chunk_result) = body.next().await {
-            let chunk = chunk_result.map_err(|e| Error::ReqwestError {
-                error: e.into(),
-                url: self.download_uri.inner().clone(),
-            })?;
-            writer.write_all(&chunk)?;
-        }
-
-        writer.flush()?;
+        tokio::io::copy(&mut StreamReader::new(body), &mut file).await?;
 
         Ok(())
     }
