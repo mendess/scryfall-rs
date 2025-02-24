@@ -324,6 +324,9 @@ pub struct Card {
     /// This card’s overall rank/popularity on EDHREC. Not all cards are ranked.
     pub edhrec_rank: Option<usize>,
 
+    /// True if this card is on the Commander Game Changer list.
+    pub game_changer: Option<bool>,
+
     /// True if this printing exists in a foil version.
     pub foil: bool,
 
