@@ -237,7 +237,7 @@ pub struct ImageUris {
 ///
 /// For more details, see the [official documentation](https://scryfall.com/docs/api/cards).
 #[derive(Serialize, Deserialize, Clone, PartialEq, Debug)]
-// #[cfg_attr(test, serde(deny_unknown_fields))]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[non_exhaustive]
 pub struct Card {
     // region Core Card Fields
