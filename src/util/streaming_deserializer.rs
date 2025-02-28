@@ -14,7 +14,7 @@ use crate::Error;
 pub fn create<Value, R>(reader: R) -> impl Stream<Item = Result<Value, Error>>
 where
     Value: DeserializeOwned + Send + 'static,
-    R: AsyncRead + Send + 'static,
+    R: AsyncRead + Unpin + Send + 'static,
 {
     struct ItemVisitor<V> {
         sender: UnboundedSender<Result<V, Error>>,
@@ -49,7 +49,7 @@ where
 
     let (sender, receiver) = unbounded_channel::<Result<Value, Error>>();
 
-    let sync_reader = SyncIoBridge::new(Box::pin(reader));
+    let sync_reader = SyncIoBridge::new(reader);
     tokio::task::spawn_blocking(move || {
         let mut deserializer = serde_json::Deserializer::from_reader(sync_reader);
         if let Err(e) = deserializer.deserialize_seq(ItemVisitor::<Value> {
