@@ -106,7 +106,7 @@ pub struct BulkDataFile<T> {
     _object: String,
 }
 
-impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
+impl<T: DeserializeOwned> BulkDataFile<T> {
     cfg_if! {
         if #[cfg(feature = "bulk_caching")] {
             /// The full temp path where this file will be downloaded with `load`. The
