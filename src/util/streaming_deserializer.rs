@@ -10,9 +10,11 @@ use tokio_util::io::SyncIoBridge;
 
 use crate::Error;
 
-pub fn create<'de, Value: 'static + Deserialize<'de> + Send, R: AsyncRead + Send + 'static>(
-    reader: R,
-) -> impl Stream<Item = Result<Value, Error>> {
+pub fn create<Value, R>(reader: R) -> impl Stream<Item = Result<Value, Error>>
+where
+    Value: DeserializeOwned + Send + 'static,
+    R: AsyncRead + Send + 'static,
+{
     struct ItemVisitor<V> {
         sender: UnboundedSender<Result<V, Error>>,
     }
