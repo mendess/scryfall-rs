@@ -4,9 +4,9 @@ use std::marker::Send;
 use futures::Stream;
 use serde::de::DeserializeOwned;
 use serde::{de::Visitor, Deserialize, Deserializer};
-use tokio::sync::mpsc::unbounded_channel;
-use tokio::{io::AsyncRead, sync::mpsc::UnboundedSender};
-use tokio_stream::wrappers::UnboundedReceiverStream;
+use tokio::io::AsyncRead;
+use tokio::sync::mpsc::{channel, Sender};
+use tokio_stream::wrappers::ReceiverStream;
 use tokio_util::io::SyncIoBridge;
 
 use crate::Error;
@@ -17,7 +17,7 @@ where
     R: AsyncRead + Unpin + Send + 'static,
 {
     struct ItemVisitor<V> {
-        sender: UnboundedSender<Result<V, Error>>,
+        sender: Sender<Result<V, Error>>,
     }
 
     impl<'de, V: Deserialize<'de>> Visitor<'de> for ItemVisitor<V> {
@@ -35,7 +35,7 @@ where
                 let result = seq.next_element();
                 match result {
                     Ok(Some(v)) => {
-                        if self.sender.send(Ok(v)).is_err() {
+                        if self.sender.blocking_send(Ok(v)).is_err() {
                             break;
                         }
                     },
@@ -47,7 +47,7 @@ where
         }
     }
 
-    let (sender, receiver) = unbounded_channel::<Result<Value, Error>>();
+    let (sender, receiver) = channel::<Result<Value, Error>>(50);
 
     let sync_reader = SyncIoBridge::new(reader);
     tokio::task::spawn_blocking(move || {
@@ -59,5 +59,5 @@ where
         }
     });
 
-    UnboundedReceiverStream::new(receiver)
+    ReceiverStream::new(receiver)
 }
