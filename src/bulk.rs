@@ -186,7 +186,10 @@ impl<T: DeserializeOwned + Send + 'static> BulkDataFile<T> {
     ///
     /// Downloads and stores the file in the computer's temp folder if this
     /// version hasn't been downloaded yet. Otherwise uses the stored copy.
-    pub async fn load_stream(&self) -> crate::Result<impl Stream<Item = crate::Result<T>>> {
+    pub async fn load_stream(&self) -> crate::Result<impl Stream<Item = crate::Result<T>>>
+    where
+        T: Send + 'static,
+    {
         let reader = self.get_async_reader().await?;
         Ok(streaming_deserializer::create(reader))
     }
