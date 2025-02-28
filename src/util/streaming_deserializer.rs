@@ -2,6 +2,7 @@ use std::fmt;
 use std::marker::Send;
 
 use futures::Stream;
+use serde::de::DeserializeOwned;
 use serde::{de::Visitor, Deserialize, Deserializer};
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::{io::AsyncRead, sync::mpsc::UnboundedSender};
