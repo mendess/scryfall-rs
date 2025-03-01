@@ -55,7 +55,7 @@ where
         if let Err(e) = deserializer.deserialize_seq(ItemVisitor::<Value> {
             sender: sender.clone(),
         }) {
-            let _ = sender.send(Err(Error::JsonError(e))); //let _ = because error from calling send just means receiver has disconnected
+            let _ = sender.blocking_send(Err(Error::JsonError(e))); //let _ = because error from calling send just means receiver has disconnected
         }
     });
 
