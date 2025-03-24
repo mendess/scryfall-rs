@@ -66,7 +66,7 @@ struct SetCodeVisitor {
     size: Option<usize>,
 }
 
-impl<'de> Visitor<'de> for SetCodeVisitor {
+impl Visitor<'_> for SetCodeVisitor {
     type Value = SetCode;
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
