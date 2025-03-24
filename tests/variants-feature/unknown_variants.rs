@@ -133,6 +133,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Doublerainbow => todo!(),
         PromoType::Draculaseries => todo!(),
         PromoType::Draftweekend => todo!(),
+        PromoType::DragonScaleFoil => todo!(),
         PromoType::Duels => todo!(),
         PromoType::Embossed => todo!(),
         PromoType::Event => todo!(),

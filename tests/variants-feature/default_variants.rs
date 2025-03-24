@@ -202,6 +202,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::UpsideDownBack => todo!(),
         PromoType::Vault => todo!(),
         PromoType::Wizardsplaynetwork => todo!(),
+        PromoType::DragonScaleFoil => todo!(),
         _ => todo!(),
     }
 }

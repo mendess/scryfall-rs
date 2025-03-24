@@ -15,7 +15,6 @@
 //!
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
-use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
@@ -120,12 +119,12 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
                 ))
             }
 
-            async fn get_reader(&self) -> crate::Result<BufReader<File>> {
+            async fn get_reader(&self) -> crate::Result<BufReader<std::fs::File>> {
                 let cache_path = self.cache_path();
                 if !cache_path.exists() {
                     self.download(&cache_path).await?;
                 }
-                Ok(BufReader::new(File::open(cache_path)?))
+                Ok(BufReader::new(std::fs::File::open(cache_path)?))
             }
 
             async fn get_async_reader(&self) -> crate::Result<impl AsyncRead> {

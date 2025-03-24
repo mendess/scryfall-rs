@@ -33,6 +33,7 @@ pub enum PromoType {
     Doublerainbow,
     Draculaseries,
     Draftweekend,
+    DragonScaleFoil,
     Duels,
     Embossed,
     Event,
