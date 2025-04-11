@@ -38,6 +38,7 @@ pub struct RelatedCard {
 #[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "snake_case")]
 #[non_exhaustive]
+#[allow(missing_docs)]
 pub enum Component {
     Token,
     MeldPart,

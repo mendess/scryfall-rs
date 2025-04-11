@@ -45,6 +45,7 @@ pub use self::produced_mana::{ProducedMana, UnfinityMana};
 pub use self::promo_types::PromoType;
 pub use self::rarity::Rarity;
 pub use self::related_card::RelatedCard;
+pub use self::related_card::Component;
 pub use self::security_stamp::SecurityStamp;
 use crate::format::Format;
 use crate::list::{List, ListIter};
