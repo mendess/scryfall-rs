@@ -23,6 +23,7 @@ pub enum PromoType {
     Bringafriend,
     Bundle,
     Buyabox,
+    Commanderpromo,
     Commanderparty,
     Concept,
     Confettifoil,

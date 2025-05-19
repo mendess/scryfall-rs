@@ -133,6 +133,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Bundle => todo!(),
         PromoType::Buyabox => todo!(),
         PromoType::Commanderparty => todo!(),
+        PromoType::Commanderpromo => todo!(),
         PromoType::Concept => todo!(),
         PromoType::Confettifoil => todo!(),
         PromoType::Convention => todo!(),
@@ -229,6 +230,7 @@ fn match_on_finishes(f: Finishes) {
         _ => todo!(),
     }
 }
+
 #[test]
 fn deserialize() {
     assert!(serde_json::from_str::<FrameEffect>(r#""foo""#).is_err());

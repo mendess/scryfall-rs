@@ -44,8 +44,8 @@ pub use self::price::Price;
 pub use self::produced_mana::{ProducedMana, UnfinityMana};
 pub use self::promo_types::PromoType;
 pub use self::rarity::Rarity;
-pub use self::related_card::RelatedCard;
 pub use self::related_card::Component;
+pub use self::related_card::RelatedCard;
 pub use self::security_stamp::SecurityStamp;
 use crate::format::Format;
 use crate::list::{List, ListIter};
@@ -591,7 +591,12 @@ impl Card {
     ///         .unwrap()
     ///         .into_stream()
     ///         .map(Result::unwrap)
-    ///         .all(|x| future::ready(x.name.to_lowercase().contains("lightning")))
+    ///         .all(|x| {
+    ///             future::ready(
+    ///                 x.name.to_lowercase().contains("lightning") ||
+    ///                 x.flavor_name.is_some_and(|n| n.to_lowercase().contains("lightning"))
+    ///             )
+    ///         })
     ///         .await
     /// # })
     /// )
@@ -607,7 +612,12 @@ impl Card {
     ///         .unwrap()
     ///         .into_stream_buffered(10)
     ///         .map(Result::unwrap)
-    ///         .all(|x| future::ready(x.name.to_lowercase().contains("lightning")))
+    ///         .all(|x| {
+    ///             future::ready(
+    ///                 x.name.to_lowercase().contains("lightning") ||
+    ///                 x.flavor_name.is_some_and(|n| n.to_lowercase().contains("lightning"))
+    ///             )
+    ///         })
     ///         .await
     /// # })
     /// )
