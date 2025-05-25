@@ -20,11 +20,16 @@ mod promo_types;
 mod rarity;
 mod related_card;
 mod security_stamp;
+mod languages;
+mod purchase_uris;
+mod related_uris;
 
 use std::collections::hash_map::HashMap;
 use std::ops::{Index, IndexMut};
 
 use chrono::NaiveDate;
+use purchase_uris::PurchaseUris;
+use related_uris::RelatedUris;
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
@@ -483,7 +488,7 @@ pub struct Card {
     // TODO(msmorgan): PurchaseUris struct?
     /// An object providing URIs to this card’s listing on major marketplaces.
     #[serde(default)]
-    pub purchase_uris: HashMap<String, String>,
+    pub purchase_uris: Option<HashMap<PurchaseUris, String>>,
 
     /// This card’s rarity. One of `common`, `uncommon`, `rare`, or `mythic`.
     pub rarity: Rarity,
@@ -491,7 +496,7 @@ pub struct Card {
     // TODO(msmorgan): RelatedUris struct?
     /// An object providing URIs to this card’s listing on other Magic: The
     /// Gathering online resources.
-    pub related_uris: HashMap<String, String>,
+    pub related_uris: HashMap<RelatedUris, String>,
 
     /// The date this card was first released.
     pub released_at: NaiveDate,
