@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 /// Enum defining the types of marketplace URIs available for purchasing cards.
 #[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, serde(deny_unknown_fields))]

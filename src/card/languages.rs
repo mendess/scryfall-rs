@@ -1,6 +1,5 @@
 use serde::{Deserialize, Serialize};
 
-
 /// Enum defining the languages a card can be printed in.
 #[derive(Default, Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
@@ -73,7 +72,6 @@ impl std::fmt::Display for Languages {
         )
     }
 }
-
 
 // impl Languages {
 //     /// Returns the language code as a string slice.
