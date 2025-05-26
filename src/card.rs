@@ -24,7 +24,6 @@ mod related_card;
 mod related_uris;
 mod security_stamp;
 
-use std::collections::hash_map::HashMap;
 use std::ops::{Index, IndexMut};
 
 use chrono::NaiveDate;
@@ -485,18 +484,15 @@ pub struct Card {
     /// True if this card is a promotional print.
     pub promo: bool,
 
-    // TODO(msmorgan): PurchaseUris struct?
     /// An object providing URIs to this card’s listing on major marketplaces.
-    #[serde(default)]
-    pub purchase_uris: Option<HashMap<PurchaseUris, String>>,
+    pub purchase_uris: Option<PurchaseUris>,
 
     /// This card’s rarity. One of `common`, `uncommon`, `rare`, or `mythic`.
     pub rarity: Rarity,
 
-    // TODO(msmorgan): RelatedUris struct?
     /// An object providing URIs to this card’s listing on other Magic: The
     /// Gathering online resources.
-    pub related_uris: HashMap<RelatedUris, String>,
+    pub related_uris: Option<RelatedUris>,
 
     /// The date this card was first released.
     pub released_at: NaiveDate,

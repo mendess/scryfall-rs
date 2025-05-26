@@ -1,26 +1,14 @@
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 /// Enum defining the types of marketplace URIs available for purchasing cards.
-#[derive(Serialize, Deserialize, Copy, Clone, Eq, PartialEq, Hash, Debug)]
+#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash, Debug, Default)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
-#[serde(rename_all = "lowercase")]
-pub enum PurchaseUris {
-    TcgPlayer,
-    CardMarket,
-    CardHoarder,
-}
-
-impl std::fmt::Display for PurchaseUris {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        use PurchaseUris::*;
-        write!(
-            f,
-            "{}",
-            match self {
-                TcgPlayer => "tcgplayer",
-                CardMarket => "cardmarket",
-                CardHoarder => "cardhoarder",
-            }
-        )
-    }
+pub struct PurchaseUris {
+    #[serde(rename = "tcgplayer")]
+    pub tcg_player: Option<Url>,
+    #[serde(rename = "cardmarket")]
+    pub card_market: Option<Url>,
+    #[serde(rename = "cardhoarder")]
+    pub card_hoarder: Option<Url>,
 }
