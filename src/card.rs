@@ -11,20 +11,24 @@ mod frame;
 mod frame_effect;
 mod game;
 mod image_status;
+mod languages;
 mod layout;
 mod legality;
 mod preview;
 mod price;
 mod produced_mana;
 mod promo_types;
+mod purchase_uris;
 mod rarity;
 mod related_card;
+mod related_uris;
 mod security_stamp;
 
-use std::collections::hash_map::HashMap;
 use std::ops::{Index, IndexMut};
 
 use chrono::NaiveDate;
+use purchase_uris::PurchaseUris;
+use related_uris::RelatedUris;
 use serde::{Deserialize, Serialize};
 use url::Url;
 use uuid::Uuid;
@@ -480,18 +484,15 @@ pub struct Card {
     /// True if this card is a promotional print.
     pub promo: bool,
 
-    // TODO(msmorgan): PurchaseUris struct?
     /// An object providing URIs to this card’s listing on major marketplaces.
-    #[serde(default)]
-    pub purchase_uris: HashMap<String, String>,
+    pub purchase_uris: Option<PurchaseUris>,
 
     /// This card’s rarity. One of `common`, `uncommon`, `rare`, or `mythic`.
     pub rarity: Rarity,
 
-    // TODO(msmorgan): RelatedUris struct?
     /// An object providing URIs to this card’s listing on other Magic: The
     /// Gathering online resources.
-    pub related_uris: HashMap<String, String>,
+    pub related_uris: Option<RelatedUris>,
 
     /// The date this card was first released.
     pub released_at: NaiveDate,
