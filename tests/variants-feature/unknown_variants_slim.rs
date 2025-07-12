@@ -54,6 +54,7 @@ fn match_on_frame_effect(f: FrameEffect) {
         FrameEffect::Borderless => todo!(),
         FrameEffect::Vehicle => todo!(),
         FrameEffect::Spree => todo!(),
+        FrameEffect::PlaceholderImage => todo!(),
         FrameEffect::Unknown => todo!(),
     }
 }
@@ -180,6 +181,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Magnified => todo!(),
         PromoType::Manafoil => todo!(),
         PromoType::Mediainsert => todo!(),
+        PromoType::Metal => todo!(),
         PromoType::Moonlitland => todo!(),
         PromoType::Neonink => todo!(),
         PromoType::Oilslick => todo!(),

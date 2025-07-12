@@ -181,6 +181,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::League => todo!(),
         PromoType::Magnified => todo!(),
         PromoType::Mediainsert => todo!(),
+        PromoType::Metal => todo!(),
         PromoType::Moonlitland => todo!(),
         PromoType::Neonink => todo!(),
         PromoType::Oilslick => todo!(),

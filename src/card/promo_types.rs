@@ -74,6 +74,7 @@ pub enum PromoType {
     Magnified,
     Manafoil,
     Mediainsert,
+    Metal,
     Moonlitland,
     Neonink,
     Oilslick,
