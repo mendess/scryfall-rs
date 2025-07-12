@@ -71,9 +71,9 @@ impl fmt::Display for Query {
         let (exprs, sep) = match &self {
             Query::And(exprs) => (exprs, " AND "),
             Query::Or(exprs) => (exprs, " OR "),
-            Query::Not(expr) => return write!(f, "-{}", expr),
-            Query::Param(param) => return write!(f, "{}", param),
-            Query::Custom(expr) => return write!(f, "({})", expr),
+            Query::Not(expr) => return write!(f, "-{expr}"),
+            Query::Param(param) => return write!(f, "{param}"),
+            Query::Custom(expr) => return write!(f, "({expr})"),
         };
 
         use itertools::Itertools;

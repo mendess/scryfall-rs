@@ -71,7 +71,7 @@ impl Visitor<'_> for SetCodeVisitor {
 
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self.size {
-            Some(size) => write!(f, "set code size between 3 and 6, found {}", size),
+            Some(size) => write!(f, "set code size between 3 and 6, found {size}"),
             None => write!(f, "set code to be ascii"),
         }
     }

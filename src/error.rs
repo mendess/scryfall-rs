@@ -109,10 +109,7 @@ impl fmt::Display for ScryfallError {
             } else {
                 format!(
                     "\n\twarnings:\n{}",
-                    self.warnings
-                        .iter()
-                        .map(|w| format!("\t\t{}", w))
-                        .join("\n")
+                    self.warnings.iter().map(|w| format!("\t\t{w}")).join("\n")
                 )
             }
         )

@@ -105,7 +105,7 @@ impl Ruling {
         Uri::from(
             CARDS_URL
                 .join("multiverse/")?
-                .join(&format!("{}/", id))?
+                .join(&format!("{id}/"))?
                 .join(API_RULING)?,
         )
         .fetch_iter()
@@ -154,7 +154,7 @@ impl Ruling {
         Uri::from(
             CARDS_URL
                 .join("mtgo/")?
-                .join(&format!("{}/", id))?
+                .join(&format!("{id}/"))?
                 .join(API_RULING)?,
         )
         .fetch_iter()
@@ -206,7 +206,7 @@ impl Ruling {
         Uri::from(
             CARDS_URL
                 .join("arena/")?
-                .join(&format!("{}/", id))?
+                .join(&format!("{id}/"))?
                 .join(API_RULING)?,
         )
         .fetch_iter()
@@ -253,7 +253,7 @@ impl Ruling {
     pub async fn set_and_number(set: &str, number: u32) -> crate::Result<ListIter<Self>> {
         Uri::from(
             CARDS_URL
-                .join(&format!("{}/{}/", set, number))?
+                .join(&format!("{set}/{number}/"))?
                 .join(API_RULING)?,
         )
         .fetch_iter()
@@ -297,7 +297,7 @@ impl Ruling {
     /// # })
     /// ```
     pub async fn uuid(id: Uuid) -> crate::Result<ListIter<Self>> {
-        Uri::from(CARDS_URL.join(&format!("{}/", id))?.join(API_RULING)?)
+        Uri::from(CARDS_URL.join(&format!("{id}/"))?.join(API_RULING)?)
             .fetch_iter()
             .await
     }

@@ -199,9 +199,9 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
         let path = path.as_ref();
         let response = self.download_uri.fetch_raw().await?;
 
-        let body = response.bytes_stream().map(|bytes_result| {
-            bytes_result.map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
-        });
+        let body = response
+            .bytes_stream()
+            .map(|bytes_result| bytes_result.map_err(|e| std::io::Error::other(e.to_string())));
         let mut file = tokio::fs::File::create(path).await?;
 
         tokio::io::copy(&mut StreamReader::new(body), &mut file).await?;

@@ -769,7 +769,7 @@ impl Card {
     /// # })
     /// ```
     pub async fn set_and_number(set_code: &str, number: usize) -> crate::Result<Card> {
-        Uri::from(CARDS_URL.join(&format!("{}/{}", set_code, number))?)
+        Uri::from(CARDS_URL.join(&format!("{set_code}/{number}"))?)
             .fetch()
             .await
     }

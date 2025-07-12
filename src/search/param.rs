@@ -93,8 +93,8 @@ enum ParamImpl {
 impl fmt::Display for ParamImpl {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            ParamImpl::Criterion(prop) => write!(f, "{}", prop),
-            ParamImpl::ExactName(name) => write!(f, "!\"{}\"", name),
+            ParamImpl::Criterion(prop) => write!(f, "{prop}"),
+            ParamImpl::ExactName(name) => write!(f, "!\"{name}\""),
             ParamImpl::Value(kind, value) => kind.fmt_value(value.as_str(), f),
             ParamImpl::Comparison(kind, op, value) => kind.fmt_comparison(*op, value, f),
         }

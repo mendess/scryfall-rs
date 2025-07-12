@@ -286,7 +286,7 @@ impl std::fmt::Display for Colors {
             if self.is(Green) {
                 s.push('g');
             }
-            write!(f, "{}", s)
+            write!(f, "{s}")
         }
     }
 }

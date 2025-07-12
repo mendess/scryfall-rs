@@ -24,7 +24,7 @@ pub struct ValueKind(ValueKindImpl);
 
 impl ValueKind {
     pub(super) fn fmt_value(&self, value: &str, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}:{}", self, value)
+        write!(f, "{self}:{value}")
     }
 
     pub(super) fn fmt_comparison(
@@ -421,9 +421,9 @@ impl fmt::Display for Devotion {
             for _ in 0..count {
                 match self.1 {
                     Some(color_b) if color_b != color_a => {
-                        write!(f, "{{{}/{}}}", color_a, color_b)
+                        write!(f, "{{{color_a}/{color_b}}}")
                     },
-                    _ => write!(f, "{{{}}}", color_a),
+                    _ => write!(f, "{{{color_a}}}"),
                 }?;
             }
             Ok(())
