@@ -97,6 +97,7 @@ fn match_on_layout(f: Layout) {
 fn match_on_set_type(f: SetType) {
     match f {
         SetType::Core => todo!(),
+        SetType::Eternal => todo!(),
         SetType::Expansion => todo!(),
         SetType::Masters => todo!(),
         SetType::Masterpiece => todo!(),

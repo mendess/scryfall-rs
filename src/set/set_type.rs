@@ -20,6 +20,8 @@ use serde::{Deserialize, Serialize};
 pub enum SetType {
     /// A yearly Magic core set (Tenth Edition, etc)
     Core,
+    ///  A set of new cards that only get added to high-power formats
+    Eternal,
     /// A rotational expansion set in a block (Zendikar, etc)
     Expansion,
     /// A reprint set that contains no new cards (Modern Masters, etc)
@@ -91,6 +93,7 @@ impl fmt::Display for SetType {
             "{}",
             match self {
                 SetType::Core => "core",
+                SetType::Eternal => "eternal",
                 SetType::Expansion => "expansion",
                 SetType::Masters => "masters",
                 SetType::Masterpiece => "masterpiece",
