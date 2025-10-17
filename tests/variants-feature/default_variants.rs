@@ -25,6 +25,8 @@ sa::assert_eq_size!(SecurityStamp, u8);
 #[allow(dead_code)]
 fn match_on_frame_effect(f: FrameEffect) {
     match f {
+        FrameEffect::BoosterFun => todo!(),
+        FrameEffect::Wanted => todo!(),
         FrameEffect::Legendary => todo!(),
         FrameEffect::Miracle => todo!(),
         FrameEffect::Nyxtouched => todo!(),

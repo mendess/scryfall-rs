@@ -17,6 +17,8 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(rename_all = "lowercase")]
 pub enum FrameEffect {
+    /// Booster Fun
+    BoosterFun,
     /// The cards have a legendary crown.
     Legendary,
     /// The miracle frame effect.
@@ -86,6 +88,8 @@ pub enum FrameEffect {
     Vehicle,
     /// Spree
     Spree,
+    /// Wanted frame effect
+    Wanted,
     /// Placeholder Image
     PlaceholderImage,
     #[cfg_attr(
@@ -113,6 +117,8 @@ impl std::fmt::Display for FrameEffect {
             f,
             "{}",
             match self {
+                BoosterFun => "boosterfun",
+                Wanted => "wanted",
                 Legendary => "legendary",
                 Miracle => "miracle",
                 Nyxtouched => "nyxtouched",
