@@ -107,6 +107,7 @@ pub enum PromoType {
     Silverfoil,
     Singularityfoil,
     Sldbonus,
+    Sourcematerial,
     Stamped,
     Startercollection,
     Starterdeck,
