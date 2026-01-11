@@ -43,7 +43,7 @@ Scryfall makes a lot of breaking api changes, mostly because magic makes a lot
 of breaking changes 😅. Due to the strong typing of this crate, this means that
 sometimes code that works one day breaks the next day. For example, there's a
 [`PromoType`][promo-type-enum] enum. This enum, when deserializing, will strictly
-reject any format it doesn't know about. This means that everytime wizards adds
+reject any format it doesn't know about. This means that every time wizards adds
 a new format, scryfall will start returning this new format from its API
 which will make your code fail at runtime.
 
