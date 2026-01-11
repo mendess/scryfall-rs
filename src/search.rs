@@ -335,13 +335,20 @@ mod tests {
 
     #[tokio::test]
     async fn numeric_property_comparison_buffered() {
-        let card = Card::search_random(Query::And(vec![
-            power(eq(NumProperty::Toughness)),
-            pow_tou(eq(NumProperty::Cmc)),
-            not(CardIs::Funny),
-        ]))
-        .await
-        .unwrap();
+        let card = loop {
+            let card = Card::search_random(Query::And(vec![
+                power(eq(NumProperty::Toughness)),
+                pow_tou(eq(NumProperty::Cmc)),
+                not(CardIs::Funny),
+            ]))
+            .await
+            .unwrap();
+
+            // dfcs have don't have power and toughness on the top level card
+            if card.power.is_some() || card.toughness.is_some() {
+                break card;
+            }
+        };
 
         let power = card
             .power

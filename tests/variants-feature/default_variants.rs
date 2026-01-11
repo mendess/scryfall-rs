@@ -230,6 +230,12 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Vault => todo!(),
         PromoType::Wizardsplaynetwork => todo!(),
         PromoType::DragonScaleFoil => todo!(),
+        PromoType::Beginnerbox => todo!(),
+        PromoType::Manafoil => todo!(),
+        PromoType::Resale => todo!(),
+        PromoType::Sldbonus => todo!(),
+        PromoType::Sourcematerial => todo!(),
+        PromoType::Startercollection => todo!(),
         _ => todo!(),
     }
 }

@@ -211,6 +211,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Silverfoil => todo!(),
         PromoType::Singularityfoil => todo!(),
         PromoType::Sldbonus => todo!(),
+        PromoType::Sourcematerial => todo!(),
         PromoType::Stamped => todo!(),
         PromoType::Startercollection => todo!(),
         PromoType::Starterdeck => todo!(),

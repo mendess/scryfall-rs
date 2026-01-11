@@ -287,6 +287,9 @@ pub struct Card {
     /// the same name (tokens, Unstable variants, etc).
     pub oracle_id: Option<Uuid>,
 
+    /// This card’s Resource ID on Gatherer, if any.
+    pub resource_id: Option<String>,
+
     /// A link to where you can begin paginating all re/prints for this card on
     /// Scryfall’s API.
     pub prints_search_uri: Uri<List<Card>>,
