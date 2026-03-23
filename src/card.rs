@@ -784,8 +784,8 @@ impl Card {
     /// ```rust
     /// use scryfall::card::Card;
     /// # tokio_test::block_on(async {
-    /// match Card::set_and_number_international("FIN", "J2").await {
-    ///     Ok(card) => assert_eq!(card.name, "Black Lotus"),
+    /// match Card::set_and_number_international("RFIN", "J2").await {
+    ///     Ok(card) => assert_eq!(card.name, "Arcane Denial"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// # })
