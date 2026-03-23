@@ -777,6 +777,25 @@ impl Card {
             .await
     }
 
+
+    /// Fetch a card by its set and number.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// # tokio_test::block_on(async {
+    /// match Card::set_and_number_international("FIN", "J2").await {
+    ///     Ok(card) => assert_eq!(card.name, "Black Lotus"),
+    ///     Err(e) => panic!("{:?}", e),
+    /// }
+    /// # })
+    /// ```
+    pub async fn set_and_number_international(set_code: &str, international_number: &str) -> crate::Result<Card> {
+        Uri::from(CARDS_URL.join(&format!("{set_code}/{international_number}"))?)
+            .fetch()
+            .await
+    }
+
     /// Fetch a card by its multiverse id.
     ///
     /// # Examples
