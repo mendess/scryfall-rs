@@ -778,7 +778,7 @@ impl Card {
     }
 
 
-    /// Fetch a card by its set and number.
+    /// Fetch a card by its set and number. Can also be used for Region Specific Promo Cards.
     ///
     /// # Examples
     /// ```rust
