@@ -117,6 +117,8 @@ pub struct CardLegality {
     pub standard_brawl: Legality,
     #[serde(default, rename = "historicbrawl")]
     pub historic_brawl: Legality,
+    #[serde(default)]
+    pub tlr: Legality,
 }
 
 impl Index<Format> for CardLegality {
@@ -147,6 +149,7 @@ impl Index<Format> for CardLegality {
             Format::Timeless => &self.timeless,
             Format::StandardBrawl => &self.standard_brawl,
             Format::HistoricBrawl => &self.historic_brawl,
+            Format::TLR => &self.tlr,
         }
     }
 }
@@ -177,6 +180,7 @@ impl IndexMut<Format> for CardLegality {
             Format::Timeless => &mut self.timeless,
             Format::StandardBrawl => &mut self.standard_brawl,
             Format::HistoricBrawl => &mut self.historic_brawl,
+            Format::TLR => &mut self.tlr,
         }
     }
 }
