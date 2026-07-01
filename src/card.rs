@@ -68,7 +68,13 @@ use crate::util::CARDS_URL;
     ),
     non_exhaustive
 )]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(
+    all(
+        not(feature = "unknown_variants"),
+        not(feature = "unknown_variants_slim"),
+    ),
+    serde(deny_unknown_fields)
+)]
 #[allow(missing_docs)]
 pub struct CardLegality {
     #[serde(default)]
@@ -117,6 +123,8 @@ pub struct CardLegality {
     pub standard_brawl: Legality,
     #[serde(default, rename = "historicbrawl")]
     pub historic_brawl: Legality,
+    #[serde(default, rename = "competitivebrawl")]
+    pub competitive_brawl: Legality,
 }
 
 impl Index<Format> for CardLegality {
