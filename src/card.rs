@@ -68,7 +68,7 @@ use crate::util::CARDS_URL;
     ),
     non_exhaustive
 )]
-#[serde(deny_unknown_fields)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 #[allow(missing_docs)]
 pub struct CardLegality {
     #[serde(default)]
@@ -117,6 +117,8 @@ pub struct CardLegality {
     pub standard_brawl: Legality,
     #[serde(default, rename = "historicbrawl")]
     pub historic_brawl: Legality,
+    #[serde(default, rename = "competitivebrawl")]
+    pub competitive_brawl: Legality,
     #[serde(default)]
     pub tlr: Legality,
 }
@@ -149,6 +151,7 @@ impl Index<Format> for CardLegality {
             Format::Timeless => &self.timeless,
             Format::StandardBrawl => &self.standard_brawl,
             Format::HistoricBrawl => &self.historic_brawl,
+            Format::CompetitiveBrawl => &self.competitive_brawl,
             Format::TLR => &self.tlr,
         }
     }
@@ -180,6 +183,7 @@ impl IndexMut<Format> for CardLegality {
             Format::Timeless => &mut self.timeless,
             Format::StandardBrawl => &mut self.standard_brawl,
             Format::HistoricBrawl => &mut self.historic_brawl,
+            Format::CompetitiveBrawl => &mut self.competitive_brawl,
             Format::TLR => &mut self.tlr,
         }
     }
@@ -563,6 +567,8 @@ pub struct Card {
     pub attraction_lights: Option<Vec<u8>>,
     /* ======================
      * endregion Print Fields */
+    /// fooo
+    pub image_updated_at: String,
     #[cfg(test)]
     #[serde(rename = "object")]
     _object: String,
