@@ -787,6 +787,25 @@ impl Card {
             .await
     }
 
+
+    /// Fetch a card by its set and number. Can also be used for Region Specific Promo Cards.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use scryfall::card::Card;
+    /// # tokio_test::block_on(async {
+    /// match Card::set_and_number_international("RFIN", "J2").await {
+    ///     Ok(card) => assert_eq!(card.name, "Arcane Denial"),
+    ///     Err(e) => panic!("{:?}", e),
+    /// }
+    /// # })
+    /// ```
+    pub async fn set_and_number_international(set_code: &str, international_number: &str) -> crate::Result<Card> {
+        Uri::from(CARDS_URL.join(&format!("{set_code}/{international_number}"))?)
+            .fetch()
+            .await
+    }
+
     /// Fetch a card by its multiverse id.
     ///
     /// # Examples
