@@ -71,6 +71,8 @@ pub enum Layout {
     Mutate,
     /// Case
     Case,
+    /// Prepare
+    Prepare,
     #[cfg_attr(
         docsrs,
         doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))
