@@ -224,6 +224,21 @@ pub struct ImageUris {
     /// A small full card image. Designed for use as thumbnail or list icon.
     #[serde(default)]
     pub small: Option<Url>,
+    /// A small thumbnail of the card image, replaces small (format: WEBP)
+    #[serde(default)]
+    pub thumb: Option<Url>,
+    /// A small thumbnail of the card image, replaces small (format: WEBP)
+    #[serde(default)]
+    pub grid: Option<Url>,
+    /// A small thumbnail of the card image, replaces small (format: WEBP)
+    #[serde(default)]
+    pub display: Option<Url>,
+    /// A full card image with the rounded corners and the majority of the border cropped off. Replaces border_crop (format: WEBP)
+    #[serde(default)]
+    pub crop: Option<Url>,
+    /// A rectangular crop of the card’s art only. Replaces `art_crop (format: WEBP)
+    #[serde(default)]
+    pub art: Option<Url>,
 }
 
 /// Card objects represent individual Magic: The Gathering cards that players
@@ -757,8 +772,8 @@ impl Card {
     /// ```rust
     /// use scryfall::card::Card;
     /// # tokio_test::block_on(async {
-    /// match Card::named_fuzzy("Light Bolt").await {
-    ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
+    /// match Card::named_fuzzy("Badge mole cub").await {
+    ///     Ok(card) => assert_eq!(card.name, "Badgermole Cub"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// # })

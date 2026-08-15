@@ -18,12 +18,15 @@
 use std::io::BufReader;
 use std::path::Path;
 
+use async_compression::tokio::bufread::GzipDecoder;
 use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
 use futures::Stream;
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
+use tokio::io::AsyncBufReadExt;
 use tokio::io::AsyncRead;
+use tokio_stream::wrappers::LinesStream;
 use tokio_stream::StreamExt;
 use tokio_util::io::StreamReader;
 use uuid::Uuid;
@@ -31,13 +34,15 @@ use uuid::Uuid;
 cfg_if! {
     if #[cfg(not(feature = "bulk_caching"))] {
         use bytes::Buf;
+        use flate2::read::GzDecoder;
     }
 }
 
 use crate::card::Card;
 use crate::ruling::Ruling;
 use crate::uri::Uri;
-use crate::util::{streaming_deserializer, BULK_DATA_URL};
+use crate::util::BULK_DATA_URL;
+use crate::Error;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
 /// these files is represented as a bulk_data object via the API. URLs for files
@@ -82,23 +87,13 @@ pub struct BulkDataFile<T> {
     pub description: String,
 
     /// The URI that hosts this bulk file for fetching.
-    pub download_uri: Uri<Vec<T>>,
+    pub jsonl_download_uri: Uri<Vec<T>>,
 
     /// The time when this file was last updated.
     pub updated_at: DateTime<Utc>,
 
     /// The size of this file in integer bytes.
     pub compressed_size: Option<usize>,
-
-    /// The MIME type of this file.
-    pub content_type: String,
-
-    /// The Content-Encoding encoding that will be used to transmit this file
-    /// when you download it.
-    pub content_encoding: String,
-
-    /// The byte size of the bulk file.
-    pub size: usize,
 
     #[cfg(test)]
     #[serde(rename = "object")]
@@ -135,28 +130,29 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
 
                 let file = tokio::fs::File::open(&cache_path).await?;
 
-                Ok(tokio::io::BufReader::new(file))
+                let raw_reader = tokio::io::BufReader::new(file);
+                Ok(GzipDecoder::new(raw_reader))
             }
         } else {
             async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
 
-                let response = self.download_uri.fetch_raw().await?;
+                let response = self.jsonl_download_uri.fetch_raw().await?;
                 let body = response.bytes().await.map_err(|e| {
-                    crate::Error::ReqwestError { error: Box::new(e), url: self.download_uri.inner().clone() }
+                    crate::Error::ReqwestError { error: Box::new(e), url: self.jsonl_download_uri.inner().clone() }
                 })?;
-                Ok(BufReader::new(body.reader()))
+                Ok(BufReader::new(GzDecoder::new(body.reader())))
             }
 
             async fn get_async_reader(&self) -> crate::Result<impl AsyncRead> {
-                let response = self.download_uri.fetch_raw().await?;
+                let response = self.jsonl_download_uri.fetch_raw().await?;
                 let stream = response.bytes_stream()
                     .map(|bytes_result| {
                         bytes_result
-                            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+                            .map_err(std::io::Error::other)
                             // .map(|bytes| bytes.to_vec())
                     });
 
-                Ok(StreamReader::new(stream))
+                Ok(GzipDecoder::new(StreamReader::new(stream)))
             }
         }
     }
@@ -190,14 +186,21 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
         T: Send + 'static,
     {
         let reader = self.get_async_reader().await?;
-        Ok(streaming_deserializer::create(reader))
+
+        Ok(
+            LinesStream::new(tokio::io::BufReader::new(reader).lines()).map(|line_result| {
+                line_result
+                    .map_err(Error::from)
+                    .and_then(|line| serde_json::from_str::<T>(&line).map_err(Error::from))
+            }),
+        )
     }
 
     /// Downloads this file, saving it to `path`. Overwrites the file if it
     /// already exists.
     pub async fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
         let path = path.as_ref();
-        let response = self.download_uri.fetch_raw().await?;
+        let response = self.jsonl_download_uri.fetch_raw().await?;
 
         let body = response
             .bytes_stream()
@@ -256,8 +259,6 @@ pub async fn rulings() -> crate::Result<impl Stream<Item = crate::Result<Ruling>
 mod tests {
     use futures::StreamExt;
 
-    use crate::util::streaming_deserializer;
-
     #[tokio::test]
     #[ignore]
     async fn oracle_cards() {
@@ -300,33 +301,6 @@ mod tests {
         let mut stream = super::rulings().await.unwrap();
         while let Some(card) = stream.next().await {
             card.unwrap();
-        }
-    }
-
-    #[tokio::test]
-    async fn test_parse_list() {
-        use crate::ruling::Ruling;
-        let s = r#"[
-                      {
-                        "object": "ruling",
-                        "oracle_id": "0004ebd0-dfd6-4276-b4a6-de0003e94237",
-                        "source": "wotc",
-                        "published_at": "2004-10-04",
-                        "comment": "If there are two of these on the battlefield, they do not add together. The result is that only two permanents can be untapped."
-                      },
-                      {
-                        "object": "ruling",
-                        "oracle_id": "0007c283-5b7a-4c00-9ca1-b455c8dff8c3",
-                        "source": "wotc",
-                        "published_at": "2019-08-23",
-                        "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
-                      }
-                   ]"#;
-        let mut stream =
-            streaming_deserializer::create(s.as_bytes()).map(|r: crate::Result<Ruling>| r.unwrap());
-
-        while let Some(r) = stream.next().await {
-            drop(r)
         }
     }
 }

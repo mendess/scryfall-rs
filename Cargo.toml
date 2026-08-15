@@ -14,7 +14,7 @@ categories = ["api-bindings", "games"]
 features = ["unknown_variants"]
 
 [features]
-default = ["bulk_caching", "default-tls"]
+default = ["bulk_caching", "default-tls", "auto_rate_limit"]
 # default = []
 bulk_caching = ["dep:heck"]
 default-tls = ["reqwest/default-tls"]
@@ -22,13 +22,17 @@ native-tls = ["reqwest/native-tls"]
 rustls-tls = ["reqwest/rustls-tls"]
 unknown_variants = []
 unknown_variants_slim = []
+auto_rate_limit = []
+auto_rate_limit_blocking = []
 bin = ["tokio/macros", "tokio/rt-multi-thread"]
 
 [dependencies]
+async-compression = {version = "0.4.43", features = ["gzip", "tokio"]}
 async-trait = "0.1.81"
 bytes = "1.10.0"
 cfg-if = "1"
 chrono = { version = "0.4", features = ["serde"] }
+flate2 = "1.1.9"
 futures = "0.3.30"
 futures-util = {version = "0.3.31"}
 heck = { version = "0.5", optional = true }
@@ -44,7 +48,7 @@ static_assertions = "1"
 thiserror = "1"
 tinyvec = "1"
 tokio = { version = "1", default-features = false, features = ["sync", "fs"] }
-tokio-stream = {version = "0.1.17", features = ["sync"]}
+tokio-stream = {version = "0.1.17", features = ["sync", "io-util"]}
 tokio-util = {version = "0.7.13", features = ["io-util", "io"]}
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde"] }

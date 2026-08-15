@@ -71,6 +71,10 @@ pub enum Layout {
     Mutate,
     /// Case
     Case,
+    /// Cards with a prepared spell part
+    Prepare,
+    /// An extra card that indicates a deck type
+    FrontCard,
     #[cfg_attr(
         docsrs,
         doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))

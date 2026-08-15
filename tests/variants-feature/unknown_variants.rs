@@ -81,6 +81,8 @@ fn match_on_layout(f: Layout) {
         Layout::Mutate => todo!(),
         Layout::Case => todo!(),
         Layout::Unknown(_) => todo!(),
+        Layout::Prepare => todo!(),
+        Layout::FrontCard => todo!(),
     }
 }
 
@@ -228,6 +230,11 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::UpsideDownBack => todo!(),
         PromoType::Vault => todo!(),
         PromoType::Wizardsplaynetwork => todo!(),
+        PromoType::Dazzlefoil => todo!(),
+        PromoType::Facetfoil => todo!(),
+        PromoType::Japanshowcase => todo!(),
+        PromoType::SilverScroll => todo!(),
+        PromoType::StandardShowdown => todo!(),
     }
 }
 
