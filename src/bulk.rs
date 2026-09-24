@@ -15,29 +15,29 @@
 //!
 //! See also: [Official Docs](https://scryfall.com/docs/api/bulk-data)
 
-use std::io::BufReader;
 use std::path::Path;
 
 use cfg_if::cfg_if;
 use chrono::{DateTime, Utc};
-use futures::Stream;
+use futures::{Stream, TryStreamExt};
 use serde::de::DeserializeOwned;
 use serde::Deserialize;
-use tokio::io::AsyncRead;
 use tokio_stream::StreamExt;
 use tokio_util::io::StreamReader;
 use uuid::Uuid;
 
 cfg_if! {
-    if #[cfg(not(feature = "bulk_caching"))] {
-        use bytes::Buf;
+    if #[cfg(feature = "bulk_caching")] {
+        use tokio::io::BufReader;
+        use futures::stream::BoxStream;
+        use crate::uri;
     }
 }
 
 use crate::card::Card;
 use crate::ruling::Ruling;
-use crate::uri::Uri;
-use crate::util::{streaming_deserializer, BULK_DATA_URL};
+use crate::uri::{Jsonl, Uri};
+use crate::util::BULK_DATA_URL;
 
 /// Scryfall provides daily exports of our card data in bulk files. Each of
 /// these files is represented as a bulk_data object via the API. URLs for files
@@ -81,31 +81,21 @@ pub struct BulkDataFile<T> {
     /// A human-readable description for this file.
     pub description: String,
 
-    /// The URI that hosts this bulk file for fetching.
-    pub download_uri: Uri<Vec<T>>,
-
     /// The time when this file was last updated.
     pub updated_at: DateTime<Utc>,
 
     /// The size of this file in integer bytes.
     pub compressed_size: Option<usize>,
 
-    /// The MIME type of this file.
-    pub content_type: String,
-
-    /// The Content-Encoding encoding that will be used to transmit this file
-    /// when you download it.
-    pub content_encoding: String,
-
-    /// The byte size of the bulk file.
-    pub size: usize,
+    /// The URI that hosts this bulk as jsonl.gz for fetching.
+    pub jsonl_download_uri: Uri<Jsonl<T>>,
 
     #[cfg(test)]
     #[serde(rename = "object")]
     _object: String,
 }
 
-impl<T: DeserializeOwned> BulkDataFile<T> {
+impl<T: DeserializeOwned + 'static> BulkDataFile<T> {
     cfg_if! {
         if #[cfg(feature = "bulk_caching")] {
             /// The full temp path where this file will be downloaded with `load`. The
@@ -113,50 +103,34 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
             fn cache_path(&self) -> std::path::PathBuf {
                 use heck::ToKebabCase;
                 std::env::temp_dir().join(format!(
-                    "{}-{}.json",
+                    "{}-{}.jsonl.gz",
                     self.bulk_type.to_kebab_case(),
                     self.updated_at.format("%Y%m%d%H%M%S"),
                 ))
             }
 
-            async fn get_reader(&self) -> crate::Result<BufReader<std::fs::File>> {
+            async fn get_stream(&self) -> crate::Result<impl Stream<Item = crate::Result<T>>> {
                 let cache_path = self.cache_path();
-                if !cache_path.exists() {
-                    self.download(&cache_path).await?;
+                match tokio::fs::File::open(&cache_path).await {
+                    Ok(cache) => Ok(Box::pin(uri::fetch_stream_jsonl(BufReader::new(cache))?) as BoxStream<crate::Result<T>>),
+                    Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                        let mut file = tokio::fs::File::create(cache_path).await?;
+                        let uri = self.jsonl_download_uri.clone();
+                        tokio::spawn(async move {
+                            let response = uri.fetch_raw().await.expect("failed to fetch bulk file");
+                            let mut reader = BufReader::new(StreamReader::new(
+                                response.bytes_stream().map_err(std::io::Error::other),
+                            ));
+                            tokio::io::copy(&mut reader, &mut file).await.expect("failed while downloading bulk file for caching")
+                        });
+                        Ok(Box::pin(self.jsonl_download_uri.fetch_stream_jsonl().await?))
+                    }
+                    Err(e) => Err(e.into()),
                 }
-                Ok(BufReader::new(std::fs::File::open(cache_path)?))
-            }
-
-            async fn get_async_reader(&self) -> crate::Result<impl AsyncRead> {
-                let cache_path = self.cache_path();
-                if !cache_path.exists() {
-                    self.download(&cache_path).await?;
-                }
-
-                let file = tokio::fs::File::open(&cache_path).await?;
-
-                Ok(tokio::io::BufReader::new(file))
             }
         } else {
-            async fn get_reader(&self) -> crate::Result<BufReader<impl std::io::Read + Send>> {
-
-                let response = self.download_uri.fetch_raw().await?;
-                let body = response.bytes().await.map_err(|e| {
-                    crate::Error::ReqwestError { error: Box::new(e), url: self.download_uri.inner().clone() }
-                })?;
-                Ok(BufReader::new(body.reader()))
-            }
-
-            async fn get_async_reader(&self) -> crate::Result<impl AsyncRead> {
-                let response = self.download_uri.fetch_raw().await?;
-                let stream = response.bytes_stream()
-                    .map(|bytes_result| {
-                        bytes_result
-                            .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
-                            // .map(|bytes| bytes.to_vec())
-                    });
-
-                Ok(StreamReader::new(stream))
+            async fn get_stream(&self) -> crate::Result<impl Stream<Item = crate::Result<T>>> {
+                self.jsonl_download_uri.fetch_stream_jsonl().await
             }
         }
     }
@@ -178,7 +152,7 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     /// Downloads and stores the file in the computer's temp folder if this
     /// version hasn't been downloaded yet. Otherwise uses the stored copy.
     pub async fn load(&self) -> crate::Result<Vec<T>> {
-        Ok(serde_json::from_reader(self.get_reader().await?)?)
+        self.get_stream().await?.try_collect().await
     }
 
     /// Returns an async Stream over the objects from this bulk data download.
@@ -189,15 +163,14 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
     where
         T: Send + 'static,
     {
-        let reader = self.get_async_reader().await?;
-        Ok(streaming_deserializer::create(reader))
+        self.get_stream().await
     }
 
     /// Downloads this file, saving it to `path`. Overwrites the file if it
     /// already exists.
     pub async fn download(&self, path: impl AsRef<Path>) -> crate::Result<()> {
         let path = path.as_ref();
-        let response = self.download_uri.fetch_raw().await?;
+        let response = self.jsonl_download_uri.fetch_raw().await?;
 
         let body = response
             .bytes_stream()
@@ -216,7 +189,8 @@ impl<T: DeserializeOwned> BulkDataFile<T> {
 pub async fn oracle_cards() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("oracle_cards")
         .await?
-        .load_stream()
+        .jsonl_download_uri
+        .fetch_stream_jsonl()
         .await
 }
 
@@ -225,7 +199,8 @@ pub async fn oracle_cards() -> crate::Result<impl Stream<Item = crate::Result<Ca
 pub async fn unique_artwork() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("unique_artwork")
         .await?
-        .load_stream()
+        .jsonl_download_uri
+        .fetch_stream_jsonl()
         .await
 }
 
@@ -234,7 +209,8 @@ pub async fn unique_artwork() -> crate::Result<impl Stream<Item = crate::Result<
 pub async fn default_cards() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("default_cards")
         .await?
-        .load_stream()
+        .jsonl_download_uri
+        .fetch_stream_jsonl()
         .await
 }
 
@@ -242,35 +218,45 @@ pub async fn default_cards() -> crate::Result<impl Stream<Item = crate::Result<C
 pub async fn all_cards() -> crate::Result<impl Stream<Item = crate::Result<Card>>> {
     BulkDataFile::of_type("all_cards")
         .await?
-        .load_stream()
+        .jsonl_download_uri
+        .fetch_stream_jsonl()
         .await
 }
 
 /// An async Stream of all Rulings on Scryfall. Each ruling refers to cards via an
 /// `oracle_id`.
 pub async fn rulings() -> crate::Result<impl Stream<Item = crate::Result<Ruling>>> {
-    BulkDataFile::of_type("rulings").await?.load_stream().await
+    BulkDataFile::of_type("rulings")
+        .await?
+        .jsonl_download_uri
+        .fetch_stream_jsonl()
+        .await
 }
 
 #[cfg(test)]
 mod tests {
     use futures::StreamExt;
 
-    use crate::util::streaming_deserializer;
+    use std::pin::pin;
 
     #[tokio::test]
     #[ignore]
     async fn oracle_cards() {
-        let mut stream = super::oracle_cards().await.unwrap();
+        let mut stream = pin!(super::oracle_cards().await.unwrap());
+        let mut i = 0;
         while let Some(card) = stream.next().await {
             card.unwrap();
+            i += 1;
+        }
+        if i == 0 {
+            panic!("empty stream");
         }
     }
 
     #[tokio::test]
     #[ignore]
     async fn unique_artwork() {
-        let mut stream = super::unique_artwork().await.unwrap();
+        let mut stream = pin!(super::unique_artwork().await.unwrap());
         while let Some(card) = stream.next().await {
             card.unwrap();
         }
@@ -279,7 +265,7 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn default_cards() {
-        let mut stream = super::default_cards().await.unwrap();
+        let mut stream = pin!(super::default_cards().await.unwrap());
         while let Some(card) = stream.next().await {
             card.unwrap();
         }
@@ -288,7 +274,7 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn all_cards() {
-        let mut stream = super::all_cards().await.unwrap();
+        let mut stream = pin!(super::all_cards().await.unwrap());
         while let Some(card) = stream.next().await {
             card.unwrap();
         }
@@ -297,36 +283,9 @@ mod tests {
     #[tokio::test]
     #[ignore]
     async fn rulings() {
-        let mut stream = super::rulings().await.unwrap();
+        let mut stream = pin!(super::rulings().await.unwrap());
         while let Some(card) = stream.next().await {
             card.unwrap();
-        }
-    }
-
-    #[tokio::test]
-    async fn test_parse_list() {
-        use crate::ruling::Ruling;
-        let s = r#"[
-                      {
-                        "object": "ruling",
-                        "oracle_id": "0004ebd0-dfd6-4276-b4a6-de0003e94237",
-                        "source": "wotc",
-                        "published_at": "2004-10-04",
-                        "comment": "If there are two of these on the battlefield, they do not add together. The result is that only two permanents can be untapped."
-                      },
-                      {
-                        "object": "ruling",
-                        "oracle_id": "0007c283-5b7a-4c00-9ca1-b455c8dff8c3",
-                        "source": "wotc",
-                        "published_at": "2019-08-23",
-                        "comment": "The “commander tax” increases based on how many times a commander was cast from the command zone. Casting a commander from your hand doesn’t require that additional cost, and it doesn’t increase what the cost will be the next time you cast that commander from the command zone."
-                      }
-                   ]"#;
-        let mut stream =
-            streaming_deserializer::create(s.as_bytes()).map(|r: crate::Result<Ruling>| r.unwrap());
-
-        while let Some(r) = stream.next().await {
-            drop(r)
         }
     }
 }

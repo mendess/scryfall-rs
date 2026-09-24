@@ -1,8 +1,9 @@
 use futures::StreamExt;
+use std::pin::pin;
 
 #[tokio::main]
 async fn main() -> scryfall::Result<()> {
-    let mut stream = scryfall::bulk::all_cards().await?;
+    let mut stream = pin!(scryfall::bulk::all_cards().await?);
 
     let mut error_count = 0;
     let mut count = 0;

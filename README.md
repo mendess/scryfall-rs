@@ -20,8 +20,8 @@ REST Apis
 
 ```rust
 use scryfall::card::Card;
-match Card::named_fuzzy("Light Bolt") {
-    Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
+match Card::named_fuzzy("Heal Salv") {
+    Ok(card) => assert_eq!(card.name, "Healing Salve"),
     Err(e) => panic!(format!("{:?}", e))
 }
 ```

@@ -420,7 +420,9 @@ mod tests {
             Query::from(criterion)
                 .random()
                 .await
-                .unwrap_or_else(|_| panic!("Failed to get a card for {}", criterion));
+                .unwrap_or_else(|e| panic!("Failed to get a card for {criterion}: {e:?}"));
+            // respect scryfall's rate limiting rules
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     }
 
@@ -431,7 +433,9 @@ mod tests {
             Query::from(criterion)
                 .random()
                 .await
-                .unwrap_or_else(|_| panic!("Failed to get a printing for {}", criterion));
+                .unwrap_or_else(|e| panic!("Failed to get a printing for {criterion}: {e:?}"));
+            // respect scryfall's rate limiting rules
+            tokio::time::sleep(std::time::Duration::from_secs(1)).await;
         }
     }
 }

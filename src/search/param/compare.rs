@@ -36,7 +36,7 @@ pub struct Compare<T> {
 
 impl<T: fmt::Display> fmt::Display for Compare<T> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}{}", compare_op_str(Some(self.op)), &self.value)
+        write!(f, "{}{}", compare_op_str(Some(self.op)), self.value)
     }
 }
 

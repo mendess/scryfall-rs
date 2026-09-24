@@ -779,8 +779,8 @@ impl Card {
     /// ```rust
     /// use scryfall::card::Card;
     /// # tokio_test::block_on(async {
-    /// match Card::named_fuzzy("Light Bolt").await {
-    ///     Ok(card) => assert_eq!(card.name, "Lightning Bolt"),
+    /// match Card::named_fuzzy("Heal Salv").await {
+    ///     Ok(card) => assert_eq!(card.name, "Healing Salve"),
     ///     Err(e) => panic!("{:?}", e),
     /// }
     /// # })

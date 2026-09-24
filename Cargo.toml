@@ -1,6 +1,6 @@
 [package]
 name = "scryfall"
-version = "0.25.0"
+version = "0.26.0"
 authors = ["Mendess2526 <pedro.mendes.26@gmail.com>"]
 edition = "2021"
 description = "A wrapper around the scryfall magic the gathering api"
@@ -48,6 +48,11 @@ tokio-stream = {version = "0.1.17", features = ["sync"]}
 tokio-util = {version = "0.7.13", features = ["io-util", "io"]}
 url = { version = "2", features = ["serde"] }
 uuid = { version = "1", features = ["serde"] }
+
+[dependencies.async-compression]
+version = "0.4"
+default-features = false
+features = ["tokio", "gzip"]
 
 [dev-dependencies]
 strum = { version = "0.26", features = ["derive"] }

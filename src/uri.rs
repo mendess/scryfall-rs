@@ -4,12 +4,16 @@
 //! run to obtain more information. This module abstracts the work of fetching
 //! that data.
 use std::convert::TryFrom;
+use std::io;
 use std::marker::PhantomData;
 
+use async_compression::tokio::bufread::GzipDecoder;
+use futures::{stream, Stream, TryStreamExt as _};
 use httpstatus::StatusCode;
 use reqwest::header::{self, HeaderValue};
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use tokio::io::{AsyncBufRead, AsyncReadExt as _, BufReader};
+use tokio_util::io::StreamReader;
 use url::Url;
 
 use crate::error::Error;
@@ -22,12 +26,21 @@ use crate::list::{List, ListIter};
 /// [`List`]`<_>`, then additional methods `fetch_iter`
 /// and `fetch_all` are available, giving access to objects from all pages
 /// of the collection.
-#[derive(Serialize, Deserialize, Clone, Eq, PartialEq, Hash)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Hash)]
 #[cfg_attr(test, serde(deny_unknown_fields))]
 #[serde(transparent)]
 pub struct Uri<T> {
     url: Url,
     _marker: PhantomData<fn() -> T>,
+}
+
+impl<T> Clone for Uri<T> {
+    fn clone(&self) -> Self {
+        Self {
+            url: self.url.clone(),
+            _marker: self._marker,
+        }
+    }
 }
 
 impl<T> std::fmt::Debug for Uri<T> {
@@ -98,6 +111,7 @@ fn create_client() -> reqwest::Client {
         .build()
         .unwrap()
 }
+
 #[cfg(test)]
 use create_client as client;
 
@@ -137,22 +151,37 @@ impl<T: DeserializeOwned> Uri<T> {
             Err(e) => Err(e),
         }
     }
+}
 
+impl<T> Uri<T> {
     pub(crate) async fn fetch_raw(&self) -> crate::Result<reqwest::Response> {
-        match client().get(self.url.clone()).send().await {
-            Ok(response) => match response.status().as_u16() {
-                400..=599 => Err(Error::ScryfallError(response.json().await.map_err(
-                    |e| Error::ReqwestError {
+        #[cfg_attr(not(test), expect(clippy::never_loop))]
+        loop {
+            match client().get(self.url.clone()).send().await {
+                Ok(response) => match response.status().as_u16() {
+                    #[cfg(any(test, doctest))] // TODO: this does not work
+                    429 => {
+                        let seconds = 60 + rand::random_range(0..120);
+                        eprintln!("rate limited. Sleeping it over for {seconds}");
+                        tokio::time::sleep(std::time::Duration::from_secs(seconds)).await;
+                    },
+                    400..=599 => {
+                        return Err(Error::ScryfallError(response.json().await.map_err(
+                            |e| Error::ReqwestError {
+                                error: e.into(),
+                                url: self.url.clone(),
+                            },
+                        )?))
+                    },
+                    _ => return Ok(response),
+                },
+                Err(e) => {
+                    return Err(Error::ReqwestError {
                         error: e.into(),
                         url: self.url.clone(),
-                    },
-                )?)),
-                _ => Ok(response),
-            },
-            Err(e) => Err(Error::ReqwestError {
-                error: e.into(),
-                url: self.url.clone(),
-            }),
+                    })
+                },
+            }
         }
     }
 }
@@ -236,7 +265,7 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
         let mut items = vec![];
         let mut next_page = Some(self.fetch().await?);
         while let Some(page) = next_page {
-            items.extend(page.data.into_iter());
+            items.extend(page.data);
             next_page = match page.next_page {
                 Some(uri) => Some(uri.fetch().await?),
                 None => None,
@@ -244,4 +273,68 @@ impl<T: DeserializeOwned + Send + Sync + Unpin> Uri<List<T>> {
         }
         Ok(items)
     }
+}
+
+/// A gziped json lines file.
+///
+/// See https://scryfall.com/docs/api/bulk-data
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Jsonl<T>(T);
+
+impl<T: DeserializeOwned> Uri<Jsonl<T>> {
+    /// Stream the gziped jsonlines file.
+    pub async fn fetch_stream_jsonl(&self) -> crate::Result<impl Stream<Item = crate::Result<T>>> {
+        fetch_stream_jsonl(BufReader::new(StreamReader::new(
+            self.fetch_raw()
+                .await?
+                .bytes_stream()
+                .map_err(io::Error::other),
+        )))
+    }
+}
+
+pub(crate) fn fetch_stream_jsonl<S, T>(
+    stream: S,
+) -> crate::Result<impl Stream<Item = crate::Result<T>>>
+where
+    S: AsyncBufRead + Unpin,
+    T: DeserializeOwned,
+{
+    let decoder = GzipDecoder::new(stream);
+    Ok(stream::try_unfold(
+        (Vec::new(), decoder),
+        async |(mut buffer, mut decoder)| {
+            let mut stack_buf = [0; 4096];
+            loop {
+                let nl = buffer.iter().position(|b| *b == b'\n');
+                if let Some(nl) = nl {
+                    let string = std::str::from_utf8(&buffer[0..nl]).map_err(io::Error::other)?;
+                    let t = serde_json::from_str::<T>(string)?;
+                    let leftover = buffer.len().saturating_sub(nl).saturating_sub(1);
+                    buffer.copy_within((nl + 1).., 0);
+                    buffer.truncate(leftover);
+                    return Ok(Some((t, (buffer, decoder))));
+                }
+                let filled = decoder.read(&mut stack_buf).await?;
+                if filled == 0 {
+                    if buffer.is_empty() {
+                        return Ok(None);
+                    } else {
+                        return Err(crate::Error::IoError(io::Error::new(
+                            io::ErrorKind::UnexpectedEof,
+                            "unterminated json line",
+                        )));
+                    }
+                }
+                buffer.extend_from_slice(&stack_buf[..filled]);
+                // one megabyte long
+                if buffer.len() > 1024 * 1024 {
+                    return Err(crate::Error::IoError(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "json line too long",
+                    )));
+                }
+            }
+        },
+    ))
 }
