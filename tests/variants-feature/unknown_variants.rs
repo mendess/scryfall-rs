@@ -80,6 +80,8 @@ fn match_on_layout(f: Layout) {
         Layout::Prototype => todo!(),
         Layout::Mutate => todo!(),
         Layout::Case => todo!(),
+        Layout::Prepare => todo!(),
+        Layout::FrontCard => todo!(),
         Layout::Unknown(_) => todo!(),
     }
 }
@@ -167,6 +169,7 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::Gameday => todo!(),
         PromoType::Giftbox => todo!(),
         PromoType::Gilded => todo!(),
+        PromoType::GleamingGold => todo!(),
         PromoType::Glossy => todo!(),
         PromoType::Godzillaseries => todo!(),
         PromoType::Halofoil => todo!(),
@@ -228,6 +231,11 @@ fn match_on_promo_type(f: PromoType) {
         PromoType::UpsideDownBack => todo!(),
         PromoType::Vault => todo!(),
         PromoType::Wizardsplaynetwork => todo!(),
+        PromoType::FacetFoil => todo!(),
+        PromoType::Dazzlefoil => todo!(),
+        PromoType::SilverScroll => todo!(),
+        PromoType::JapanShowcase => todo!(),
+        PromoType::StandardShowdown => todo!(),
     }
 }
 

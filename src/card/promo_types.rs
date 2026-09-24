@@ -65,6 +65,7 @@ pub enum PromoType {
     Gameday,
     Giftbox,
     Gilded,
+    GleamingGold,
     Glossy,
     Godzillaseries,
     Halofoil,

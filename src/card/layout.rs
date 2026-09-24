@@ -65,14 +65,16 @@ pub enum Layout {
     ArtSeries,
     /// A Magic card with two sides that are unrelated.
     ReversibleCard,
-    /// Prototype
+    /// Cards with Prototype
     Prototype,
-    /// Mutate
+    /// Cards with Mutate
     Mutate,
-    /// Case
+    /// Case-type enchantment cards
     Case,
-    /// Prepare
+    /// Cards with a prepared spell part
     Prepare,
+    /// A extra card that indicates a deck type
+    FrontCard,
     #[cfg_attr(
         docsrs,
         doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))
