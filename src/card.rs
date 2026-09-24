@@ -189,24 +189,38 @@ impl IndexMut<Format> for CardLegality {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
-#[cfg_attr(test, serde(deny_unknown_fields))]
 /// Scryfall produces multiple sizes of images and image crops for each Card object. Links to these
 /// images are available in each Card objects’ image_uris properties.
 ///
 /// Field         | Size       | Format | Example
 ///  ---          | ---        | ---    | ---
 /// `png`         | 745 × 1040 | PNG    | [Example Image](https://cards.scryfall.io/png/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.png?1562404626)
+/// `small`       | 146 × 204  | JPG    | [Example Image](https://cards.scryfall.io/small/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+/// `normal`      | 488 × 680  | JPG    | [Example Image](https://cards.scryfall.io/normal/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+/// `large`       | 672 × 936  | JPG    | [Example Image](https://cards.scryfall.io/large/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
 /// `border_crop` | 480 × 680  | JPG    | [Example Image](https://cards.scryfall.io/border_crop/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
 /// `art_crop`    | Varies     | JPG    | [Example Image](https://cards.scryfall.io/art_crop/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
-/// `large`       | 672 × 936  | JPG    | [Example Image](https://cards.scryfall.io/large/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
-/// `normal`      | 488 × 680  | JPG    | [Example Image](https://cards.scryfall.io/normal/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
-/// `small`       | 146 × 204  | JPG    | [Example Image](https://cards.scryfall.io/small/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.jpg?1562404626)
+/// `thumb`       | 146 × 204  | WEBP   | [Example Image](https://cards.scryfall.io/thumb/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.webp?1783937061)
+/// `grid`        | 488 × 680  | WEBP   | [Example Image](https://cards.scryfall.io/grid/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.webp?1783937061)
+/// `display`     | 672 × 936  | WEBP   | [Example Image](https://cards.scryfall.io/display/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.webp?1783937061)
+/// `crop`        | 480 × 680  | WEBP   | [Example Image](https://cards.scryfall.io/crop/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.webp?1783937061)
+/// `art`         | 626 × 457  | WEBP   | [Example Image](https://cards.scryfall.io/art/front/6/d/6da045f8-6278-4c84-9d39-025adf0789c1.webp?1783937061)
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Clone)]
+#[cfg_attr(test, serde(deny_unknown_fields))]
 pub struct ImageUris {
     /// A transparent, rounded full card PNG. This is the best image to use for videos or other
     /// high-quality content.
     #[serde(default)]
     pub png: Option<Url>,
+    /// A small full card image. Designed for use as thumbnail or list icon.
+    #[serde(default)]
+    pub small: Option<Url>,
+    /// A medium-sized full card image
+    #[serde(default)]
+    pub normal: Option<Url>,
+    ///  A large full card image
+    #[serde(default)]
+    pub large: Option<Url>,
     /// A full card image with the rounded corners and the majority of the border cropped off.
     /// Designed for dated contexts where rounded images can’t be used.
     #[serde(default)]
@@ -215,15 +229,22 @@ pub struct ImageUris {
     /// outlier designs or strange frame arrangements
     #[serde(default)]
     pub art_crop: Option<Url>,
-    ///  A large full card image
+    /// A small thumbnail of the card image, replaces small
     #[serde(default)]
-    pub large: Option<Url>,
-    /// A medium-sized full card image
+    pub thumb: Option<Url>,
+    /// A medium-sized full card image, replaces normal
     #[serde(default)]
-    pub normal: Option<Url>,
-    /// A small full card image. Designed for use as thumbnail or list icon.
+    pub grid: Option<Url>,
+    /// A large full card image, replaces large
     #[serde(default)]
-    pub small: Option<Url>,
+    pub display: Option<Url>,
+    /// A full card image with the rounded corners and the majority of the border cropped off.
+    /// Replaces border_crop
+    #[serde(default)]
+    pub crop: Option<Url>,
+    /// A rectangular crop of the card’s art only. Replaces `art_crop`.
+    #[serde(default)]
+    pub art: Option<Url>,
 }
 
 /// Card objects represent individual Magic: The Gathering cards that players
@@ -565,10 +586,11 @@ pub struct Card {
 
     /// The lit Unfinity attractions lights on this card, if any.
     pub attraction_lights: Option<Vec<u8>>,
-    /* ======================
-     * endregion Print Fields */
+
     /// fooo
     pub image_updated_at: String,
+    // ======================
+    // endregion Print Fields
     #[cfg(test)]
     #[serde(rename = "object")]
     _object: String,
