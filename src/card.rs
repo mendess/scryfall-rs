@@ -245,6 +245,9 @@ pub struct ImageUris {
     /// A rectangular crop of the card’s art only. Replaces `art_crop`.
     #[serde(default)]
     pub art: Option<Url>,
+    /// The same as `normal` but as a jpeg instead of a webp
+    #[serde(default)]
+    pub jpeg: Option<Url>,
 }
 
 /// Card objects represent individual Magic: The Gathering cards that players

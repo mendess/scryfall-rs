@@ -92,6 +92,10 @@ pub enum FrameEffect {
     Wanted,
     /// Placeholder Image
     PlaceholderImage,
+    /// Translucent
+    Translucent,
+    /// Surge foil
+    SurgeFoil,
     #[cfg_attr(
         docsrs,
         doc(cfg(any(feature = "unknown_variants", feature = "unknown_variants_slim")))
@@ -153,6 +157,8 @@ impl std::fmt::Display for FrameEffect {
                 Borderless => "borderless",
                 Vehicle => "vehicle",
                 Spree => "spree",
+                Translucent => "translucent",
+                SurgeFoil => "surgefoil",
                 PlaceholderImage => "placeholderimage",
                 #[cfg(feature = "unknown_variants")]
                 Unknown(s) => s,

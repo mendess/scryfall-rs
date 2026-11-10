@@ -56,6 +56,8 @@ fn match_on_frame_effect(f: FrameEffect) {
         FrameEffect::Borderless => todo!(),
         FrameEffect::Vehicle => todo!(),
         FrameEffect::Spree => todo!(),
+        FrameEffect::Translucent => todo!(),
+        FrameEffect::SurgeFoil => todo!(),
         FrameEffect::PlaceholderImage => todo!(),
         FrameEffect::Unknown => todo!(),
     }
